@@ -11,6 +11,13 @@ const NAV = [
   { icon: '🤖', label: 'Bots', to: '/bots' },
 ]
 
+const MOBILE_NAV = [
+  { icon: '📊', label: 'Dashboard', to: '/dashboard' },
+  { icon: '💱', label: 'Markets', to: '/markets' },
+  { icon: '🤖', label: 'Bots', to: '/bots' },
+  { icon: '⚡', label: 'Trade', to: '/spot' },
+]
+
 export default function DashNav() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -68,7 +75,7 @@ export default function DashNav() {
 
       {/* ── MOBILE: bottom tab bar ── */}
       <nav className="dashnav-footer">
-        {NAV.map(n => (
+        {MOBILE_NAV.map(n => (
           <NavLink
             key={n.to}
             to={n.to}
