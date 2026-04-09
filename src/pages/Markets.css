@@ -25,7 +25,6 @@
 }
 
 .markets-table tr:last-child td { border-bottom: none; }
-
 .markets-table tr:hover td { background: var(--bg-secondary); }
 
 .td-num { color: var(--text-muted); font-size: 12px; width: 40px; }
@@ -41,6 +40,24 @@
   height: 36px;
   border-radius: 50%;
   background: var(--green-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pair-coin-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pair-icon-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   color: var(--green);
   display: flex;
   align-items: center;
@@ -57,7 +74,6 @@
 }
 
 .td-price { color: var(--text-primary); }
-
 .td-change { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
 .td-change.up { color: var(--green); }
 .td-change.down { color: var(--red); }
@@ -75,6 +91,7 @@
   transition: all 0.15s;
   white-space: nowrap;
 }
+
 .trade-btn:hover {
   background: var(--green);
   color: #000;
