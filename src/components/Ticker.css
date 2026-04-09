@@ -1,19 +1,19 @@
 .ticker-wrapper {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border);
+  background: #0a0d0f;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
   overflow: hidden;
-  height: 36px;
+  height: 38px;
   display: flex;
   align-items: center;
   width: 100%;
-  position: relative;
 }
 
 .ticker-track {
   display: flex;
-  gap: 0;
-  animation: ticker-scroll 40s linear infinite;
+  align-items: center;
+  animation: ticker-scroll 60s linear infinite;
   white-space: nowrap;
+  will-change: transform;
 }
 
 @keyframes ticker-scroll {
@@ -25,59 +25,53 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 0 20px;
-  border-right: 1px solid var(--border);
-  font-size: 12px;
+  padding: 0 24px;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
 }
 
-.ticker-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
+.coin-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
   flex-shrink: 0;
 }
 
-.coin-img {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.coin-fallback {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--bg-card);
-  color: var(--text-muted);
-  font-size: 8px;
-  font-weight: 700;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-}
-
 .ticker-symbol {
-  color: var(--text-primary);
+  color: #ffffff;
   font-weight: 700;
-  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.01em;
 }
 
 .ticker-price {
-  color: var(--text-primary);
-  font-size: 12px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-.ticker-change.up { color: var(--green); }
-.ticker-change.down { color: var(--red); }
+.ticker-change {
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.ticker-change.up   { color: #22c55e; }
+.ticker-change.down { color: #ef4444; }
 
 @media (max-width: 768px) {
-  .ticker-wrapper { height: 32px; }
+  .ticker-wrapper { height: 34px; }
   .ticker-item {
-    padding: 0 14px;
+    padding: 0 16px;
     font-size: 11px;
+    gap: 6px;
   }
-  .ticker-track { animation-duration: 30s; }
+  .coin-logo { width: 18px; height: 18px; }
+  .ticker-symbol,
+  .ticker-price,
+  .ticker-change { font-size: 11px; }
+  .ticker-track { animation-duration: 40s; }
 }
