@@ -1,57 +1,43 @@
-import { useTicker } from '../hooks/useTicker'
-import './Ticker.css'
+import { useState, useEffect } from 'react'
 
-const COIN_LOGOS = {
-  BTC:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png',
-  ETH:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png',
-  BNB:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bnb.png',
-  SOL:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png',
-  XRP:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xrp.png',
-  ADA:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ada.png',
-  DOGE: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/doge.png',
-  TRX:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/trx.png',
-  USDT: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdt.png',
-  USDC: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdc.png',
-  LTC:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ltc.png',
-  DOT:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/dot.png',
-  MATIC:'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/matic.png',
-  LINK: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/link.png',
-  AVAX: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/avax.png',
+const PAIRS = [
+  { symbol: 'BTC/USDT',  price: 66558.00, change: 0.68 },
+  { symbol: 'ETH/USDT',  price: 2044.43,  change: 0.99 },
+  { symbol: 'BNB/USDT',  price: 606.97,   change: 0.97 },
+  { symbol: 'SOL/USDT',  price: 84.49,    change: 2.33 },
+  { symbol: 'XRP/USDT',  price: 1.3566,   change: 1.03 },
+  { symbol: 'ADA/USDT',  price: 0.2568,   change: 2.39 },
+  { symbol: 'DOGE/USDT', price: 0.1423,   change: 1.15 },
+  { symbol: 'TRX/USDT',  price: 0.1234,   change: 0.54 },
+  { symbol: 'AVAX/USDT', price: 28.45,    change: -0.87 },
+  { symbol: 'LINK/USDT', price: 13.22,    change: 1.44 },
+  { symbol: 'DOT/USDT',  price: 6.48,     change: -0.33 },
+  { symbol: 'MATIC/USDT',price: 0.5821,   change: 0.72 },
+  { symbol: 'LTC/USDT',  price: 82.34,    change: -0.21 },
+  { symbol: 'UNI/USDT',  price: 7.93,     change: 1.88 },
+  { symbol: 'ATOM/USDT', price: 8.12,     change: -0.56 },
+]
+
+export function useTicker() {
+  const [pairs, setPairs] = useState(PAIRS)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPairs(prev => prev.map(p => ({
+        ...p,
+        price: +(p.price * (1 + (Math.random() - 0.5) * 0.001)).toFixed(p.price > 1000 ? 2 : 4),
+        change: +((p.change + (Math.random() - 0.5) * 0.05)).toFixed(2)
+      })))
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return pairs
 }
 
-export default function Ticker() {
-  const pairs = useTicker()
-  const doubled = [...pairs, ...pairs]
-
-  return (
-    <div className="ticker-wrapper">
-      <div className="ticker-track">
-        {doubled.map((p, i) => {
-          const base = p.symbol.split('/')[0]
-          const logo = COIN_LOGOS[base]
-          const isUp = p.change >= 0
-
-          return (
-            <span key={i} className="ticker-item">
-              {logo && (
-                <img
-                  src={logo}
-                  alt={base}
-                  className="coin-logo"
-                  onError={e => e.target.style.display = 'none'}
-                />
-              )}
-              <span className="ticker-symbol">{p.symbol}</span>
-              <span className="ticker-price">
-                {p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-              </span>
-              <span className={`ticker-change ${isUp ? 'up' : 'down'}`}>
-                {isUp ? '+' : ''}{p.change.toFixed(2)} ({isUp ? '+' : ''}{p.change.toFixed(2)}%)
-              </span>
-            </span>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+export const CRYPTO_DATA = [
+  { id: 'BTC',  name: 'Bitcoin',  symbol: 'BTC',  price: 66558.00, change: 0.68,  amount: 0.01, color: '#F7931A' },
+  { id: 'ETH',  name: 'Ethereum', symbol: 'ETH',  price: 2044.43,  change: 0.99,  amount: 0.25, color: '#627EEA' },
+  { id: 'SOL',  name: 'Solana',   symbol: 'SOL',  price: 84.49,    change: 2.14,  amount: 1.5,  color: '#9945FF' },
+  { id: 'BNB',  name: 'BNB',      symbol: 'BNB',  price: 606.97,   change: -0.42, amount: 0.5,  color: '#F3BA2F' },
+]
