@@ -17,8 +17,8 @@ const BOT_CONFIGS = [
     subtitle: 'Weekly • DCA',
     description: 'Dollar-cost averaging into Bitcoin on a weekly basis.',
     risk: 'Low',
-    interval: 8000,
-    drift: 0.008,      // doubled from 0.004
+    interval: 2000,    // fast: trade every 2s
+    drift: 0.008,
     volatility: 0.012,
   },
   {
@@ -27,8 +27,8 @@ const BOT_CONFIGS = [
     subtitle: 'Daily • DCA',
     description: 'Dynamic DCA based on RSI and volume indicators.',
     risk: 'Medium',
-    interval: 5000,
-    drift: 0.014,      // doubled from 0.007
+    interval: 1500,    // fast: trade every 1.5s
+    drift: 0.014,
     volatility: 0.025,
   },
 ]
@@ -99,17 +99,19 @@ function BotCard({ bot, balance, userId }) {
   }
 
   function tick() {
-    const r      = (Math.random() * 2 - 1) * bot.volatility + bot.drift
+    // 75% win rate → profits 3x more frequent than losses
+    const isWin  = Math.random() < 0.75
+    const mag    = Math.random() * bot.volatility + bot.drift
+    const r      = isWin ? Math.abs(mag) : -Math.abs(mag) * 0.4  // losses smaller too
     const stake  = allocatedRef.current * 0.1
     const gained = parseFloat((stake * r).toFixed(2))
 
     applyDelta(gained).then(() => {
       setPnl(prev => parseFloat((prev + gained).toFixed(2)))
       setTicks(t => t + 1)
-      const up = gained >= 0
       addLog(
-        `${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`,
-        up ? '#16a34a' : '#ff4d6a'
+        `${isWin ? '↑' : '↓'} Trade ${isWin ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`,
+        isWin ? '#16a34a' : '#ff4d6a'
       )
     })
   }
