@@ -1,7 +1,3 @@
-/* ════════════════════════════════════════
-   DESKTOP HEADER (≥ 768px)
-════════════════════════════════════════ */
-
 .dashnav-header {
   display: none;
   width: 100%;
@@ -17,9 +13,7 @@
 }
 
 @media (min-width: 768px) {
-  .dashnav-header {
-    display: flex;
-  }
+  .dashnav-header { display: flex; }
 }
 
 .dashnav-logo {
@@ -74,9 +68,7 @@
   border: 1px solid #16a34a22;
 }
 
-.nav-icon {
-  font-size: 15px;
-}
+.nav-icon { font-size: 15px; }
 
 .dashnav-right {
   display: flex;
@@ -105,10 +97,7 @@
   flex-shrink: 0;
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-}
+.user-info { display: flex; flex-direction: column; }
 
 .user-email {
   font-size: 12px;
@@ -142,10 +131,6 @@
   color: var(--red);
 }
 
-/* ════════════════════════════════════════
-   MOBILE BOTTOM TAB BAR (< 768px)
-════════════════════════════════════════ */
-
 .dashnav-footer {
   display: flex;
   position: fixed;
@@ -160,9 +145,7 @@
 }
 
 @media (min-width: 768px) {
-  .dashnav-footer {
-    display: none;
-  }
+  .dashnav-footer { display: none; }
 }
 
 .footer-link {
@@ -186,9 +169,7 @@
 }
 
 .footer-link:hover,
-.footer-link.active {
-  color: var(--green);
-}
+.footer-link.active { color: var(--green); }
 
 .footer-link.active::before {
   content: '';
@@ -202,14 +183,8 @@
   border-radius: 0 0 2px 2px;
 }
 
-.footer-icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
-.footer-label {
-  font-size: 10px;
-}
+.footer-icon { font-size: 18px; line-height: 1; }
+.footer-label { font-size: 10px; }
 
 .footer-avatar {
   width: 26px;
