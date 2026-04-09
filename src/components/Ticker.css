@@ -16,10 +16,15 @@
   white-space: nowrap;
 }
 
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 .ticker-item {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 0 20px;
   border-right: 1px solid var(--border);
   font-size: 12px;
@@ -29,14 +34,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.coin-img {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  color: #fff;
-  font-size: 11px;
+  object-fit: cover;
+}
+
+.coin-fallback {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 8px;
   font-weight: 700;
+  align-items: center;
+  justify-content: center;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 .ticker-symbol {
@@ -52,15 +72,12 @@
 
 .ticker-change.up { color: var(--green); }
 .ticker-change.down { color: var(--red); }
+
 @media (max-width: 768px) {
-  .ticker-wrapper {
-    height: 32px;
-  }
+  .ticker-wrapper { height: 32px; }
   .ticker-item {
-    padding: 0 18px;
+    padding: 0 14px;
     font-size: 11px;
   }
-  .ticker-track {
-    animation-duration: 30s;
-  }
+  .ticker-track { animation-duration: 30s; }
 }
