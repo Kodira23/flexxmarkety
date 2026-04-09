@@ -4,7 +4,6 @@ import DashNav from '../components/DashNav'
 import { useTicker } from '../hooks/useTicker'
 import { supabase } from '../supabase'
 import { useBalance } from './Dashboard'
-import TawkChat from '../components/TawkChat'
 import './PlaceholderPage.css'
 
 const MIN_BALANCE = 50
