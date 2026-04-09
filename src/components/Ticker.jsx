@@ -1,21 +1,24 @@
 import { useTicker } from '../hooks/useTicker'
 import './Ticker.css'
 
-const TOKEN_COLORS = {
-  BTC: '#F7931A',
-  ETH: '#627EEA',
-  SOL: '#9945FF',
-  BNB: '#F3BA2F',
-  XRP: '#00A3FF',
-  USD: '#38B2AC',
-  EUR: '#7F9CF5',
-  GBP: '#F687B3',
-  default: '#4A5568',
+const COIN_IDS = {
+  BTC: 'bitcoin',
+  ETH: 'ethereum',
+  SOL: 'solana',
+  BNB: 'binancecoin',
+  XRP: 'ripple',
+  USDT: 'tether',
+  USDC: 'usd-coin',
+  ADA: 'cardano',
+  DOGE: 'dogecoin',
+  TRX: 'tron',
 }
 
-function getBadgeColor(symbol) {
+function getCoinLogo(symbol) {
   const base = symbol.split('/')[0]
-  return TOKEN_COLORS[base] || TOKEN_COLORS.default
+  const id = COIN_IDS[base]
+  if (id) return `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${base.toLowerCase()}.png`
+  return null
 }
 
 function getBadgeLabel(symbol) {
@@ -29,23 +32,29 @@ export default function Ticker() {
   return (
     <div className="ticker-wrapper">
       <div className="ticker-track">
-        {doubled.map((p, i) => (
-          <span key={i} className="ticker-item">
-            <span
-              className="ticker-icon"
-              style={{ background: getBadgeColor(p.symbol) }}
-            >
-              {getBadgeLabel(p.symbol)}
+        {doubled.map((p, i) => {
+          const logo = getCoinLogo(p.symbol)
+          return (
+            <span key={i} className="ticker-item">
+              <span className="ticker-icon">
+                {logo
+                  ? <img src={logo} alt={getBadgeLabel(p.symbol)} className="coin-img" onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
+                  : null
+                }
+                <span className="coin-fallback" style={{ display: logo ? 'none' : 'flex' }}>
+                  {getBadgeLabel(p.symbol).slice(0, 3)}
+                </span>
+              </span>
+              <span className="ticker-symbol">{p.symbol}</span>
+              <span className="ticker-price font-mono">
+                {p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+              </span>
+              <span className={`ticker-change font-mono ${p.change >= 0 ? 'up' : 'down'}`}>
+                {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
+              </span>
             </span>
-            <span className="ticker-symbol">{p.symbol}</span>
-            <span className="ticker-price font-mono">
-              {p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-            </span>
-            <span className={`ticker-change font-mono ${p.change >= 0 ? 'up' : 'down'}`}>
-              {p.change >= 0 ? '↑' : '↓'} {Math.abs(p.change).toFixed(2)}%
-            </span>
-          </span>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
