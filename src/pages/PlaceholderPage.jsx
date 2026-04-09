@@ -4,12 +4,12 @@ import DashNav from '../components/DashNav'
 import { useTicker } from '../hooks/useTicker'
 import { supabase } from '../supabase'
 import { useBalance } from './Dashboard'
+import TawkChat from '../components/TawkChat'
 import './PlaceholderPage.css'
 
-const MIN_BALANCE = 50 // minimum balance to run a bot
+const MIN_BALANCE = 50
 
-// ── BOT DEFINITIONS ────────────────────────────────────────────────────
-// interval: ms between trades, drift: avg gain per tick, volatility: randomness
+// ── BOT DEFINITIONS — drift doubled from original ──────────────────────
 const BOT_CONFIGS = [
   {
     id: 1,
@@ -17,8 +17,8 @@ const BOT_CONFIGS = [
     subtitle: 'Weekly • DCA',
     description: 'Dollar-cost averaging into Bitcoin on a weekly basis.',
     risk: 'Low',
-    interval: 8000,   // trade every 8s (simulates weekly)
-    drift: 0.004,     // +0.4% average per tick
+    interval: 8000,
+    drift: 0.008,      // doubled from 0.004
     volatility: 0.012,
   },
   {
@@ -27,13 +27,12 @@ const BOT_CONFIGS = [
     subtitle: 'Daily • DCA',
     description: 'Dynamic DCA based on RSI and volume indicators.',
     risk: 'Medium',
-    interval: 5000,   // trade every 5s (simulates daily)
-    drift: 0.007,     // +0.7% average per tick
+    interval: 5000,
+    drift: 0.014,      // doubled from 0.007
     volatility: 0.025,
   },
 ]
 
-// ── INSUFFICIENT BALANCE BANNER ────────────────────────────────────────
 function InsufficientBanner() {
   return (
     <div style={{
@@ -60,28 +59,28 @@ function InsufficientBanner() {
   )
 }
 
-// ── SINGLE BOT CARD ────────────────────────────────────────────────────
 function BotCard({ bot, balance, userId }) {
-  const canRun        = balance >= MIN_BALANCE
-  const [active,      setActive]      = useState(false)
-  const [configured,  setConfigured]  = useState(false)
-  const [showConfig,  setShowConfig]  = useState(false)
-  const [allocation,  setAllocation]  = useState('')   // USD amount to allocate
-  const [log,         setLog]         = useState([])   // trade log entries
-  const [pnl,         setPnl]         = useState(0)    // running P&L for this bot
-  const [ticks,       setTicks]       = useState(0)
-  const intervalRef   = useRef(null)
-  const allocatedRef  = useRef(0)      // how much this bot has allocated
+  const canRun       = balance >= MIN_BALANCE
+  const [active,     setActive]     = useState(false)
+  const [configured, setConfigured] = useState(false)
+  const [showConfig, setShowConfig] = useState(false)
+  const [allocation, setAllocation] = useState('')
+  const [log,        setLog]        = useState([])
+  const [pnl,        setPnl]        = useState(0)
+  const [ticks,      setTicks]      = useState(0)
+  const intervalRef  = useRef(null)
+  const allocatedRef = useRef(0)
 
-  // Cleanup on unmount
   useEffect(() => () => clearInterval(intervalRef.current), [])
 
   function addLog(msg, color = '#aaa') {
-    setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }, ...prev].slice(0, 8))
+    setLog(prev => [
+      { msg, color, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) },
+      ...prev,
+    ].slice(0, 8))
   }
 
   async function applyDelta(delta) {
-    // Read latest balance first, then write delta
     const { data } = await supabase
       .from('balances')
       .select('amount')
@@ -100,9 +99,8 @@ function BotCard({ bot, balance, userId }) {
   }
 
   function tick() {
-    // Simulate a trade: random return centered on drift
     const r      = (Math.random() * 2 - 1) * bot.volatility + bot.drift
-    const stake  = allocatedRef.current * 0.1   // trade 10% of allocation per tick
+    const stake  = allocatedRef.current * 0.1
     const gained = parseFloat((stake * r).toFixed(2))
 
     applyDelta(gained).then(() => {
@@ -124,7 +122,6 @@ function BotCard({ bot, balance, userId }) {
   async function handleStart() {
     if (!canRun || !configured) return
     if (active) {
-      // Stop bot
       clearInterval(intervalRef.current)
       setActive(false)
       addLog('🛑 Bot stopped', '#ffaa00')
@@ -143,8 +140,8 @@ function BotCard({ bot, balance, userId }) {
 
   function handleSaveConfig() {
     const alloc = parseFloat(allocation)
-    if (!alloc || alloc < 10)    { addLog('⚠️ Enter allocation ≥ $10', '#ff4d6a'); return }
-    if (alloc > balance)         { addLog('⚠️ Allocation exceeds balance', '#ff4d6a'); return }
+    if (!alloc || alloc < 10) { addLog('⚠️ Enter allocation ≥ $10', '#ff4d6a'); return }
+    if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance', '#ff4d6a'); return }
     setConfigured(true)
     setShowConfig(false)
     addLog(`✅ Configured — $${alloc.toFixed(2)} allocated`, '#16a34a')
@@ -161,7 +158,11 @@ function BotCard({ bot, balance, userId }) {
           <div className="bot-name">{bot.name}</div>
           <div className="bot-subtitle">{bot.subtitle}</div>
         </div>
-        <div className="bot-status-badge" style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}55` }}>
+        <div className="bot-status-badge" style={{
+          background: statusColor + '22',
+          color: statusColor,
+          border: `1px solid ${statusColor}55`,
+        }}>
           {active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
         </div>
       </div>
@@ -218,8 +219,8 @@ function BotCard({ bot, balance, userId }) {
             }}
           />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="bot-btn-start" onClick={handleSaveConfig} style={{ flex: 1 }}>Save</button>
-            <button className="bot-btn-configure" onClick={() => setShowConfig(false)} style={{ flex: 1 }}>Cancel</button>
+            <button className="bot-btn-start-active" onClick={handleSaveConfig} style={{ flex: 1 }}>Save</button>
+            <button className="bot-btn-configure"    onClick={() => setShowConfig(false)} style={{ flex: 1 }}>Cancel</button>
           </div>
         </div>
       )}
@@ -249,21 +250,23 @@ function BotCard({ bot, balance, userId }) {
         >
           {showConfig ? 'Close Config' : 'Configure'}
         </button>
+
+        {/* Start / Stop — highly visible */}
         <button
-          className={`bot-btn-start ${active ? 'stop' : ''}`}
+          className={active ? 'bot-btn-stop' : 'bot-btn-start-active'}
           onClick={handleStart}
           disabled={!canRun || !configured}
           title={!canRun ? `Need $${MIN_BALANCE}+ balance` : !configured ? 'Configure first' : ''}
-          style={active ? { background: '#ff4d6a22', color: '#ff4d6a', border: '1px solid #ff4d6a55' } : {}}
         >
-          {active ? `Stop ${bot.name.split(' ')[0]} Bot` : `Start ${bot.name.split(' ')[0]} Bot`}
+          {active
+            ? `⏹ Stop ${bot.name.split(' ')[0]} Bot`
+            : `▶ Start ${bot.name.split(' ')[0]} Bot`}
         </button>
       </div>
     </div>
   )
 }
 
-// ── PLACEHOLDER (coming-soon) ──────────────────────────────────────────
 function PlaceholderPage({ title, icon, description }) {
   return (
     <div className="dash-layout">
@@ -278,11 +281,11 @@ function PlaceholderPage({ title, icon, description }) {
           </div>
         </div>
       </div>
+      <TawkChat />
     </div>
   )
 }
 
-// ── MARKETS PAGE ───────────────────────────────────────────────────────
 export function MarketsPage() {
   const pairs = useTicker()
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL')
@@ -337,6 +340,7 @@ export function MarketsPage() {
           </div>
         </div>
       </div>
+      <TawkChat />
     </div>
   )
 }
@@ -349,11 +353,10 @@ export function FuturesPage() {
   return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
 }
 
-// ── BOTS PAGE ──────────────────────────────────────────────────────────
 export function BotsPage() {
-  const { user }              = useAuth()
-  const { balance, loading }  = useBalance()
-  const canRun                = (balance ?? 0) >= MIN_BALANCE
+  const { user }             = useAuth()
+  const { balance, loading } = useBalance()
+  const canRun               = (balance ?? 0) >= MIN_BALANCE
 
   return (
     <div className="dash-layout">
@@ -377,17 +380,16 @@ export function BotsPage() {
                   <span className="bots-stat-label">Available Balance</span>
                 </div>
                 <div className="bots-stat">
-                  <span className="bots-stat-value" style={{ color: canRun ? '#16a34a' : '#ff4d6a' }}>
+                  <span className="bots-stat-value" style={{ color: canRun ? '#4ade80' : '#ff4d6a' }}>
                     {canRun ? 'Ready' : 'Locked'}
                   </span>
                   <span className="bots-stat-label">Bot Status</span>
                 </div>
               </div>
             </div>
-            <button className="bots-hero-btn">Create New Bot →</button>
+            <button className="bots-hero-btn">Create New Bot</button>
           </div>
 
-          {/* Insufficient balance warning */}
           {!loading && !canRun && <InsufficientBanner />}
 
           <div className="bots-section">
@@ -404,18 +406,14 @@ export function BotsPage() {
 
             <div className="bots-grid">
               {BOT_CONFIGS.map(bot => (
-                <BotCard
-                  key={bot.id}
-                  bot={bot}
-                  balance={balance ?? 0}
-                  userId={user?.id}
-                />
+                <BotCard key={bot.id} bot={bot} balance={balance ?? 0} userId={user?.id} />
               ))}
             </div>
           </div>
 
         </div>
       </div>
+      <TawkChat />
     </div>
   )
 }
