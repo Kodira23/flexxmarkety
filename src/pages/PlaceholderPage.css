@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
 
 /* ── Base font ── */
@@ -125,6 +125,7 @@
 .bots-content {
   flex: 1; padding: 32px;
   display: flex; flex-direction: column; gap: 32px; overflow-y: auto;
+  padding-top: 32px;
 }
 
 .bots-hero {
@@ -142,16 +143,19 @@
 }
 
 .bots-hero-title {
-  font-family: 'Syne', sans-serif; font-size: 28px;
-  font-weight: 800; color: #fff; margin-bottom: 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 800; letter-spacing: -1px;
+  color: #fff; margin-bottom: 6px;
 }
-.bots-hero-sub  { font-size: 14px; color: #ffffffaa; margin-bottom: 24px; }
+.bots-hero-sub  { font-family: 'Syne', sans-serif; font-size: 15px; line-height: 1.7; color: #ffffffaa; margin-bottom: 24px; }
 .bots-hero-stats { display: flex; gap: 32px; }
 
 .bots-stat        { display: flex; flex-direction: column; gap: 2px; }
 .bots-stat-value  {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 22px; font-weight: 700; color: #fff;
+  font-size: clamp(18px, 3vw, 24px); font-weight: 700;
+  letter-spacing: -0.5px; color: #fff;
 }
 .bots-stat-value.green { color: #4ade80; }
 .bots-stat-label  { font-size: 12px; color: #ffffff88; }
@@ -173,8 +177,10 @@
   justify-content: space-between; gap: 16px;
 }
 .bots-section-title {
-  font-family: 'Syne', sans-serif; font-size: 20px;
-  font-weight: 700; color: var(--text-primary); margin-bottom: 4px;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(18px, 3vw, 22px);
+  font-weight: 800; letter-spacing: -0.5px;
+  color: var(--text-primary); margin-bottom: 4px;
 }
 .bots-section-sub { font-size: 13px; color: var(--text-muted); }
 
@@ -206,8 +212,9 @@
   justify-content: space-between; gap: 12px;
 }
 .bot-name {
-  font-family: 'Syne', sans-serif; font-size: 16px;
-  font-weight: 700; color: var(--text-primary); margin-bottom: 3px;
+  font-family: 'Syne', sans-serif; font-size: 17px;
+  font-weight: 700; letter-spacing: -0.3px;
+  color: var(--text-primary); margin-bottom: 3px;
 }
 .bot-subtitle { font-size: 12px; color: var(--text-muted); }
 
@@ -219,7 +226,7 @@
   white-space: nowrap; flex-shrink: 0;
 }
 
-.bot-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.bot-desc { font-family: 'Syne', sans-serif; font-size: 14px; color: var(--text-secondary); line-height: 1.65; }
 
 .bot-meta       { display: flex; gap: 24px; flex-wrap: wrap; }
 .bot-meta-item  { display: flex; flex-direction: column; gap: 2px; }
@@ -307,7 +314,7 @@
 
 /* ── Mobile Bots ── */
 @media (max-width: 767px) {
-  .bots-content { padding: 16px; padding-bottom: 76px; }
+  .bots-content { padding: 16px; padding-top: 100px; padding-bottom: 76px; }
   .bots-hero { flex-direction: column; align-items: flex-start; padding: 24px; }
   .bots-hero-btn { width: 100%; text-align: center; }
   .bots-hero-stats { gap: 20px; }
