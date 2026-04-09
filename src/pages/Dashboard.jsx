@@ -6,6 +6,24 @@ import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
 import { supabase } from '../supabase'
 import './Dashboard.css'
 
+const COIN_LOGOS = {
+  BTC:  'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png',
+  ETH:  'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
+  BNB:  'https://assets.coingecko.com/coins/images/825/thumb/bnb-icon2_2x.png',
+  SOL:  'https://assets.coingecko.com/coins/images/4128/thumb/solana.png',
+  XRP:  'https://assets.coingecko.com/coins/images/44/thumb/xrp-symbol-white-128.png',
+  ADA:  'https://assets.coingecko.com/coins/images/975/thumb/cardano.png',
+  DOGE: 'https://assets.coingecko.com/coins/images/5/thumb/dogecoin.png',
+  TRX:  'https://assets.coingecko.com/coins/images/1094/thumb/tron-logo.png',
+  AVAX: 'https://assets.coingecko.com/coins/images/12559/thumb/Avalanche_Circle_RedWhite_Trans.png',
+  LINK: 'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png',
+  DOT:  'https://assets.coingecko.com/coins/images/12171/thumb/polkadot.png',
+  MATIC:'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png',
+  LTC:  'https://assets.coingecko.com/coins/images/2/thumb/litecoin.png',
+  UNI:  'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
+  ATOM: 'https://assets.coingecko.com/coins/images/1481/thumb/cosmos_hub.png',
+}
+
 const WALLET_ADDRESSES = {
   BTC:  'bc1qq59rs336fth00xz2putnh2cp1ufwmnvdy9kdc8',
   USDT: 'TDaZCfmg5cYEWPgHehwy5XWJrvrpW63yJ7',
@@ -19,7 +37,6 @@ const generateSparkline = (base, n = 20) => {
   })
 }
 
-// ── SHARED HOOK: real-time balance for the logged-in user ──────────────
 export function useBalance() {
   const { user } = useAuth()
   const [balance, setBalance] = useState(null)
@@ -72,12 +89,16 @@ function CryptoCard({ coin }) {
   const color = coin.change >= 0 ? '#16a34a' : '#ff4d6a'
   const value = (coin.price * coin.amount).toFixed(2)
   const now   = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const logo  = COIN_LOGOS[coin.symbol]
 
   return (
     <div className="crypto-card card">
       <div className="cc-header">
-        <div className="cc-icon" style={{ background: coin.color + '22', color: coin.color }}>
-          {coin.symbol.slice(0, 1)}
+        <div className="cc-icon" style={{ background: coin.color + '22', overflow: 'hidden' }}>
+          {logo
+            ? <img src={logo} alt={coin.symbol} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => e.target.style.display='none'} />
+            : <span style={{ color: coin.color }}>{coin.symbol.slice(0, 1)}</span>
+          }
         </div>
         <div className="cc-meta">
           <div className="cc-symbol">{coin.symbol}</div>
@@ -338,28 +359,35 @@ export default function Dashboard() {
                   <button className="see-all">See All</button>
                 </div>
                 <div className="watchlist">
-                  {pairs.slice(0, 3).map(p => (
-                    <div key={p.symbol} className="watch-row">
-                      <div className="watch-icon" style={{
-                        background: p.change >= 0 ? '#16a34a22' : '#ff4d6a22',
-                        color:      p.change >= 0 ? '#16a34a'   : '#ff4d6a',
-                      }}>
-                        {p.symbol.split('/')[0].slice(0, 3)}
+                  {pairs.slice(0, 3).map(p => {
+                    const base = p.symbol.split('/')[0]
+                    const logo = COIN_LOGOS[base]
+                    return (
+                      <div key={p.symbol} className="watch-row">
+                        <div className="watch-icon" style={{
+                          background: p.change >= 0 ? '#16a34a22' : '#ff4d6a22',
+                          overflow: 'hidden',
+                        }}>
+                          {logo
+                            ? <img src={logo} alt={base} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => e.target.style.display='none'} />
+                            : <span style={{ color: p.change >= 0 ? '#16a34a' : '#ff4d6a' }}>{base.slice(0, 3)}</span>
+                          }
+                        </div>
+                        <div className="watch-info">
+                          <span className="watch-symbol">{p.symbol.split('/')[0]}</span>
+                          <span className="watch-name">{p.name || p.symbol.split('/')[0]}</span>
+                        </div>
+                        <div className="watch-right">
+                          <span className="watch-price font-mono">
+                            ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          <span className={`watch-change ${p.change >= 0 ? 'up' : 'down'}`}>
+                            {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
+                          </span>
+                        </div>
                       </div>
-                      <div className="watch-info">
-                        <span className="watch-symbol">{p.symbol.split('/')[0]}</span>
-                        <span className="watch-name">{p.name || p.symbol.split('/')[0]}</span>
-                      </div>
-                      <div className="watch-right">
-                        <span className="watch-price font-mono">
-                          ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                        <span className={`watch-change ${p.change >= 0 ? 'up' : 'down'}`}>
-                          {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 <div className="watchlist-footer">
                   <span className="coingecko-label">{fetchingLabel || `Using: ${priceSource}`}</span>
