@@ -2,21 +2,21 @@ import { useTicker } from '../hooks/useTicker'
 import './Markets.css'
 
 const COIN_LOGOS = {
-  BTC:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png',
-  ETH:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png',
-  BNB:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bnb.png',
-  SOL:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png',
-  XRP:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xrp.png',
-  ADA:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ada.png',
-  DOGE: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/doge.png',
-  TRX:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/trx.png',
-  AVAX: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/avax.png',
-  LINK: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/link.png',
-  DOT:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/dot.png',
-  MATIC:'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/matic.png',
-  LTC:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ltc.png',
-  UNI:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/uni.png',
-  ATOM: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/atom.png',
+  BTC:  'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png',
+  ETH:  'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
+  BNB:  'https://assets.coingecko.com/coins/images/825/thumb/bnb-icon2_2x.png',
+  SOL:  'https://assets.coingecko.com/coins/images/4128/thumb/solana.png',
+  XRP:  'https://assets.coingecko.com/coins/images/44/thumb/xrp-symbol-white-128.png',
+  ADA:  'https://assets.coingecko.com/coins/images/975/thumb/cardano.png',
+  DOGE: 'https://assets.coingecko.com/coins/images/5/thumb/dogecoin.png',
+  TRX:  'https://assets.coingecko.com/coins/images/1094/thumb/tron-logo.png',
+  AVAX: 'https://assets.coingecko.com/coins/images/12559/thumb/Avalanche_Circle_RedWhite_Trans.png',
+  LINK: 'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png',
+  DOT:  'https://assets.coingecko.com/coins/images/12171/thumb/polkadot.png',
+  MATIC:'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png',
+  LTC:  'https://assets.coingecko.com/coins/images/2/thumb/litecoin.png',
+  UNI:  'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
+  ATOM: 'https://assets.coingecko.com/coins/images/1481/thumb/cosmos_hub.png',
 }
 
 export default function Markets() {
