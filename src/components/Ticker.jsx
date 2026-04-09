@@ -1,26 +1,22 @@
 import { useTicker } from '../hooks/useTicker'
 import './Ticker.css'
 
-function getCoinLogo(symbol) {
-  const base = symbol.split('/')[0].toLowerCase()
-  return `https://assets.coingecko.com/coins/images/1/small/bitcoin.png`
-    .replace('1/small/bitcoin', getCoinGeckoPath(base))
-}
-
-function getCoinGeckoPath(base) {
-  const map = {
-    btc: '1/small/bitcoin',
-    eth: '279/small/ethereum',
-    bnb: '825/small/binance-coin-logo',
-    sol: '4128/small/solana',
-    xrp: '44/small/xrp-symbol-white-128',
-    doge: '5/small/dogecoin',
-    ada: '975/small/cardano',
-    trx: '1094/small/tron-logo',
-    usdt: '325/small/Tether',
-    usdc: '6319/small/USD_Coin_icon',
-  }
-  return map[base] || '1/small/bitcoin'
+const COIN_LOGOS = {
+  BTC:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/btc.png',
+  ETH:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/eth.png',
+  BNB:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/bnb.png',
+  SOL:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/sol.png',
+  XRP:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/xrp.png',
+  ADA:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ada.png',
+  DOGE: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/doge.png',
+  TRX:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/trx.png',
+  USDT: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdt.png',
+  USDC: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/usdc.png',
+  LTC:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/ltc.png',
+  DOT:  'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/dot.png',
+  MATIC:'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/matic.png',
+  LINK: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/link.png',
+  AVAX: 'https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/avax.png',
 }
 
 export default function Ticker() {
@@ -31,18 +27,20 @@ export default function Ticker() {
     <div className="ticker-wrapper">
       <div className="ticker-track">
         {doubled.map((p, i) => {
-          const base = p.symbol.split('/')[0].toLowerCase()
-          const logo = getCoinLogo(p.symbol)
+          const base = p.symbol.split('/')[0]
+          const logo = COIN_LOGOS[base]
           const isUp = p.change >= 0
 
           return (
             <span key={i} className="ticker-item">
-              <img
-                src={logo}
-                alt={base}
-                className="coin-logo"
-                onError={e => e.target.style.display = 'none'}
-              />
+              {logo && (
+                <img
+                  src={logo}
+                  alt={base}
+                  className="coin-logo"
+                  onError={e => e.target.style.display = 'none'}
+                />
+              )}
               <span className="ticker-symbol">{p.symbol}</span>
               <span className="ticker-price">
                 {p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
