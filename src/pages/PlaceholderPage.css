@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+
+/* ── Base font ── */
+.dash-layout, .dash-main, .bots-content,
+.placeholder-content, .markets-layout {
+  font-family: 'Syne', sans-serif;
+}
 .placeholder-content {
   flex: 1;
   display: flex;
@@ -236,7 +244,7 @@
   padding: 11px; border-radius: 8px;
   font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.15s;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Syne', sans-serif;
 }
 .bot-btn-configure:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
 .bot-btn-configure:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -251,7 +259,7 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Syne', sans-serif;
   letter-spacing: 0.3px;
   box-shadow: 0 0 18px #00d4aa55, 0 4px 12px #00d4aa33;
   transition: all 0.15s;
@@ -280,7 +288,7 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Syne', sans-serif;
   letter-spacing: 0.3px;
   box-shadow: 0 0 14px #ff4d6a33;
   transition: all 0.15s;
