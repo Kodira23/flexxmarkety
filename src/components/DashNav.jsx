@@ -12,7 +12,6 @@ const NAV = [
 ]
 
 export default function DashNav() {
-  const [search, setSearch] = useState('')
   const { user } = useAuth()
   const navigate = useNavigate()
   const email = user?.email || 'Guest'
@@ -20,9 +19,7 @@ export default function DashNav() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    setTimeout(() => {
-      window.location.href = '/'
-    }, 500)
+    setTimeout(() => { window.location.href = '/' }, 500)
   }
 
   return (
@@ -51,12 +48,23 @@ export default function DashNav() {
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
               <span className="user-email">{email}</span>
-              <span className="user-plan">Free Plan</span>
             </div>
           </div>
           <button className="logout-btn" onClick={handleSignOut}>↪ Sign Out</button>
         </div>
       </nav>
+
+      {/* ── MOBILE: top header ── */}
+      <header className="mobile-header">
+        <div className="mobile-logo">
+          <span className="logo-icon-nav">◈</span>
+          <span>FlexxMarket</span>
+        </div>
+        <div className="mobile-header-right">
+          <div className="user-avatar" onClick={() => navigate('/dashboard')}>{initials}</div>
+          <button className="mobile-signout" onClick={handleSignOut}>↪</button>
+        </div>
+      </header>
 
       {/* ── MOBILE: bottom tab bar ── */}
       <nav className="dashnav-footer">
@@ -71,10 +79,6 @@ export default function DashNav() {
             <span className="footer-label">{n.label}</span>
           </NavLink>
         ))}
-        <button className="footer-link footer-profile" onClick={handleSignOut}>
-          <div className="footer-avatar">{initials}</div>
-          <span className="footer-label">Profile</span>
-        </button>
       </nav>
     </>
   )
