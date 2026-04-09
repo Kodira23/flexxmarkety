@@ -1,0 +1,649 @@
+/* ── FONT IMPORT — Inter (matches Horizon Markets) + JetBrains Mono for numbers ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+.home {
+  min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+  padding-top: 64px;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(10,12,15,0.97) 40%, rgba(10,12,15,0.5) 100%),
+    linear-gradient(to top, rgba(10,12,15,1) 0%, transparent 40%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 680px;
+  padding: 80px 80px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green-dim);
+  border: 1px solid #16a34a44;
+  color: var(--green);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  font-family: 'Inter', sans-serif;
+}
+
+.badge-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.hero-headline {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+
+.headline-primary {
+  white-space: nowrap;
+}
+
+.headline-accent {
+  color: var(--green);
+  text-shadow: 0 0 60px #16a34a44;
+}
+
+.hero-sub {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 520px;
+  margin-bottom: 36px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cta-main {
+  padding: 14px 36px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  animation: glow-green 3s ease-in-out infinite;
+}
+
+/* ── SHARED LAYOUT ── */
+.section-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  background: var(--green-dim);
+  border: 1px solid #16a34a33;
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+}
+
+.section-title {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(28px, 4vw, 46px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  margin-bottom: 12px;
+  max-width: 620px;
+  line-height: 1.1;
+}
+
+.section-sub {
+  color: var(--text-secondary);
+  font-size: 16px;
+  margin-bottom: 48px;
+  line-height: 1.7;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+}
+
+/* ── ABOUT / DISCOVER ── */
+.about-section {
+  padding: 100px 0;
+  border-top: 1px solid var(--border);
+}
+
+.about-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.about-image-wrap {
+  position: relative;
+}
+
+.about-img {
+  width: 100%;
+  border-radius: 16px;
+  object-fit: cover;
+  height: 420px;
+  display: block;
+  filter: brightness(0.85);
+}
+
+.about-badge {
+  position: absolute;
+  bottom: -20px;
+  left: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(12px);
+  color: var(--green);
+}
+
+.about-badge svg { flex-shrink: 0; color: var(--green); }
+
+.about-badge-num {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+}
+
+.about-badge-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+}
+
+.about-points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.about-point {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.about-point-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--green-dim);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.about-point-icon svg { width: 18px; height: 18px; }
+
+.about-point strong {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text-primary);
+}
+
+.about-point p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.discover-btn { padding: 14px 32px; font-size: 15px; font-family: 'Inter', sans-serif; font-weight: 700; }
+
+/* ── CHART SECTION ── */
+.chart-section {
+  padding: 100px 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.tradingview-embed {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* ── AUTOTRADING ── */
+.autotrading-section {
+  padding: 100px 0;
+  border-top: 1px solid var(--border);
+  width: 100%;
+  overflow: hidden;
+}
+
+.autotrading-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.autotrading-card {
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+  padding: 0;
+}
+
+.autotrading-card:hover {
+  border-color: var(--border-light);
+  transform: translateY(-4px);
+}
+
+.autotrading-img-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.autotrading-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.6);
+  transition: transform 0.4s ease;
+}
+
+.autotrading-card:hover .autotrading-img {
+  transform: scale(1.04);
+}
+
+.autotrading-icon {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 40px;
+  height: 40px;
+  background: var(--green);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+}
+
+.autotrading-icon svg { width: 18px; height: 18px; }
+
+.autotrading-body {
+  padding: 20px 22px 24px;
+}
+
+.autotrading-body h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.autotrading-body p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  padding: 56px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: #0d0f12;
+  width: 100%;
+  overflow: hidden;
+}
+
+.stats-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 32px;
+  position: relative;
+}
+
+.stats-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.stats-bar-value {
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  letter-spacing: -1px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stats-bar-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif;
+}
+
+.stats-bar-divider {
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 48px;
+  background: var(--border);
+}
+
+/* ── WHY CHOOSE ── */
+.why-section {
+  padding: 100px 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  width: 100%;
+  overflow: hidden;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.why-card {
+  text-align: left;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.why-card:hover {
+  border-color: var(--border-light);
+  transform: translateY(-4px);
+}
+
+.why-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--green-dim);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+  margin-bottom: 20px;
+}
+
+.why-icon svg { width: 22px; height: 22px; }
+
+.why-card h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.why-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── CTA BANNER ── */
+.cta-banner {
+  padding: 100px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+}
+
+.cta-inner {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 64px 48px;
+}
+
+.cta-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 250px;
+  background: radial-gradient(ellipse, #16a34a0d 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.cta-headline {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  margin-bottom: 12px;
+}
+
+.cta-sub {
+  color: var(--text-secondary);
+  font-size: 16px;
+  margin-bottom: 36px;
+  line-height: 1.65;
+  font-family: 'Inter', sans-serif;
+}
+
+.cta-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-btn { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 700; }
+.cta-btn-outline { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; }
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+}
+
+.footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes glow-green {
+  0%, 100% { box-shadow: 0 0 20px #16a34a22; }
+  50%       { box-shadow: 0 0 40px #16a34a55; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease both;
+}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .autotrading-grid,
+  .why-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  html, body { overflow-x: hidden; width: 100%; }
+
+  .home { padding-top: 56px; }
+  .hero { align-items: flex-start; min-height: auto; }
+  .hero-content {
+    max-width: 100%;
+    padding: 48px 20px 24px;
+    box-sizing: border-box;
+  }
+  .hero-headline { letter-spacing: -1px; }
+  .headline-primary { white-space: normal; }
+  .hero-sub { font-size: 15px; max-width: 100%; }
+  .hero-cta { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .hero-cta .btn-primary,
+  .hero-cta .btn-outline {
+    width: auto;
+    max-width: 220px;
+    text-align: left;
+    padding: 12px 18px;
+  }
+  .cta-main { width: auto; }
+
+  .section-inner { padding: 0 20px; }
+  .section-title { max-width: 100%; letter-spacing: -0.5px; }
+
+  .why-card,
+  .autotrading-card,
+  .market-card,
+  .feature-card { width: 100%; box-sizing: border-box; }
+
+  .about-section { padding: 48px 0; }
+  .about-inner { grid-template-columns: 1fr; gap: 48px; }
+  .about-img { height: 240px; }
+  .about-badge { bottom: -16px; left: 16px; }
+  .discover-btn { width: 100%; text-align: center; }
+
+  .chart-section { padding: 64px 0; }
+  .tradingview-embed iframe { height: 320px !important; }
+
+  .autotrading-section { padding: 64px 0; }
+  .autotrading-grid { grid-template-columns: 1fr; width: 100%; }
+  .autotrading-card { width: 100%; }
+
+  .stats-bar { padding: 40px 0; }
+  .stats-bar-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px 16px;
+    justify-items: center;
+  }
+  .stats-bar-divider { display: none; }
+  .stats-bar-value { font-size: 32px; }
+
+  .why-section { padding: 64px 0; }
+  .why-grid { grid-template-columns: 1fr; width: 100%; }
+  .why-card { width: 100%; }
+
+  .cta-banner { padding: 64px 20px; }
+  .cta-inner { padding: 36px 20px; border-radius: 16px; }
+  .cta-btns { flex-direction: column; gap: 10px; align-items: center; }
+  .cta-btn,
+  .cta-btn-outline {
+    width: auto;
+    min-width: 140px;
+    padding: 14px 18px;
+    box-sizing: border-box;
+    border-radius: 14px;
+  }
+
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+}

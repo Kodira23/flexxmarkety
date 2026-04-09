@@ -1,0 +1,33 @@
+.candle-chart {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+  opacity: 0.35;
+}
+
+.candle-group {
+  animation: candle-rise 0.5s ease both;
+}
+
+@keyframes candle-rise {
+  from { opacity: 0; transform-origin: bottom; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+.chart-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.03);
+}
