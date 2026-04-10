@@ -1,64 +1,225 @@
 import { useState, useMemo } from 'react'
+import { useTicker } from '../hooks/useTicker'
 import './Markets.css'
 
-const COINS = [
-  { sym: 'BTC',   name: 'Bitcoin',           price: 97500,    change:  2.58,  vol: '$42.50B',  mcap: '$1920.00B', logo: 'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png' },
-  { sym: 'ETH',   name: 'Ethereum',           price: 3450.45,  change: -2.41,  vol: '$18.20B',  mcap: '$415.00B',  logo: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png' },
-  { sym: 'XRP',   name: 'XRP',                price: 2.35,     change:  5.38,  vol: '$5.20B',   mcap: '$135.00B',  logo: 'https://assets.coingecko.com/coins/images/44/thumb/xrp-symbol-white-128.png' },
-  { sym: 'BNB',   name: 'BNB',                price: 680,      change:  2.29,  vol: '$1.80B',   mcap: '$98.00B',   logo: 'https://assets.coingecko.com/coins/images/825/thumb/bnb-icon2_2x.png' },
-  { sym: 'SOL',   name: 'Solana',             price: 185.75,   change:  4.65,  vol: '$4.80B',   mcap: '$82.00B',   logo: 'https://assets.coingecko.com/coins/images/4128/thumb/solana.png' },
-  { sym: 'DOGE',  name: 'Dogecoin',           price: 0.32,     change:  6.67,  vol: '$2.80B',   mcap: '$47.00B',   logo: 'https://assets.coingecko.com/coins/images/5/thumb/dogecoin.png' },
-  { sym: 'ADA',   name: 'Cardano',            price: 0.95,     change: -4.04,  vol: '$980.00M', mcap: '$33.50B',   logo: 'https://assets.coingecko.com/coins/images/975/thumb/cardano.png' },
-  { sym: 'TRX',   name: 'TRON',               price: 0.24,     change:  4.35,  vol: '$620.00M', mcap: '$21.00B',   logo: 'https://assets.coingecko.com/coins/images/1094/thumb/tron-logo.png' },
-  { sym: 'AVAX',  name: 'Avalanche',          price: 42.20,    change: -4.74,  vol: '$780.00M', mcap: '$17.20B',   logo: 'https://assets.coingecko.com/coins/images/12559/thumb/Avalanche_Circle_RedWhite_Trans.png' },
-  { sym: 'LINK',  name: 'Chainlink',          price: 24.00,    change:  5.49,  vol: '$920.00M', mcap: '$14.50B',   logo: 'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png' },
-  { sym: 'SHIB',  name: 'Shiba Inu',          price: 0.000024, change:  4.76,  vol: '$450.00M', mcap: '$13.00B',   logo: 'https://assets.coingecko.com/coins/images/11939/thumb/shiba.png' },
-  { sym: 'SUI',   name: 'Sui',                price: 4.20,     change:  8.25,  vol: '$680.00M', mcap: '$12.80B',   logo: 'https://assets.coingecko.com/coins/images/26375/thumb/sui_asset.jpeg' },
-  { sym: 'XLM',   name: 'Stellar',            price: 0.42,     change:  5.00,  vol: '$280.00M', mcap: '$12.50B',   logo: 'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png' },
-  { sym: 'DOT',   name: 'Polkadot',           price: 7.50,     change:  4.90,  vol: '$420.00M', mcap: '$10.80B',   logo: 'https://assets.coingecko.com/coins/images/12171/thumb/polkadot.png' },
-  { sym: 'HBAR',  name: 'Hedera',             price: 0.28,     change:  7.69,  vol: '$380.00M', mcap: '$10.50B',   logo: 'https://assets.coingecko.com/coins/images/3688/thumb/hbar.png' },
-  { sym: 'BCH',   name: 'Bitcoin Cash',       price: 485.00,   change:  2.65,  vol: '$380.00M', mcap: '$9.50B',    logo: 'https://assets.coingecko.com/coins/images/780/thumb/bitcoin-cash-circle.png' },
-  { sym: 'UNI',   name: 'Uniswap',            price: 14.50,    change:  4.92,  vol: '$220.00M', mcap: '$8.70B',    logo: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png' },
-  { sym: 'LTC',   name: 'Litecoin',           price: 108.00,   change: -2.88,  vol: '$520.00M', mcap: '$8.10B',    logo: 'https://assets.coingecko.com/coins/images/2/thumb/litecoin.png' },
-  { sym: 'PEPE',  name: 'Pepe',               price: 0.000018, change: 11.76,  vol: '$1.20B',   mcap: '$8.00B',    logo: 'https://assets.coingecko.com/coins/images/29850/thumb/pepe-token.jpeg' },
-  { sym: 'NEAR',  name: 'NEAR Protocol',      price: 5.20,     change:  5.69,  vol: '$320.00M', mcap: '$5.80B',    logo: 'https://assets.coingecko.com/coins/images/10365/thumb/near.jpg' },
-  { sym: 'ICP',   name: 'Internet Computer',  price: 11.50,    change:  4.74,  vol: '$185.00M', mcap: '$5.40B',    logo: 'https://assets.coingecko.com/coins/images/14495/thumb/Internet_Computer_logo.png' },
-  { sym: 'FET',   name: 'Fetch.ai',           price: 2.10,     change:  9.38,  vol: '$420.00M', mcap: '$5.30B',    logo: 'https://assets.coingecko.com/coins/images/5681/thumb/Fetch.jpg' },
-  { sym: 'MATIC', name: 'Polygon',            price: 0.52,     change:  4.00,  vol: '$320.00M', mcap: '$4.80B',    logo: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png' },
-  { sym: 'RNDR',  name: 'Render',             price: 8.50,     change:  8.28,  vol: '$320.00M', mcap: '$4.40B',    logo: 'https://assets.coingecko.com/coins/images/11636/thumb/rndr.png' },
-  { sym: 'ARB',   name: 'Arbitrum',           price: 1.10,     change:  4.76,  vol: '$380.00M', mcap: '$4.40B',    logo: 'https://assets.coingecko.com/coins/images/16547/thumb/photo_2023-03-29_21.47.00.jpeg' },
-  { sym: 'ATOM',  name: 'Cosmos',             price: 9.80,     change:  3.90,  vol: '$180.00M', mcap: '$3.90B',    logo: 'https://assets.coingecko.com/coins/images/1481/thumb/cosmos_hub.png' },
-  { sym: 'SEI',   name: 'Sei',                price: 0.48,     change:  9.09,  vol: '$280.00M', mcap: '$1.80B',    logo: 'https://assets.coingecko.com/coins/images/28205/thumb/Sei_Logo_-_Transparent.png' },
-  { sym: 'RUNE',  name: 'THORChain',          price: 5.50,     change:  6.80,  vol: '$185.00M', mcap: '$1.80B',    logo: 'https://assets.coingecko.com/coins/images/6595/thumb/Rune200x200.png' },
-  { sym: 'MKR',   name: 'Maker',              price: 1850.00,  change:  4.82,  vol: '$95.00M',  mcap: '$1.70B',    logo: 'https://assets.coingecko.com/coins/images/1364/thumb/Mark_Maker.png' },
-  { sym: 'QNT',   name: 'Quant',              price: 118.00,   change:  4.89,  vol: '$42.00M',  mcap: '$1.70B',    logo: 'https://assets.coingecko.com/coins/images/3370/thumb/5ZOu7brX_400x400.jpg' },
-  { sym: 'LDO',   name: 'Lido DAO',           price: 1.90,     change:  4.97,  vol: '$145.00M', mcap: '$1.70B',    logo: 'https://assets.coingecko.com/coins/images/13573/thumb/Lido_DAO.png' },
-  { sym: 'GALA',  name: 'GALA',               price: 0.04,     change:  7.69,  vol: '$185.00M', mcap: '$1.60B',    logo: 'https://assets.coingecko.com/coins/images/12493/thumb/GALA-COINGECKO.png' },
-  { sym: 'JASMY', name: 'JasmyCoin',          price: 0.03,     change:  6.67,  vol: '$185.00M', mcap: '$1.60B',    logo: 'https://assets.coingecko.com/coins/images/13876/thumb/JASMY200x200.jpg' },
-  { sym: 'SAND',  name: 'The Sandbox',        price: 0.58,     change:  5.45,  vol: '$145.00M', mcap: '$1.40B',    logo: 'https://assets.coingecko.com/coins/images/12129/thumb/sandbox_logo.jpg' },
-  { sym: 'FLOW',  name: 'Flow',               price: 0.85,     change:  4.60,  vol: '$65.00M',  mcap: '$1.30B',    logo: 'https://assets.coingecko.com/coins/images/13446/thumb/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png' },
-]
-
-const fmt = (p) => {
-  if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  if (p >= 1)    return `$${p.toFixed(2)}`
-  if (p >= 0.01) return `$${p.toFixed(4)}`
-  return `$${p.toFixed(8)}`
+// Real CoinGecko logos for all 100 symbols
+const COIN_LOGOS = {
+  BTC:   'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png',
+  ETH:   'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
+  XRP:   'https://assets.coingecko.com/coins/images/44/thumb/xrp-symbol-white-128.png',
+  BNB:   'https://assets.coingecko.com/coins/images/825/thumb/bnb-icon2_2x.png',
+  SOL:   'https://assets.coingecko.com/coins/images/4128/thumb/solana.png',
+  DOGE:  'https://assets.coingecko.com/coins/images/5/thumb/dogecoin.png',
+  ADA:   'https://assets.coingecko.com/coins/images/975/thumb/cardano.png',
+  TRX:   'https://assets.coingecko.com/coins/images/1094/thumb/tron-logo.png',
+  AVAX:  'https://assets.coingecko.com/coins/images/12559/thumb/Avalanche_Circle_RedWhite_Trans.png',
+  LINK:  'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png',
+  SHIB:  'https://assets.coingecko.com/coins/images/11939/thumb/shiba.png',
+  SUI:   'https://assets.coingecko.com/coins/images/26375/thumb/sui_asset.jpeg',
+  XLM:   'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png',
+  DOT:   'https://assets.coingecko.com/coins/images/12171/thumb/polkadot.png',
+  HBAR:  'https://assets.coingecko.com/coins/images/3688/thumb/hbar.png',
+  BCH:   'https://assets.coingecko.com/coins/images/780/thumb/bitcoin-cash-circle.png',
+  UNI:   'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
+  LTC:   'https://assets.coingecko.com/coins/images/2/thumb/litecoin.png',
+  PEPE:  'https://assets.coingecko.com/coins/images/29850/thumb/pepe-token.jpeg',
+  NEAR:  'https://assets.coingecko.com/coins/images/10365/thumb/near.jpg',
+  ICP:   'https://assets.coingecko.com/coins/images/14495/thumb/Internet_Computer_logo.png',
+  FET:   'https://assets.coingecko.com/coins/images/5681/thumb/Fetch.jpg',
+  MATIC: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png',
+  RNDR:  'https://assets.coingecko.com/coins/images/11636/thumb/rndr.png',
+  ARB:   'https://assets.coingecko.com/coins/images/16547/thumb/photo_2023-03-29_21.47.00.jpeg',
+  ATOM:  'https://assets.coingecko.com/coins/images/1481/thumb/cosmos_hub.png',
+  SEI:   'https://assets.coingecko.com/coins/images/28205/thumb/Sei_Logo_-_Transparent.png',
+  RUNE:  'https://assets.coingecko.com/coins/images/6595/thumb/Rune200x200.png',
+  MKR:   'https://assets.coingecko.com/coins/images/1364/thumb/Mark_Maker.png',
+  QNT:   'https://assets.coingecko.com/coins/images/3370/thumb/5ZOu7brX_400x400.jpg',
+  LDO:   'https://assets.coingecko.com/coins/images/13573/thumb/Lido_DAO.png',
+  GALA:  'https://assets.coingecko.com/coins/images/12493/thumb/GALA-COINGECKO.png',
+  JASMY: 'https://assets.coingecko.com/coins/images/13876/thumb/JASMY200x200.jpg',
+  SAND:  'https://assets.coingecko.com/coins/images/12129/thumb/sandbox_logo.jpg',
+  FLOW:  'https://assets.coingecko.com/coins/images/13446/thumb/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png',
+  MANA:  'https://assets.coingecko.com/coins/images/878/thumb/decentraland-mana.png',
+  AXS:   'https://assets.coingecko.com/coins/images/13029/thumb/axie_infinity_logo.png',
+  APE:   'https://assets.coingecko.com/coins/images/24383/thumb/apecoin.jpg',
+  OP:    'https://assets.coingecko.com/coins/images/25244/thumb/Optimism.png',
+  INJ:   'https://assets.coingecko.com/coins/images/12882/thumb/Secondary_Symbol.png',
+  GRT:   'https://assets.coingecko.com/coins/images/13397/thumb/Graph_Token.png',
+  AAVE:  'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png',
+  SNX:   'https://assets.coingecko.com/coins/images/3406/thumb/SNX.png',
+  CRV:   'https://assets.coingecko.com/coins/images/12124/thumb/Curve.png',
+  ENS:   'https://assets.coingecko.com/coins/images/19785/thumb/acatxTm8_400x400.jpg',
+  BLUR:  'https://assets.coingecko.com/coins/images/28453/thumb/blur.png',
+  IMX:   'https://assets.coingecko.com/coins/images/17233/thumb/immutableX-symbol-BLK-RGB.png',
+  CAKE:  'https://assets.coingecko.com/coins/images/12632/thumb/pancakeswap-cake-logo_%281%29.png',
+  COMP:  'https://assets.coingecko.com/coins/images/10775/thumb/COMP.png',
+  YFI:   'https://assets.coingecko.com/coins/images/11849/thumb/yearn-finance.png',
+  BAL:   'https://assets.coingecko.com/coins/images/11683/thumb/Balancer.png',
+  ZRX:   'https://assets.coingecko.com/coins/images/863/thumb/0x.png',
+  CHZ:   'https://assets.coingecko.com/coins/images/8834/thumb/Chiliz.png',
+  ENJ:   'https://assets.coingecko.com/coins/images/1102/thumb/enjin-coin-logo.png',
+  BAT:   'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png',
+  ZIL:   'https://assets.coingecko.com/coins/images/2687/thumb/Zilliqa-logo.png',
+  ONE:   'https://assets.coingecko.com/coins/images/4344/thumb/Y88JAze.png',
+  KAVA:  'https://assets.coingecko.com/coins/images/9761/thumb/kava.png',
+  ALGO:  'https://assets.coingecko.com/coins/images/4380/thumb/download.png',
+  VET:   'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png',
+  THETA: 'https://assets.coingecko.com/coins/images/2538/thumb/theta-token-logo.png',
+  FIL:   'https://assets.coingecko.com/coins/images/12817/thumb/filecoin.png',
+  EOS:   'https://assets.coingecko.com/coins/images/738/thumb/eos-eos-logo.png',
+  XTZ:   'https://assets.coingecko.com/coins/images/976/thumb/Tezos-logo.png',
+  IOTA:  'https://assets.coingecko.com/coins/images/692/thumb/IOTA_Swirl.png',
+  NEO:   'https://assets.coingecko.com/coins/images/480/thumb/NEO_512_512.png',
+  WAVES: 'https://assets.coingecko.com/coins/images/425/thumb/waves.png',
+  DASH:  'https://assets.coingecko.com/coins/images/19/thumb/dash-logo.png',
+  XMR:   'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png',
+  ZEC:   'https://assets.coingecko.com/coins/images/486/thumb/circle-zcash-color.png',
+  EGLD:  'https://assets.coingecko.com/coins/images/12335/thumb/egld-token-logo.png',
+  ROSE:  'https://assets.coingecko.com/coins/images/13162/thumb/rose.png',
+  KSM:   'https://assets.coingecko.com/coins/images/9568/thumb/m4zRhP5e_400x400.jpg',
+  CELO:  'https://assets.coingecko.com/coins/images/11090/thumb/InjXBNx9_400x400.jpg',
+  ANKR:  'https://assets.coingecko.com/coins/images/8455/thumb/Ankr.png',
+  SKL:   'https://assets.coingecko.com/coins/images/13245/thumb/SKALE_token_300x300.png',
+  STORJ: 'https://assets.coingecko.com/coins/images/949/thumb/storj.png',
+  BAND:  'https://assets.coingecko.com/coins/images/9545/thumb/Band_token_blue_violet_token.png',
+  WLD:   'https://assets.coingecko.com/coins/images/31069/thumb/worldcoin.jpeg',
+  STX:   'https://assets.coingecko.com/coins/images/2069/thumb/Stacks_logo_full.png',
+  CFX:   'https://assets.coingecko.com/coins/images/13079/thumb/3vuYMbjN.png',
+  MAGIC: 'https://assets.coingecko.com/coins/images/18623/thumb/magic.png',
+  TIA:   'https://assets.coingecko.com/coins/images/33172/thumb/celestia.png',
+  PYTH:  'https://assets.coingecko.com/coins/images/31924/thumb/pyth.png',
+  JTO:   'https://assets.coingecko.com/coins/images/33228/thumb/jto.png',
+  JUP:   'https://assets.coingecko.com/coins/images/34188/thumb/jup.png',
+  WIF:   'https://assets.coingecko.com/coins/images/33566/thumb/dogwifhat.jpg',
+  BOME:  'https://assets.coingecko.com/coins/images/36709/thumb/bome.png',
+  NOT:   'https://assets.coingecko.com/coins/images/36190/thumb/notcoin.jpg',
+  IO:    'https://assets.coingecko.com/coins/images/36143/thumb/io.jpg',
+  ZK:    'https://assets.coingecko.com/coins/images/36730/thumb/zksync.jpg',
+  LISTA: 'https://assets.coingecko.com/coins/images/36893/thumb/lista.jpg',
+  EIGEN: 'https://assets.coingecko.com/coins/images/37173/thumb/eigen.jpg',
+  HMSTR: 'https://assets.coingecko.com/coins/images/39102/thumb/hamster.jpg',
+  CATI:  'https://assets.coingecko.com/coins/images/39173/thumb/cati.jpg',
+  DOGS:  'https://assets.coingecko.com/coins/images/39201/thumb/dogs.jpg',
+  MAJOR: 'https://assets.coingecko.com/coins/images/39202/thumb/major.jpg',
+  NEIRO: 'https://assets.coingecko.com/coins/images/39204/thumb/neiro.jpg',
 }
 
-function CoinIcon({ coin, size = 36 }) {
+const EXTRA_DATA = {
+  BTC:   { vol: '$42.50B',  mcap: '$1920.00B' },
+  ETH:   { vol: '$18.20B',  mcap: '$415.00B'  },
+  XRP:   { vol: '$5.20B',   mcap: '$135.00B'  },
+  BNB:   { vol: '$1.80B',   mcap: '$98.00B'   },
+  SOL:   { vol: '$4.80B',   mcap: '$82.00B'   },
+  DOGE:  { vol: '$2.80B',   mcap: '$47.00B'   },
+  ADA:   { vol: '$980.00M', mcap: '$33.50B'   },
+  TRX:   { vol: '$620.00M', mcap: '$21.00B'   },
+  AVAX:  { vol: '$780.00M', mcap: '$17.20B'   },
+  LINK:  { vol: '$920.00M', mcap: '$14.50B'   },
+  SHIB:  { vol: '$450.00M', mcap: '$13.00B'   },
+  SUI:   { vol: '$680.00M', mcap: '$12.80B'   },
+  XLM:   { vol: '$280.00M', mcap: '$12.50B'   },
+  DOT:   { vol: '$420.00M', mcap: '$10.80B'   },
+  HBAR:  { vol: '$380.00M', mcap: '$10.50B'   },
+  BCH:   { vol: '$380.00M', mcap: '$9.50B'    },
+  UNI:   { vol: '$220.00M', mcap: '$8.70B'    },
+  LTC:   { vol: '$520.00M', mcap: '$8.10B'    },
+  PEPE:  { vol: '$1.20B',   mcap: '$8.00B'    },
+  NEAR:  { vol: '$320.00M', mcap: '$5.80B'    },
+  ICP:   { vol: '$185.00M', mcap: '$5.40B'    },
+  FET:   { vol: '$420.00M', mcap: '$5.30B'    },
+  MATIC: { vol: '$320.00M', mcap: '$4.80B'    },
+  RNDR:  { vol: '$320.00M', mcap: '$4.40B'    },
+  ARB:   { vol: '$380.00M', mcap: '$4.40B'    },
+  ATOM:  { vol: '$180.00M', mcap: '$3.90B'    },
+  SEI:   { vol: '$280.00M', mcap: '$1.80B'    },
+  RUNE:  { vol: '$185.00M', mcap: '$1.80B'    },
+  MKR:   { vol: '$95.00M',  mcap: '$1.70B'    },
+  QNT:   { vol: '$42.00M',  mcap: '$1.70B'    },
+  LDO:   { vol: '$145.00M', mcap: '$1.70B'    },
+  GALA:  { vol: '$185.00M', mcap: '$1.60B'    },
+  JASMY: { vol: '$185.00M', mcap: '$1.60B'    },
+  SAND:  { vol: '$145.00M', mcap: '$1.40B'    },
+  FLOW:  { vol: '$65.00M',  mcap: '$1.30B'    },
+  MANA:  { vol: '$95.00M',  mcap: '$720.00M'  },
+  AXS:   { vol: '$75.00M',  mcap: '$680.00M'  },
+  APE:   { vol: '$85.00M',  mcap: '$480.00M'  },
+  OP:    { vol: '$210.00M', mcap: '$2.30B'    },
+  INJ:   { vol: '$180.00M', mcap: '$2.10B'    },
+  GRT:   { vol: '$65.00M',  mcap: '$420.00M'  },
+  AAVE:  { vol: '$95.00M',  mcap: '$2.80B'    },
+  SNX:   { vol: '$45.00M',  mcap: '$380.00M'  },
+  CRV:   { vol: '$55.00M',  mcap: '$310.00M'  },
+  ENS:   { vol: '$35.00M',  mcap: '$850.00M'  },
+  BLUR:  { vol: '$42.00M',  mcap: '$320.00M'  },
+  IMX:   { vol: '$65.00M',  mcap: '$1.20B'    },
+  CAKE:  { vol: '$55.00M',  mcap: '$580.00M'  },
+  COMP:  { vol: '$28.00M',  mcap: '$580.00M'  },
+  YFI:   { vol: '$22.00M',  mcap: '$240.00M'  },
+  BAL:   { vol: '$18.00M',  mcap: '$185.00M'  },
+  ZRX:   { vol: '$15.00M',  mcap: '$360.00M'  },
+  CHZ:   { vol: '$45.00M',  mcap: '$480.00M'  },
+  ENJ:   { vol: '$18.00M',  mcap: '$185.00M'  },
+  BAT:   { vol: '$22.00M',  mcap: '$340.00M'  },
+  ZIL:   { vol: '$12.00M',  mcap: '$340.00M'  },
+  ONE:   { vol: '$8.00M',   mcap: '$225.00M'  },
+  KAVA:  { vol: '$18.00M',  mcap: '$225.00M'  },
+  ALGO:  { vol: '$32.00M',  mcap: '$1.40B'    },
+  VET:   { vol: '$28.00M',  mcap: '$2.60B'    },
+  THETA: { vol: '$22.00M',  mcap: '$1.45B'    },
+  FIL:   { vol: '$85.00M',  mcap: '$2.20B'    },
+  EOS:   { vol: '$35.00M',  mcap: '$1.10B'    },
+  XTZ:   { vol: '$18.00M',  mcap: '$680.00M'  },
+  IOTA:  { vol: '$12.00M',  mcap: '$610.00M'  },
+  NEO:   { vol: '$22.00M',  mcap: '$810.00M'  },
+  WAVES: { vol: '$15.00M',  mcap: '$195.00M'  },
+  DASH:  { vol: '$35.00M',  mcap: '$310.00M'  },
+  XMR:   { vol: '$55.00M',  mcap: '$3.00B'    },
+  ZEC:   { vol: '$25.00M',  mcap: '$450.00M'  },
+  EGLD:  { vol: '$28.00M',  mcap: '$875.00M'  },
+  ROSE:  { vol: '$22.00M',  mcap: '$215.00M'  },
+  KSM:   { vol: '$18.00M',  mcap: '$385.00M'  },
+  CELO:  { vol: '$12.00M',  mcap: '$415.00M'  },
+  ANKR:  { vol: '$15.00M',  mcap: '$385.00M'  },
+  SKL:   { vol: '$8.00M',   mcap: '$185.00M'  },
+  STORJ: { vol: '$12.00M',  mcap: '$175.00M'  },
+  BAND:  { vol: '$8.00M',   mcap: '$120.00M'  },
+  WLD:   { vol: '$85.00M',  mcap: '$1.20B'    },
+  STX:   { vol: '$55.00M',  mcap: '$2.50B'    },
+  CFX:   { vol: '$35.00M',  mcap: '$520.00M'  },
+  MAGIC: { vol: '$22.00M',  mcap: '$280.00M'  },
+  TIA:   { vol: '$75.00M',  mcap: '$1.50B'    },
+  PYTH:  { vol: '$55.00M',  mcap: '$1.20B'    },
+  JTO:   { vol: '$35.00M',  mcap: '$580.00M'  },
+  JUP:   { vol: '$65.00M',  mcap: '$760.00M'  },
+  WIF:   { vol: '$185.00M', mcap: '$1.45B'    },
+  BOME:  { vol: '$95.00M',  mcap: '$580.00M'  },
+  NOT:   { vol: '$45.00M',  mcap: '$620.00M'  },
+  IO:    { vol: '$28.00M',  mcap: '$340.00M'  },
+  ZK:    { vol: '$35.00M',  mcap: '$480.00M'  },
+  LISTA: { vol: '$22.00M',  mcap: '$450.00M'  },
+  EIGEN: { vol: '$42.00M',  mcap: '$560.00M'  },
+  HMSTR: { vol: '$18.00M',  mcap: '$350.00M'  },
+  CATI:  { vol: '$15.00M',  mcap: '$180.00M'  },
+  DOGS:  { vol: '$12.00M',  mcap: '$150.00M'  },
+  MAJOR: { vol: '$8.00M',   mcap: '$420.00M'  },
+  NEIRO: { vol: '$35.00M',  mcap: '$800.00M'  },
+}
+
+function CoinIcon({ base, size = 36 }) {
   const [err, setErr] = useState(false)
+  const logo = COIN_LOGOS[base]
   return (
     <div className="pair-icon" style={{ width: size, height: size }}>
-      {!err
-        ? <img src={coin.logo} alt={coin.sym} className="pair-coin-img" onError={() => setErr(true)} />
-        : <span className="pair-icon-fallback">{coin.sym.slice(0, 3)}</span>
+      {logo && !err
+        ? <img src={logo} alt={base} className="pair-coin-img" onError={() => setErr(true)} />
+        : <span className="pair-icon-fallback">{base.slice(0, 3)}</span>
       }
     </div>
   )
 }
 
 export default function Markets() {
+  const pairs = useTicker()
   const [filter,    setFilter]    = useState('all')
   const [search,    setSearch]    = useState('')
   const [favorites, setFavorites] = useState(['BTC', 'ETH'])
@@ -66,30 +227,28 @@ export default function Markets() {
   const [sortDir,   setSortDir]   = useState('asc')
 
   const toggleFav = (sym) =>
-    setFavorites(p => p.includes(sym) ? p.filter(s => s !== sym) : [...p, sym])
+    setFavorites(prev => prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym])
 
   const handleSort = (key) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortKey(key); setSortDir('asc') }
   }
 
-  const topGainers = useMemo(() => [...COINS].sort((a, b) => b.change - a.change).slice(0, 3), [])
-  const topLosers  = useMemo(() => [...COINS].sort((a, b) => a.change - b.change).slice(0, 3), [])
+  const topGainers = useMemo(() => [...pairs].sort((a, b) => b.change - a.change).slice(0, 3), [pairs])
+  const topLosers  = useMemo(() => [...pairs].sort((a, b) => a.change - b.change).slice(0, 3), [pairs])
 
   const filtered = useMemo(() => {
-    let list = [...COINS]
-    if (filter === 'gainers')   list = list.filter(c => c.change >= 0)
-    if (filter === 'losers')    list = list.filter(c => c.change < 0)
-    if (filter === 'favorites') list = list.filter(c => favorites.includes(c.sym))
-    if (search) list = list.filter(c =>
-      c.sym.toLowerCase().includes(search.toLowerCase()) ||
-      c.name.toLowerCase().includes(search.toLowerCase())
-    )
-    if (sortKey === 'name')   list.sort((a, b) => sortDir === 'asc' ? a.sym.localeCompare(b.sym) : b.sym.localeCompare(a.sym))
+    let list = [...pairs]
+    const base = (p) => p.symbol.split('/')[0]
+    if (filter === 'gainers')   list = list.filter(p => p.change >= 0)
+    if (filter === 'losers')    list = list.filter(p => p.change < 0)
+    if (filter === 'favorites') list = list.filter(p => favorites.includes(base(p)))
+    if (search) list = list.filter(p => p.symbol.toLowerCase().includes(search.toLowerCase()))
+    if (sortKey === 'name')   list.sort((a, b) => sortDir === 'asc' ? a.symbol.localeCompare(b.symbol) : b.symbol.localeCompare(a.symbol))
     if (sortKey === 'price')  list.sort((a, b) => sortDir === 'asc' ? a.price - b.price : b.price - a.price)
     if (sortKey === 'change') list.sort((a, b) => sortDir === 'asc' ? a.change - b.change : b.change - a.change)
     return list
-  }, [filter, search, favorites, sortKey, sortDir])
+  }, [pairs, filter, search, favorites, sortKey, sortDir])
 
   const SortIcon = ({ k }) => (
     <span className={`sort-icon ${sortKey === k ? 'active' : ''}`}>
@@ -97,31 +256,41 @@ export default function Markets() {
     </span>
   )
 
+  const fmt = (p) => {
+    if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    if (p >= 1)    return `$${p.toFixed(2)}`
+    if (p >= 0.01) return `$${p.toFixed(4)}`
+    return `$${p.toFixed(8)}`
+  }
+
   return (
     <div className="dash-page">
 
       {/* Top Gainers / Losers */}
       <div className="movers-grid">
         {[
-          { label: '🔥 Top Gainers', list: topGainers, isGain: true },
+          { label: '🔥 Top Gainers', list: topGainers, isGain: true  },
           { label: '⚡ Top Losers',  list: topLosers,  isGain: false },
         ].map(({ label, list, isGain }) => (
           <div key={label} className="movers-card card">
             <div className="movers-title">{label}</div>
-            {list.map(c => (
-              <div key={c.sym} className="mover-row">
-                <div className="mover-left">
-                  <CoinIcon coin={c} />
-                  <div className="mover-sym">{c.sym}</div>
+            {list.map(p => {
+              const base = p.symbol.split('/')[0]
+              return (
+                <div key={p.symbol} className="mover-row">
+                  <div className="mover-left">
+                    <CoinIcon base={base} />
+                    <div className="mover-sym">{base}</div>
+                  </div>
+                  <div className="mover-right">
+                    <span className="mover-price font-mono">{fmt(p.price)}</span>
+                    <span className={`mover-badge ${isGain ? 'up' : 'down'}`}>
+                      {isGain ? `↗ +${p.change.toFixed(2)}%` : `↘ ${p.change.toFixed(2)}%`}
+                    </span>
+                  </div>
                 </div>
-                <div className="mover-right">
-                  <span className="mover-price font-mono">{fmt(c.price)}</span>
-                  <span className={`mover-badge ${isGain ? 'up' : 'down'}`}>
-                    {isGain ? `↗ +${c.change.toFixed(2)}%` : `↘ ${c.change.toFixed(2)}%`}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ))}
       </div>
@@ -157,50 +326,44 @@ export default function Markets() {
           <thead>
             <tr>
               <th></th>
-              <th className="th-sort" onClick={() => handleSort('name')}>
-                Name <SortIcon k="name" />
-              </th>
-              <th className="th-sort" onClick={() => handleSort('price')}>
-                Price <SortIcon k="price" />
-              </th>
-              <th className="th-sort" onClick={() => handleSort('change')}>
-                24h <SortIcon k="change" />
-              </th>
+              <th className="th-sort" onClick={() => handleSort('name')}>Name <SortIcon k="name" /></th>
+              <th className="th-sort" onClick={() => handleSort('price')}>Price <SortIcon k="price" /></th>
+              <th className="th-sort" onClick={() => handleSort('change')}>24h <SortIcon k="change" /></th>
               <th>Volume</th>
               <th>Market Cap</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(c => {
-              const isUp  = c.change >= 0
-              const isFav = favorites.includes(c.sym)
+            {filtered.map(p => {
+              const base  = p.symbol.split('/')[0]
+              const isUp  = p.change >= 0
+              const isFav = favorites.includes(base)
+              const extra = EXTRA_DATA[base] || { vol: '—', mcap: '—' }
               return (
-                <tr key={c.sym}>
+                <tr key={p.symbol}>
                   <td className="td-star">
                     <button
                       className={`star-btn ${isFav ? 'active' : ''}`}
-                      onClick={() => toggleFav(c.sym)}
+                      onClick={() => toggleFav(base)}
                     >★</button>
                   </td>
                   <td>
                     <div className="td-pair">
-                      <CoinIcon coin={c} />
+                      <CoinIcon base={base} />
                       <div>
-                        <div className="pair-name">{c.sym}</div>
-                        <div className="pair-sub">{c.sym}/USDT</div>
+                        <div className="pair-name">{base}</div>
+                        <div className="pair-sub">{base}/USDT</div>
                       </div>
                     </div>
                   </td>
-                  <td className="td-price font-mono">{fmt(c.price)}</td>
+                  <td className="td-price font-mono">{fmt(p.price)}</td>
                   <td className={`td-change ${isUp ? 'up' : 'down'}`}>
-                    {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{c.change.toFixed(2)}%
+                    {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%
                   </td>
-                  <td className="td-vol">{c.vol}</td>
-                  <td className="td-mcap">{c.mcap}</td>
-                  <td>
-                    <button className="trade-btn">Trade</button>
-                  </td>
+                  <td className="td-vol">{extra.vol}</td>
+                  <td className="td-mcap">{extra.mcap}</td>
+                  <td><button className="trade-btn">Trade</button></td>
                 </tr>
               )
             })}
