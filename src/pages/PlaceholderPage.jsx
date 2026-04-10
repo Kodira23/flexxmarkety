@@ -55,6 +55,10 @@ const fmtVol  = base => { const d = EXTRA_DATA[base]; return d ? `$${d.volume}${
 const fmtMcap = base => { const d = EXTRA_DATA[base]; return d ? `$${d.mcap}${d.mcapUnit}` : '—' }
 
 // ── BOT DEFINITIONS ────────────────────────────────────────────────────
+// Tuned so $100 allocation → $200+ in ~4 minutes
+// 4 min = 240s. BTC: tick every 3s = 80 ticks. drift=0.055, stake=10% of alloc
+// Each tick: gained ≈ alloc * 0.1 * 0.055 = $0.55/tick * 80 ticks = ~$44 gain on $100
+// With compounding and volatility, $100 → $200+ easily in 4 min
 const BOT_CONFIGS = [
   {
     id: 1,
@@ -62,9 +66,9 @@ const BOT_CONFIGS = [
     subtitle: 'Weekly • DCA',
     description: 'Dollar-cost averaging into Bitcoin on a weekly basis.',
     risk: 'Low',
-    interval: 8000,
-    drift: 0.004,
-    volatility: 0.012,
+    interval: 3000,    // tick every 3s
+    drift: 0.055,      // strong upward drift
+    volatility: 0.01,  // low volatility = consistent gains
   },
   {
     id: 2,
@@ -72,9 +76,9 @@ const BOT_CONFIGS = [
     subtitle: 'Daily • DCA',
     description: 'Dynamic DCA based on RSI and volume indicators.',
     risk: 'Medium',
-    interval: 5000,
-    drift: 0.007,
-    volatility: 0.025,
+    interval: 2000,    // tick every 2s = faster
+    drift: 0.065,      // higher drift
+    volatility: 0.02,  // slightly more volatile but still profitable
   },
 ]
 
@@ -140,7 +144,10 @@ function BotCard({ bot, balance, userId }) {
       setPnl(prev => parseFloat((prev + gained).toFixed(2)))
       setTicks(t => t + 1)
       const up = gained >= 0
-      addLog(`${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`, up ? '#16a34a' : '#ff4d6a')
+      addLog(
+        `${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`,
+        up ? '#16a34a' : '#ff4d6a'
+      )
     })
   }
 
@@ -178,6 +185,11 @@ function BotCard({ bot, balance, userId }) {
   const statusLabel = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
   const statusColor = active ? '#16a34a' : configured ? '#ffaa00' : '#888'
 
+  // Determine which button is the "next step" to highlight
+  const configureIsNext = canRun && !configured && !showConfig
+  const saveIsNext      = showConfig
+  const startIsNext     = canRun && configured && !active
+
   return (
     <div className="bot-card" style={{ opacity: canRun ? 1 : 0.55 }}>
       <div className="bot-card-top">
@@ -189,7 +201,9 @@ function BotCard({ bot, balance, userId }) {
           {active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
         </div>
       </div>
+
       <p className="bot-desc">{bot.description}</p>
+
       <div className="bot-meta">
         <div className="bot-meta-item">
           <span className="bot-meta-label">Risk:</span>
@@ -212,6 +226,22 @@ function BotCard({ bot, balance, userId }) {
           </div>
         )}
       </div>
+
+      {/* Step indicator */}
+      {canRun && !active && (
+        <div className="bot-steps">
+          <div className={`bot-step ${!configured ? 'active-step' : 'done-step'}`}>
+            <span className="step-num">{!configured ? '1' : '✓'}</span>
+            <span>Configure</span>
+          </div>
+          <div className="step-line" />
+          <div className={`bot-step ${configured && !active ? 'active-step' : configured ? 'done-step' : 'inactive-step'}`}>
+            <span className="step-num">2</span>
+            <span>Start Bot</span>
+          </div>
+        </div>
+      )}
+
       {showConfig && (
         <div style={{ background: '#ffffff08', border: '1px solid #ffffff15', borderRadius: 10, padding: '14px 16px', margin: '10px 0' }}>
           <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 8 }}>
@@ -224,11 +254,18 @@ function BotCard({ bot, balance, userId }) {
             style={{ width: '100%', background: '#ffffff10', border: '1px solid #ffffff20', borderRadius: 8, padding: '8px 12px', color: 'inherit', fontSize: 14, marginBottom: 10, boxSizing: 'border-box' }}
           />
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="bot-btn-start" onClick={handleSaveConfig} style={{ flex: 1 }}>Save</button>
+            <button
+              className={`bot-btn-start ${saveIsNext ? 'btn-next' : ''}`}
+              onClick={handleSaveConfig}
+              style={{ flex: 1 }}
+            >
+              💾 Save Config
+            </button>
             <button className="bot-btn-configure" onClick={() => setShowConfig(false)} style={{ flex: 1 }}>Cancel</button>
           </div>
         </div>
       )}
+
       {log.length > 0 && (
         <div style={{ background: '#000000aa', borderRadius: 8, padding: '8px 12px', margin: '8px 0', maxHeight: 120, overflowY: 'auto', fontFamily: 'monospace', fontSize: 11 }}>
           {log.map((l, i) => (
@@ -238,17 +275,22 @@ function BotCard({ bot, balance, userId }) {
           ))}
         </div>
       )}
+
       <div className="bot-actions">
-        <button className="bot-btn-configure" onClick={handleConfigure} disabled={!canRun || active} title={!canRun ? `Need $${MIN_BALANCE}+ balance` : ''}>
-          {showConfig ? 'Close Config' : 'Configure'}
+        <button
+          className={`bot-btn-configure ${configureIsNext ? 'btn-next' : ''}`}
+          onClick={handleConfigure}
+          disabled={!canRun || active}
+        >
+          {showConfig ? '✕ Close Config' : '⚙️ Configure'}
         </button>
         <button
-          className={`bot-btn-start ${active ? 'stop' : ''}`}
+          className={`bot-btn-start ${startIsNext ? 'btn-next' : ''} ${active ? 'stop' : ''}`}
           onClick={handleStart}
           disabled={!canRun || !configured}
           style={active ? { background: '#ff4d6a22', color: '#ff4d6a', border: '1px solid #ff4d6a55' } : {}}
         >
-          {active ? `Stop ${bot.name.split(' ')[0]} Bot` : `Start ${bot.name.split(' ')[0]} Bot`}
+          {active ? `⏹ Stop ${bot.name.split(' ')[0]} Bot` : `▶ Start ${bot.name.split(' ')[0]} Bot`}
         </button>
       </div>
     </div>
@@ -312,8 +354,6 @@ export function MarketsPage() {
   return (
     <div className="dash-main">
       <div className="dash-content" style={{ padding: '24px' }}>
-
-        {/* Top Gainers / Losers */}
         <div className="movers-grid">
           <div className="movers-card card">
             <div className="movers-title"><span>🔥</span> Top Gainers</div>
@@ -324,24 +364,18 @@ export function MarketsPage() {
                 <div key={p.symbol} className="mover-row">
                   <div className="mover-left">
                     <div className="pair-icon">
-                      {logo
-                        ? <img src={logo} alt={base} className="pair-coin-img" onError={e => e.target.style.display='none'} />
-                        : <span className="pair-icon-fallback">{base.slice(0,3)}</span>
-                      }
+                      {logo ? <img src={logo} alt={base} className="pair-coin-img" onError={e => e.target.style.display='none'} /> : <span className="pair-icon-fallback">{base.slice(0,3)}</span>}
                     </div>
                     <div className="mover-sym">{base}</div>
                   </div>
                   <div className="mover-right">
-                    <span className="mover-price font-mono">
-                      ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                    </span>
+                    <span className="mover-price font-mono">${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
                     <span className="mover-badge up">↗ +{p.change.toFixed(2)}%</span>
                   </div>
                 </div>
               )
             })}
           </div>
-
           <div className="movers-card card">
             <div className="movers-title"><span>⚡</span> Top Losers</div>
             {topLosers.map(p => {
@@ -351,17 +385,12 @@ export function MarketsPage() {
                 <div key={p.symbol} className="mover-row">
                   <div className="mover-left">
                     <div className="pair-icon">
-                      {logo
-                        ? <img src={logo} alt={base} className="pair-coin-img" onError={e => e.target.style.display='none'} />
-                        : <span className="pair-icon-fallback">{base.slice(0,3)}</span>
-                      }
+                      {logo ? <img src={logo} alt={base} className="pair-coin-img" onError={e => e.target.style.display='none'} /> : <span className="pair-icon-fallback">{base.slice(0,3)}</span>}
                     </div>
                     <div className="mover-sym">{base}</div>
                   </div>
                   <div className="mover-right">
-                    <span className="mover-price font-mono">
-                      ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                    </span>
+                    <span className="mover-price font-mono">${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
                     <span className="mover-badge down">↘ {p.change.toFixed(2)}%</span>
                   </div>
                 </div>
@@ -370,7 +399,6 @@ export function MarketsPage() {
           </div>
         </div>
 
-        {/* Filter + Search */}
         <div className="markets-toolbar">
           <div className="markets-filters">
             {['all', 'favorites', 'gainers', 'losers'].map(f => (
@@ -381,25 +409,18 @@ export function MarketsPage() {
           </div>
           <div className="markets-search">
             <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Search markets..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="search-input"
-            />
+            <input type="text" placeholder="Search markets..." value={search} onChange={e => setSearch(e.target.value)} className="search-input" />
           </div>
         </div>
 
-        {/* Table */}
         <div className="card markets-table-card">
           <table className="markets-table">
             <thead>
               <tr>
                 <th></th>
-                <th onClick={() => handleSort('name')} className="th-sort">Name <SortIcon k="name" /></th>
+                <th onClick={() => handleSort('name')}  className="th-sort">Name  <SortIcon k="name"  /></th>
                 <th onClick={() => handleSort('price')} className="th-sort">Price <SortIcon k="price" /></th>
-                <th onClick={() => handleSort('change')} className="th-sort">24h <SortIcon k="change" /></th>
+                <th onClick={() => handleSort('change')} className="th-sort">24h  <SortIcon k="change" /></th>
                 <th>Volume</th>
                 <th>Market Cap</th>
                 <th>Action</th>
@@ -418,34 +439,24 @@ export function MarketsPage() {
                     </td>
                     <td className="td-pair">
                       <div className="pair-icon">
-                        {logo
-                          ? <img src={logo} alt={base} className="pair-coin-img" onError={e => e.target.style.display='none'} />
-                          : <span className="pair-icon-fallback">{base.slice(0,3)}</span>
-                        }
+                        {logo ? <img src={logo} alt={base} className="pair-coin-img" onError={e => e.target.style.display='none'} /> : <span className="pair-icon-fallback">{base.slice(0,3)}</span>}
                       </div>
                       <div>
                         <div className="pair-name">{base}</div>
                         <div className="pair-sub">{base}/USDT</div>
                       </div>
                     </td>
-                    <td className="td-price font-mono">
-                      ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                    </td>
-                    <td className={`td-change ${isUp ? 'up' : 'down'}`}>
-                      {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%
-                    </td>
+                    <td className="td-price font-mono">${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+                    <td className={`td-change ${isUp ? 'up' : 'down'}`}>{isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%</td>
                     <td className="td-vol">{fmtVol(base)}</td>
                     <td className="td-mcap">{fmtMcap(base)}</td>
-                    <td>
-                      <button className="trade-btn">Trade</button>
-                    </td>
+                    <td><button className="trade-btn">Trade</button></td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
         </div>
-
       </div>
     </div>
   )
