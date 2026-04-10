@@ -35,7 +35,10 @@ export default function DashNav() {
       <nav className="dashnav-header">
         <div className="dashnav-logo">
           <span className="logo-icon-nav">◈</span>
-          <span>FlexxMarket</span>
+          <div className="logo-text-stack">
+            <span className="logo-top">Flexx</span>
+            <span className="logo-bottom">MARKET</span>
+          </div>
         </div>
         <div className="dashnav-links">
           {NAV.map(n => (
@@ -65,7 +68,10 @@ export default function DashNav() {
       <header className="mobile-header">
         <div className="mobile-logo">
           <span className="logo-icon-nav">◈</span>
-          <span>FlexxMarket</span>
+          <div className="logo-text-stack">
+            <span className="logo-top">Flexx</span>
+            <span className="logo-bottom">MARKET</span>
+          </div>
         </div>
         <div className="mobile-header-right">
           <div className="user-avatar" onClick={() => navigate('/dashboard')}>{initials}</div>
@@ -88,12 +94,15 @@ export default function DashNav() {
         ))}
       </nav>
 
-      {/* ── DESKTOP: bottom footer ── */}
+      {/* ── DESKTOP: bottom footer (scrolls with page) ── */}
       <footer className="dashnav-desktop-footer">
         <div className="desktop-footer-inner">
           <div className="desktop-footer-logo">
             <span className="logo-icon-nav">◈</span>
-            <span>Flexxmarket</span>
+            <div className="logo-text-stack">
+              <span className="logo-top">Flexx</span>
+              <span className="logo-bottom">MARKET</span>
+            </div>
           </div>
           <div className="desktop-footer-copy">
             © 2026 Flexxmarket. All rights reserved. Trading involves risk.
