@@ -87,6 +87,19 @@ export default function DashNav() {
           </NavLink>
         ))}
       </nav>
+
+      {/* ── DESKTOP: bottom footer ── */}
+      <footer className="dashnav-desktop-footer">
+        <div className="desktop-footer-inner">
+          <div className="desktop-footer-logo">
+            <span className="logo-icon-nav">◈</span>
+            <span>Flexxmarket</span>
+          </div>
+          <div className="desktop-footer-copy">
+            © 2026 Flexxmarket. All rights reserved. Trading involves risk.
+          </div>
+        </div>
+      </footer>
     </>
   )
 }
