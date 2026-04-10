@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../supabase'
 import './AuthModal.css'
 
 export default function AuthModal({ mode: initialMode, onClose }) {
@@ -11,7 +12,7 @@ export default function AuthModal({ mode: initialMode, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const { signIn, signUp } = useAuth()
+  const { signIn } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -27,10 +28,32 @@ export default function AuthModal({ mode: initialMode, onClose }) {
         onClose()
         navigate('/dashboard')
       } else {
-        const { error } = await signUp(email, password, username)
+        // Sign up without email confirmation
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { username },
+            emailRedirectTo: undefined,
+          },
+        })
         if (error) throw error
-        setSuccess('Account created! Check your email to confirm, then sign in.')
-        setMode('signin')
+
+        // If session is returned immediately, user is logged in — go straight to dashboard
+        if (data?.session) {
+          onClose()
+          navigate('/dashboard')
+        } else {
+          // Supabase project still has email confirm ON — auto sign them in manually
+          const { error: signInError } = await signIn(email, password)
+          if (signInError) {
+            setSuccess('Account created! You can now sign in.')
+            setMode('signin')
+          } else {
+            onClose()
+            navigate('/dashboard')
+          }
+        }
       }
     } catch (err) {
       setError(err.message || 'Something went wrong')
@@ -43,17 +66,24 @@ export default function AuthModal({ mode: initialMode, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
-
         <div className="modal-logo">
           <span className="logo-icon-sm">◈</span>
           <span className="modal-brand">FlexMarket</span>
         </div>
-
         <div className="modal-tabs">
-          <button className={mode === 'signin' ? 'tab active' : 'tab'} onClick={() => { setMode('signin'); setError(''); setSuccess('') }}>Sign In</button>
-          <button className={mode === 'signup' ? 'tab active' : 'tab'} onClick={() => { setMode('signup'); setError(''); setSuccess('') }}>Create Account</button>
+          <button
+            className={mode === 'signin' ? 'tab active' : 'tab'}
+            onClick={() => { setMode('signin'); setError(''); setSuccess('') }}
+          >
+            Sign In
+          </button>
+          <button
+            className={mode === 'signup' ? 'tab active' : 'tab'}
+            onClick={() => { setMode('signup'); setError(''); setSuccess('') }}
+          >
+            Create Account
+          </button>
         </div>
-
         <form onSubmit={handleSubmit} className="modal-form">
           {mode === 'signup' && (
             <div className="form-group">
@@ -88,15 +118,12 @@ export default function AuthModal({ mode: initialMode, onClose }) {
               minLength={6}
             />
           </div>
-
           {error && <div className="modal-error">{error}</div>}
           {success && <div className="modal-success">{success}</div>}
-
           <button type="submit" className="btn-primary modal-submit" disabled={loading}>
             {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In →' : 'Create Account →'}
           </button>
         </form>
-
         <p className="modal-disclaimer">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
