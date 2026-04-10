@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import DashNav from '../components/DashNav'
 import { useTicker, CRYPTO_DATA } from '../hooks/useTicker'
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
 import { supabase } from '../supabase'
@@ -329,88 +328,83 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="dash-layout">
-      <DashNav />
-      <div className="dash-main">
-        <div className="dash-content">
+    <div className="dash-main">
+      <div className="dash-content">
 
-          {page === 'deposit'  && <DepositPage onBack={() => setPage('home')} />}
-          {page === 'withdraw' && <WithdrawPage onBack={() => setPage('home')} balance={balance ?? 0} />}
+        {page === 'deposit'  && <DepositPage onBack={() => setPage('home')} />}
+        {page === 'withdraw' && <WithdrawPage onBack={() => setPage('home')} balance={balance ?? 0} />}
 
-          {page === 'home' && <>
-            {/* Portfolio */}
-            <div className="portfolio-card card">
-              <div className="portfolio-label">REAL PORTFOLIO</div>
-              <div className="portfolio-value font-mono">
-                {balanceLoading ? '...' : fmt(balance)}
-              </div>
-              <div className="portfolio-change up">↑ +0.00%</div>
-              <div className="portfolio-actions">
-                <button className="btn-primary" onClick={() => setPage('deposit')}>Deposit</button>
-                <button className="btn-outline" onClick={() => setPage('withdraw')}>Withdraw</button>
-              </div>
+        {page === 'home' && <>
+          <div className="portfolio-card card">
+            <div className="portfolio-label">REAL PORTFOLIO</div>
+            <div className="portfolio-value font-mono">
+              {balanceLoading ? '...' : fmt(balance)}
             </div>
+            <div className="portfolio-change up">↑ +0.00%</div>
+            <div className="portfolio-actions">
+              <button className="btn-primary" onClick={() => setPage('deposit')}>Deposit</button>
+              <button className="btn-outline" onClick={() => setPage('withdraw')}>Withdraw</button>
+            </div>
+          </div>
 
-            {/* Watchlist + Crypto */}
-            <div className="dash-grid-2">
-              <div className="card">
-                <div className="card-header">
-                  <h3>Watchlist</h3>
-                  <button className="see-all">See All</button>
-                </div>
-                <div className="watchlist">
-                  {pairs.slice(0, 3).map(p => {
-                    const base = p.symbol.split('/')[0]
-                    const logo = COIN_LOGOS[base]
-                    return (
-                      <div key={p.symbol} className="watch-row">
-                        <div className="watch-icon" style={{
-                          background: p.change >= 0 ? '#16a34a22' : '#ff4d6a22',
-                          overflow: 'hidden',
-                        }}>
-                          {logo
-                            ? <img src={logo} alt={base} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => e.target.style.display='none'} />
-                            : <span style={{ color: p.change >= 0 ? '#16a34a' : '#ff4d6a' }}>{base.slice(0, 3)}</span>
-                          }
-                        </div>
-                        <div className="watch-info">
-                          <span className="watch-symbol">{p.symbol.split('/')[0]}</span>
-                          <span className="watch-name">{p.name || p.symbol.split('/')[0]}</span>
-                        </div>
-                        <div className="watch-right">
-                          <span className="watch-price font-mono">
-                            ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                          <span className={`watch-change ${p.change >= 0 ? 'up' : 'down'}`}>
-                            {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
-                          </span>
-                        </div>
+          <div className="dash-grid-2">
+            <div className="card">
+              <div className="card-header">
+                <h3>Watchlist</h3>
+                <button className="see-all">See All</button>
+              </div>
+              <div className="watchlist">
+                {pairs.slice(0, 3).map(p => {
+                  const base = p.symbol.split('/')[0]
+                  const logo = COIN_LOGOS[base]
+                  return (
+                    <div key={p.symbol} className="watch-row">
+                      <div className="watch-icon" style={{
+                        background: p.change >= 0 ? '#16a34a22' : '#ff4d6a22',
+                        overflow: 'hidden',
+                      }}>
+                        {logo
+                          ? <img src={logo} alt={base} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => e.target.style.display='none'} />
+                          : <span style={{ color: p.change >= 0 ? '#16a34a' : '#ff4d6a' }}>{base.slice(0, 3)}</span>
+                        }
                       </div>
-                    )
-                  })}
-                </div>
-                <div className="watchlist-footer">
-                  <span className="coingecko-label">{fetchingLabel || `Using: ${priceSource}`}</span>
-                  <button className="refresh-prices-btn" onClick={handleRefreshPrices} disabled={!!fetchingLabel}>
-                    {fetchingLabel ? 'Refreshing...' : 'Refresh Prices'}
-                  </button>
-                </div>
+                      <div className="watch-info">
+                        <span className="watch-symbol">{p.symbol.split('/')[0]}</span>
+                        <span className="watch-name">{p.name || p.symbol.split('/')[0]}</span>
+                      </div>
+                      <div className="watch-right">
+                        <span className="watch-price font-mono">
+                          ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                        <span className={`watch-change ${p.change >= 0 ? 'up' : 'down'}`}>
+                          {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <h3>Your Crypto</h3>
-                  <button className="see-all">See All</button>
-                </div>
-                <div className="crypto-mini-grid">
-                  {CRYPTO_DATA.map(coin => <CryptoCard key={coin.id} coin={coin} />)}
-                </div>
-                <button className="refresh-all-btn">Refresh All Prices</button>
+              <div className="watchlist-footer">
+                <span className="coingecko-label">{fetchingLabel || `Using: ${priceSource}`}</span>
+                <button className="refresh-prices-btn" onClick={handleRefreshPrices} disabled={!!fetchingLabel}>
+                  {fetchingLabel ? 'Refreshing...' : 'Refresh Prices'}
+                </button>
               </div>
             </div>
-          </>}
 
-        </div>
+            <div className="card">
+              <div className="card-header">
+                <h3>Your Crypto</h3>
+                <button className="see-all">See All</button>
+              </div>
+              <div className="crypto-mini-grid">
+                {CRYPTO_DATA.map(coin => <CryptoCard key={coin.id} coin={coin} />)}
+              </div>
+              <button className="refresh-all-btn">Refresh All Prices</button>
+            </div>
+          </div>
+        </>}
+
       </div>
     </div>
   )
