@@ -94,7 +94,7 @@ export default function DashNav() {
         ))}
       </nav>
 
-      {/* ── DESKTOP: bottom footer (scrolls with page) ── */}
+      {/* ── DESKTOP: bottom footer (fixed) ── */}
       <footer className="dashnav-desktop-footer">
         <div className="desktop-footer-inner">
           <div className="desktop-footer-logo">
