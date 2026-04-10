@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import DashNav from '../components/DashNav'
 import { useTicker } from '../hooks/useTicker'
 import { supabase } from '../supabase'
 import { useBalance } from './Dashboard'
 import './PlaceholderPage.css'
 
-const MIN_BALANCE = 50 // minimum balance to run a bot
+const MIN_BALANCE = 50
 
-// ── BOT DEFINITIONS ────────────────────────────────────────────────────
-// interval: ms between trades, drift: avg gain per tick, volatility: randomness
 const BOT_CONFIGS = [
   {
     id: 1,
@@ -17,8 +14,8 @@ const BOT_CONFIGS = [
     subtitle: 'Weekly • DCA',
     description: 'Dollar-cost averaging into Bitcoin on a weekly basis.',
     risk: 'Low',
-    interval: 8000,   // trade every 8s (simulates weekly)
-    drift: 0.004,     // +0.4% average per tick
+    interval: 8000,
+    drift: 0.004,
     volatility: 0.012,
   },
   {
@@ -27,13 +24,12 @@ const BOT_CONFIGS = [
     subtitle: 'Daily • DCA',
     description: 'Dynamic DCA based on RSI and volume indicators.',
     risk: 'Medium',
-    interval: 5000,   // trade every 5s (simulates daily)
-    drift: 0.007,     // +0.7% average per tick
+    interval: 5000,
+    drift: 0.007,
     volatility: 0.025,
   },
 ]
 
-// ── INSUFFICIENT BALANCE BANNER ────────────────────────────────────────
 function InsufficientBanner() {
   return (
     <div style={{
@@ -60,20 +56,18 @@ function InsufficientBanner() {
   )
 }
 
-// ── SINGLE BOT CARD ────────────────────────────────────────────────────
 function BotCard({ bot, balance, userId }) {
   const canRun        = balance >= MIN_BALANCE
   const [active,      setActive]      = useState(false)
   const [configured,  setConfigured]  = useState(false)
   const [showConfig,  setShowConfig]  = useState(false)
-  const [allocation,  setAllocation]  = useState('')   // USD amount to allocate
-  const [log,         setLog]         = useState([])   // trade log entries
-  const [pnl,         setPnl]         = useState(0)    // running P&L for this bot
+  const [allocation,  setAllocation]  = useState('')
+  const [log,         setLog]         = useState([])
+  const [pnl,         setPnl]         = useState(0)
   const [ticks,       setTicks]       = useState(0)
   const intervalRef   = useRef(null)
-  const allocatedRef  = useRef(0)      // how much this bot has allocated
+  const allocatedRef  = useRef(0)
 
-  // Cleanup on unmount
   useEffect(() => () => clearInterval(intervalRef.current), [])
 
   function addLog(msg, color = '#aaa') {
@@ -81,7 +75,6 @@ function BotCard({ bot, balance, userId }) {
   }
 
   async function applyDelta(delta) {
-    // Read latest balance first, then write delta
     const { data } = await supabase
       .from('balances')
       .select('amount')
@@ -100,9 +93,8 @@ function BotCard({ bot, balance, userId }) {
   }
 
   function tick() {
-    // Simulate a trade: random return centered on drift
     const r      = (Math.random() * 2 - 1) * bot.volatility + bot.drift
-    const stake  = allocatedRef.current * 0.1   // trade 10% of allocation per tick
+    const stake  = allocatedRef.current * 0.1
     const gained = parseFloat((stake * r).toFixed(2))
 
     applyDelta(gained).then(() => {
@@ -124,7 +116,6 @@ function BotCard({ bot, balance, userId }) {
   async function handleStart() {
     if (!canRun || !configured) return
     if (active) {
-      // Stop bot
       clearInterval(intervalRef.current)
       setActive(false)
       addLog('🛑 Bot stopped', '#ffaa00')
@@ -155,7 +146,6 @@ function BotCard({ bot, balance, userId }) {
 
   return (
     <div className="bot-card" style={{ opacity: canRun ? 1 : 0.55 }}>
-      {/* Header */}
       <div className="bot-card-top">
         <div>
           <div className="bot-name">{bot.name}</div>
@@ -168,7 +158,6 @@ function BotCard({ bot, balance, userId }) {
 
       <p className="bot-desc">{bot.description}</p>
 
-      {/* Stats */}
       <div className="bot-meta">
         <div className="bot-meta-item">
           <span className="bot-meta-label">Risk:</span>
@@ -192,7 +181,6 @@ function BotCard({ bot, balance, userId }) {
         )}
       </div>
 
-      {/* Config panel */}
       {showConfig && (
         <div style={{
           background: '#ffffff08', border: '1px solid #ffffff15',
@@ -224,7 +212,6 @@ function BotCard({ bot, balance, userId }) {
         </div>
       )}
 
-      {/* Trade log */}
       {log.length > 0 && (
         <div style={{
           background: '#000000aa', borderRadius: 8, padding: '8px 12px',
@@ -239,7 +226,6 @@ function BotCard({ bot, balance, userId }) {
         </div>
       )}
 
-      {/* Actions */}
       <div className="bot-actions">
         <button
           className="bot-btn-configure"
@@ -263,26 +249,21 @@ function BotCard({ bot, balance, userId }) {
   )
 }
 
-// ── PLACEHOLDER (coming-soon) ──────────────────────────────────────────
 function PlaceholderPage({ title, icon, description }) {
   return (
-    <div className="dash-layout">
-      <DashNav />
-      <div className="dash-main">
-        <div className="placeholder-content">
-          <div className="placeholder-card card">
-            <div className="ph-icon">{icon}</div>
-            <h2 className="ph-title">{title}</h2>
-            <p className="ph-desc">{description}</p>
-            <div className="ph-badge">Coming Soon</div>
-          </div>
+    <div className="dash-main">
+      <div className="placeholder-content">
+        <div className="placeholder-card card">
+          <div className="ph-icon">{icon}</div>
+          <h2 className="ph-title">{title}</h2>
+          <p className="ph-desc">{description}</p>
+          <div className="ph-badge">Coming Soon</div>
         </div>
       </div>
     </div>
   )
 }
 
-// ── MARKETS PAGE ───────────────────────────────────────────────────────
 export function MarketsPage() {
   const pairs = useTicker()
   const [selectedSymbol, setSelectedSymbol] = useState('AAPL')
@@ -295,46 +276,43 @@ export function MarketsPage() {
   }
 
   return (
-    <div className="dash-layout">
-      <DashNav />
-      <div className="dash-main">
-        <div className="markets-layout">
-          <div className="markets-sidebar">
-            <div className="markets-sidebar-header">
-              <h2>Markets</h2>
-              <span className="live-dot-badge"><span className="live-dot" />LIVE</span>
-            </div>
-            <div className="markets-list">
-              {pairs.map(p => (
-                <div key={p.symbol}
-                  className={`market-list-row ${selectedPair === p.symbol ? 'active' : ''}`}
-                  onClick={() => handleTrade(p.symbol)}
-                >
-                  <div className="mlr-left">
-                    <div className="mlr-icon">{p.symbol.split('/')[0].slice(0, 3)}</div>
-                    <div>
-                      <div className="mlr-symbol">{p.symbol}</div>
-                      <div className={`mlr-change ${p.change >= 0 ? 'up' : 'down'}`}>
-                        {p.change >= 0 ? '↑' : '↓'} {Math.abs(p.change).toFixed(2)}%
-                      </div>
+    <div className="dash-main">
+      <div className="markets-layout">
+        <div className="markets-sidebar">
+          <div className="markets-sidebar-header">
+            <h2>Markets</h2>
+            <span className="live-dot-badge"><span className="live-dot" />LIVE</span>
+          </div>
+          <div className="markets-list">
+            {pairs.map(p => (
+              <div key={p.symbol}
+                className={`market-list-row ${selectedPair === p.symbol ? 'active' : ''}`}
+                onClick={() => handleTrade(p.symbol)}
+              >
+                <div className="mlr-left">
+                  <div className="mlr-icon">{p.symbol.split('/')[0].slice(0, 3)}</div>
+                  <div>
+                    <div className="mlr-symbol">{p.symbol}</div>
+                    <div className={`mlr-change ${p.change >= 0 ? 'up' : 'down'}`}>
+                      {p.change >= 0 ? '↑' : '↓'} {Math.abs(p.change).toFixed(2)}%
                     </div>
                   </div>
-                  <div className="mlr-price font-mono">
-                    {p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                  </div>
                 </div>
-              ))}
-            </div>
+                <div className="mlr-price font-mono">
+                  {p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="markets-chart-panel">
-            <iframe
-              key={selectedSymbol}
-              src={`https://www.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${selectedSymbol}&interval=D&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=1e2330&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&showpopupbutton=1&locale=en`}
-              width="100%" height="100%"
-              style={{ display: 'block', border: 'none' }}
-              allowTransparency allowFullScreen
-            />
-          </div>
+        </div>
+        <div className="markets-chart-panel">
+          <iframe
+            key={selectedSymbol}
+            src={`https://www.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=${selectedSymbol}&interval=D&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=1&saveimage=1&toolbarbg=1e2330&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&showpopupbutton=1&locale=en`}
+            width="100%" height="100%"
+            style={{ display: 'block', border: 'none' }}
+            allowTransparency allowFullScreen
+          />
         </div>
       </div>
     </div>
@@ -349,71 +327,63 @@ export function FuturesPage() {
   return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
 }
 
-// ── BOTS PAGE ──────────────────────────────────────────────────────────
 export function BotsPage() {
-  const { user }              = useAuth()
-  const { balance, loading }  = useBalance()
-  const canRun                = (balance ?? 0) >= MIN_BALANCE
+  const { user }             = useAuth()
+  const { balance, loading } = useBalance()
+  const canRun               = (balance ?? 0) >= MIN_BALANCE
 
   return (
-    <div className="dash-layout">
-      <DashNav />
-      <div className="dash-main">
-        <div className="bots-content">
-
-          <div className="bots-hero">
-            <div className="bots-hero-left">
-              <h1 className="bots-hero-title">Automated Trading</h1>
-              <p className="bots-hero-sub">Create and manage algorithmic trading strategies</p>
-              <div className="bots-hero-stats">
-                <div className="bots-stat">
-                  <span className="bots-stat-value">{BOT_CONFIGS.length}</span>
-                  <span className="bots-stat-label">Total Bots</span>
-                </div>
-                <div className="bots-stat">
-                  <span className="bots-stat-value">
-                    {loading ? '...' : `$${Number(balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                  </span>
-                  <span className="bots-stat-label">Available Balance</span>
-                </div>
-                <div className="bots-stat">
-                  <span className="bots-stat-value" style={{ color: canRun ? '#16a34a' : '#ff4d6a' }}>
-                    {canRun ? 'Ready' : 'Locked'}
-                  </span>
-                  <span className="bots-stat-label">Bot Status</span>
-                </div>
+    <div className="dash-main">
+      <div className="bots-content">
+        <div className="bots-hero">
+          <div className="bots-hero-left">
+            <h1 className="bots-hero-title">Automated Trading</h1>
+            <p className="bots-hero-sub">Create and manage algorithmic trading strategies</p>
+            <div className="bots-hero-stats">
+              <div className="bots-stat">
+                <span className="bots-stat-value">{BOT_CONFIGS.length}</span>
+                <span className="bots-stat-label">Total Bots</span>
+              </div>
+              <div className="bots-stat">
+                <span className="bots-stat-value">
+                  {loading ? '...' : `$${Number(balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                </span>
+                <span className="bots-stat-label">Available Balance</span>
+              </div>
+              <div className="bots-stat">
+                <span className="bots-stat-value" style={{ color: canRun ? '#16a34a' : '#ff4d6a' }}>
+                  {canRun ? 'Ready' : 'Locked'}
+                </span>
+                <span className="bots-stat-label">Bot Status</span>
               </div>
             </div>
-            <button className="bots-hero-btn">Create New Bot →</button>
           </div>
+          <button className="bots-hero-btn">Create New Bot →</button>
+        </div>
 
-          {/* Insufficient balance warning */}
-          {!loading && !canRun && <InsufficientBanner />}
+        {!loading && !canRun && <InsufficientBanner />}
 
-          <div className="bots-section">
-            <div className="bots-section-header">
-              <div>
-                <h2 className="bots-section-title">Dollar-Cost Averaging Bots</h2>
-                <p className="bots-section-sub">Regular purchases of assets regardless of price</p>
-              </div>
-              <button className="bots-create-btn" disabled={!canRun}
-                title={!canRun ? `Need $${MIN_BALANCE}+ to create bots` : ''}>
-                Create DCA Bot
-              </button>
+        <div className="bots-section">
+          <div className="bots-section-header">
+            <div>
+              <h2 className="bots-section-title">Dollar-Cost Averaging Bots</h2>
+              <p className="bots-section-sub">Regular purchases of assets regardless of price</p>
             </div>
-
-            <div className="bots-grid">
-              {BOT_CONFIGS.map(bot => (
-                <BotCard
-                  key={bot.id}
-                  bot={bot}
-                  balance={balance ?? 0}
-                  userId={user?.id}
-                />
-              ))}
-            </div>
+            <button className="bots-create-btn" disabled={!canRun}
+              title={!canRun ? `Need $${MIN_BALANCE}+ to create bots` : ''}>
+              Create DCA Bot
+            </button>
           </div>
-
+          <div className="bots-grid">
+            {BOT_CONFIGS.map(bot => (
+              <BotCard
+                key={bot.id}
+                bot={bot}
+                balance={balance ?? 0}
+                userId={user?.id}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
