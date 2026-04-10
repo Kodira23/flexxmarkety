@@ -1,394 +1,127 @@
-import { useState, useMemo } from 'react'
-import { useTicker } from '../hooks/useTicker'
-import './Markets.css'
+import { useState, useEffect } from 'react'
 
-// Verified CoinGecko image IDs for all 100 coins
-const COIN_LOGOS = {
-  BTC:   'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png',
-  ETH:   'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
-  XRP:   'https://assets.coingecko.com/coins/images/44/thumb/xrp-symbol-white-128.png',
-  BNB:   'https://assets.coingecko.com/coins/images/825/thumb/bnb-icon2_2x.png',
-  SOL:   'https://assets.coingecko.com/coins/images/4128/thumb/solana.png',
-  DOGE:  'https://assets.coingecko.com/coins/images/5/thumb/dogecoin.png',
-  ADA:   'https://assets.coingecko.com/coins/images/975/thumb/cardano.png',
-  TRX:   'https://assets.coingecko.com/coins/images/1094/thumb/tron-logo.png',
-  AVAX:  'https://assets.coingecko.com/coins/images/12559/thumb/Avalanche_Circle_RedWhite_Trans.png',
-  LINK:  'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png',
-  SHIB:  'https://assets.coingecko.com/coins/images/11939/thumb/shiba.png',
-  SUI:   'https://assets.coingecko.com/coins/images/26375/thumb/sui_asset.jpeg',
-  XLM:   'https://assets.coingecko.com/coins/images/100/thumb/Stellar_symbol_black_RGB.png',
-  DOT:   'https://assets.coingecko.com/coins/images/12171/thumb/polkadot.png',
-  HBAR:  'https://assets.coingecko.com/coins/images/3688/thumb/hbar.png',
-  BCH:   'https://assets.coingecko.com/coins/images/780/thumb/bitcoin-cash-circle.png',
-  UNI:   'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
-  LTC:   'https://assets.coingecko.com/coins/images/2/thumb/litecoin.png',
-  PEPE:  'https://assets.coingecko.com/coins/images/29850/thumb/pepe-token.jpeg',
-  NEAR:  'https://assets.coingecko.com/coins/images/10365/thumb/near.jpg',
-  ICP:   'https://assets.coingecko.com/coins/images/14495/thumb/Internet_Computer_logo.png',
-  FET:   'https://assets.coingecko.com/coins/images/5681/thumb/Fetch.jpg',
-  MATIC: 'https://assets.coingecko.com/coins/images/4713/thumb/matic-token-icon.png',
-  RNDR:  'https://assets.coingecko.com/coins/images/11636/thumb/rndr.png',
-  ARB:   'https://assets.coingecko.com/coins/images/16547/thumb/photo_2023-03-29_21.47.00.jpeg',
-  ATOM:  'https://assets.coingecko.com/coins/images/1481/thumb/cosmos_hub.png',
-  SEI:   'https://assets.coingecko.com/coins/images/28205/thumb/Sei_Logo_-_Transparent.png',
-  RUNE:  'https://assets.coingecko.com/coins/images/6595/thumb/Rune200x200.png',
-  MKR:   'https://assets.coingecko.com/coins/images/1364/thumb/Mark_Maker.png',
-  QNT:   'https://assets.coingecko.com/coins/images/3370/thumb/5ZOu7brX_400x400.jpg',
-  LDO:   'https://assets.coingecko.com/coins/images/13573/thumb/Lido_DAO.png',
-  GALA:  'https://assets.coingecko.com/coins/images/12493/thumb/GALA-COINGECKO.png',
-  JASMY: 'https://assets.coingecko.com/coins/images/13876/thumb/JASMY200x200.jpg',
-  SAND:  'https://assets.coingecko.com/coins/images/12129/thumb/sandbox_logo.jpg',
-  FLOW:  'https://assets.coingecko.com/coins/images/13446/thumb/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png',
-  MANA:  'https://assets.coingecko.com/coins/images/878/thumb/decentraland-mana.png',
-  AXS:   'https://assets.coingecko.com/coins/images/13029/thumb/axie_infinity_logo.png',
-  APE:   'https://assets.coingecko.com/coins/images/24383/thumb/apecoin.jpg',
-  OP:    'https://assets.coingecko.com/coins/images/25244/thumb/Optimism.png',
-  INJ:   'https://assets.coingecko.com/coins/images/12882/thumb/Secondary_Symbol.png',
-  GRT:   'https://assets.coingecko.com/coins/images/13397/thumb/Graph_Token.png',
-  AAVE:  'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png',
-  SNX:   'https://assets.coingecko.com/coins/images/3406/thumb/SNX.png',
-  CRV:   'https://assets.coingecko.com/coins/images/12124/thumb/Curve.png',
-  ENS:   'https://assets.coingecko.com/coins/images/19785/thumb/acatxTm8_400x400.jpg',
-  BLUR:  'https://assets.coingecko.com/coins/images/28453/thumb/blur.png',
-  IMX:   'https://assets.coingecko.com/coins/images/17233/thumb/immutableX-symbol-BLK-RGB.png',
-  CAKE:  'https://assets.coingecko.com/coins/images/12632/thumb/pancakeswap-cake-logo_%281%29.png',
-  COMP:  'https://assets.coingecko.com/coins/images/10775/thumb/COMP.png',
-  YFI:   'https://assets.coingecko.com/coins/images/11849/thumb/yearn-finance.png',
-  BAL:   'https://assets.coingecko.com/coins/images/11683/thumb/Balancer.png',
-  ZRX:   'https://assets.coingecko.com/coins/images/863/thumb/0x.png',
-  CHZ:   'https://assets.coingecko.com/coins/images/8834/thumb/Chiliz.png',
-  ENJ:   'https://assets.coingecko.com/coins/images/1102/thumb/enjin-coin-logo.png',
-  BAT:   'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png',
-  ZIL:   'https://assets.coingecko.com/coins/images/2687/thumb/Zilliqa-logo.png',
-  ONE:   'https://assets.coingecko.com/coins/images/4344/thumb/Y88JAze.png',
-  KAVA:  'https://assets.coingecko.com/coins/images/9761/thumb/kava.png',
-  ALGO:  'https://assets.coingecko.com/coins/images/4380/thumb/download.png',
-  VET:   'https://assets.coingecko.com/coins/images/1167/thumb/VeChain-Logo-768x725.png',
-  THETA: 'https://assets.coingecko.com/coins/images/2538/thumb/theta-token-logo.png',
-  FIL:   'https://assets.coingecko.com/coins/images/12817/thumb/filecoin.png',
-  EOS:   'https://assets.coingecko.com/coins/images/738/thumb/eos-eos-logo.png',
-  XTZ:   'https://assets.coingecko.com/coins/images/976/thumb/Tezos-logo.png',
-  IOTA:  'https://assets.coingecko.com/coins/images/692/thumb/IOTA_Swirl.png',
-  NEO:   'https://assets.coingecko.com/coins/images/480/thumb/NEO_512_512.png',
-  WAVES: 'https://assets.coingecko.com/coins/images/425/thumb/waves.png',
-  DASH:  'https://assets.coingecko.com/coins/images/19/thumb/dash-logo.png',
-  XMR:   'https://assets.coingecko.com/coins/images/69/thumb/monero_logo.png',
-  ZEC:   'https://assets.coingecko.com/coins/images/486/thumb/circle-zcash-color.png',
-  EGLD:  'https://assets.coingecko.com/coins/images/12335/thumb/egld-token-logo.png',
-  ROSE:  'https://assets.coingecko.com/coins/images/13162/thumb/rose.png',
-  KSM:   'https://assets.coingecko.com/coins/images/9568/thumb/m4zRhP5e_400x400.jpg',
-  CELO:  'https://assets.coingecko.com/coins/images/11090/thumb/InjXBNx9_400x400.jpg',
-  ANKR:  'https://assets.coingecko.com/coins/images/8455/thumb/Ankr.png',
-  SKL:   'https://assets.coingecko.com/coins/images/13245/thumb/SKALE_token_300x300.png',
-  STORJ: 'https://assets.coingecko.com/coins/images/949/thumb/storj.png',
-  BAND:  'https://assets.coingecko.com/coins/images/9545/thumb/Band_token_blue_violet_token.png',
-  WLD:   'https://assets.coingecko.com/coins/images/31069/thumb/worldcoin.jpeg',
-  STX:   'https://assets.coingecko.com/coins/images/2069/thumb/Stacks_logo_full.png',
-  CFX:   'https://assets.coingecko.com/coins/images/13079/thumb/3vuYMbjN.png',
-  MAGIC: 'https://assets.coingecko.com/coins/images/18623/thumb/magic.png',
-  TIA:   'https://assets.coingecko.com/coins/images/33172/thumb/celestia.png',
-  PYTH:  'https://assets.coingecko.com/coins/images/31924/thumb/pyth.png',
-  JTO:   'https://assets.coingecko.com/coins/images/33228/thumb/jto.png',
-  JUP:   'https://assets.coingecko.com/coins/images/34188/thumb/jup.png',
-  WIF:   'https://assets.coingecko.com/coins/images/33566/thumb/dogwifhat.jpg',
-  BOME:  'https://assets.coingecko.com/coins/images/36709/thumb/bome.png',
-  NOT:   'https://assets.coingecko.com/coins/images/36190/thumb/notcoin.jpg',
-  IO:    'https://assets.coingecko.com/coins/images/36143/thumb/io.jpg',
-  ZK:    'https://assets.coingecko.com/coins/images/36730/thumb/zksync.jpg',
-  LISTA: 'https://assets.coingecko.com/coins/images/36893/thumb/lista.jpg',
-  EIGEN: 'https://assets.coingecko.com/coins/images/37173/thumb/eigen.jpg',
-  HMSTR: 'https://assets.coingecko.com/coins/images/39102/thumb/hamster.jpg',
-  CATI:  'https://assets.coingecko.com/coins/images/39173/thumb/cati.jpg',
-  DOGS:  'https://assets.coingecko.com/coins/images/39201/thumb/dogs.jpg',
-  MAJOR: 'https://assets.coingecko.com/coins/images/39202/thumb/major.jpg',
-  NEIRO: 'https://assets.coingecko.com/coins/images/39204/thumb/neiro.jpg',
+const PAIRS = [
+  { symbol: 'BTC/USDT',    price: 97500.00,  change:  2.58 },
+  { symbol: 'ETH/USDT',    price: 3450.45,   change: -2.41 },
+  { symbol: 'XRP/USDT',    price: 2.3500,    change:  5.38 },
+  { symbol: 'BNB/USDT',    price: 680.00,    change:  2.29 },
+  { symbol: 'SOL/USDT',    price: 185.75,    change:  4.65 },
+  { symbol: 'DOGE/USDT',   price: 0.3200,    change:  6.67 },
+  { symbol: 'ADA/USDT',    price: 0.9500,    change: -4.04 },
+  { symbol: 'TRX/USDT',    price: 0.2400,    change:  4.35 },
+  { symbol: 'AVAX/USDT',   price: 42.20,     change: -4.74 },
+  { symbol: 'LINK/USDT',   price: 24.00,     change:  5.49 },
+  { symbol: 'SHIB/USDT',   price: 0.000024,  change:  4.76 },
+  { symbol: 'SUI/USDT',    price: 4.2000,    change:  8.25 },
+  { symbol: 'XLM/USDT',    price: 0.4200,    change:  5.00 },
+  { symbol: 'DOT/USDT',    price: 7.5000,    change:  4.90 },
+  { symbol: 'HBAR/USDT',   price: 0.2800,    change:  7.69 },
+  { symbol: 'BCH/USDT',    price: 485.00,    change:  2.65 },
+  { symbol: 'UNI/USDT',    price: 14.50,     change:  4.92 },
+  { symbol: 'LTC/USDT',    price: 108.00,    change: -2.88 },
+  { symbol: 'PEPE/USDT',   price: 0.000018,  change: 11.76 },
+  { symbol: 'NEAR/USDT',   price: 5.2000,    change:  5.69 },
+  { symbol: 'ICP/USDT',    price: 11.50,     change:  4.74 },
+  { symbol: 'FET/USDT',    price: 2.1000,    change:  9.38 },
+  { symbol: 'MATIC/USDT',  price: 0.5200,    change:  4.00 },
+  { symbol: 'RNDR/USDT',   price: 8.5000,    change:  8.28 },
+  { symbol: 'ARB/USDT',    price: 1.1000,    change:  4.76 },
+  { symbol: 'ATOM/USDT',   price: 9.8000,    change:  3.90 },
+  { symbol: 'SEI/USDT',    price: 0.4800,    change:  9.09 },
+  { symbol: 'RUNE/USDT',   price: 5.5000,    change:  6.80 },
+  { symbol: 'MKR/USDT',    price: 1850.00,   change:  4.82 },
+  { symbol: 'QNT/USDT',    price: 118.00,    change:  4.89 },
+  { symbol: 'LDO/USDT',    price: 1.9000,    change:  4.97 },
+  { symbol: 'GALA/USDT',   price: 0.0400,    change:  7.69 },
+  { symbol: 'JASMY/USDT',  price: 0.0300,    change:  6.67 },
+  { symbol: 'SAND/USDT',   price: 0.5800,    change:  5.45 },
+  { symbol: 'FLOW/USDT',   price: 0.8500,    change:  4.60 },
+  { symbol: 'MANA/USDT',   price: 0.3900,    change:  3.75 },
+  { symbol: 'AXS/USDT',    price: 6.2000,    change:  5.10 },
+  { symbol: 'APE/USDT',    price: 1.1500,    change:  4.30 },
+  { symbol: 'OP/USDT',     price: 1.8000,    change:  6.20 },
+  { symbol: 'INJ/USDT',    price: 22.50,     change:  7.45 },
+  { symbol: 'GRT/USDT',    price: 0.2100,    change:  3.90 },
+  { symbol: 'AAVE/USDT',   price: 185.00,    change:  5.60 },
+  { symbol: 'SNX/USDT',    price: 2.8000,    change:  4.15 },
+  { symbol: 'CRV/USDT',    price: 0.5500,    change:  3.50 },
+  { symbol: 'ENS/USDT',    price: 26.00,     change:  6.80 },
+  { symbol: 'BLUR/USDT',   price: 0.2800,    change:  5.90 },
+  { symbol: 'IMX/USDT',    price: 1.4500,    change:  4.75 },
+  { symbol: 'CAKE/USDT',   price: 2.2000,    change:  3.20 },
+  { symbol: 'COMP/USDT',   price: 55.00,     change:  4.40 },
+  { symbol: 'YFI/USDT',    price: 6500.00,   change:  2.85 },
+  { symbol: 'BAL/USDT',    price: 3.5000,    change:  3.60 },
+  { symbol: 'ZRX/USDT',    price: 0.4200,    change:  2.95 },
+  { symbol: 'CHZ/USDT',    price: 0.0850,    change:  5.30 },
+  { symbol: 'ENJ/USDT',    price: 0.1900,    change:  4.10 },
+  { symbol: 'BAT/USDT',    price: 0.2200,    change:  3.40 },
+  { symbol: 'ZIL/USDT',    price: 0.0220,    change:  4.80 },
+  { symbol: 'ONE/USDT',    price: 0.0180,    change:  3.70 },
+  { symbol: 'KAVA/USDT',   price: 0.6800,    change:  4.20 },
+  { symbol: 'ALGO/USDT',   price: 0.1700,    change:  3.55 },
+  { symbol: 'VET/USDT',    price: 0.0380,    change:  4.90 },
+  { symbol: 'THETA/USDT',  price: 1.4500,    change:  5.20 },
+  { symbol: 'FIL/USDT',    price: 4.8000,    change:  4.65 },
+  { symbol: 'EOS/USDT',    price: 0.7500,    change:  3.80 },
+  { symbol: 'XTZ/USDT',    price: 0.7200,    change:  3.10 },
+  { symbol: 'IOTA/USDT',   price: 0.2200,    change:  4.30 },
+  { symbol: 'NEO/USDT',    price: 11.50,     change:  3.95 },
+  { symbol: 'WAVES/USDT',  price: 1.8500,    change:  4.50 },
+  { symbol: 'DASH/USDT',   price: 28.00,     change:  2.75 },
+  { symbol: 'XMR/USDT',    price: 165.00,    change: -1.20 },
+  { symbol: 'ZEC/USDT',    price: 28.50,     change: -0.85 },
+  { symbol: 'EGLD/USDT',   price: 32.00,     change:  4.10 },
+  { symbol: 'ROSE/USDT',   price: 0.0780,    change:  5.60 },
+  { symbol: 'KSM/USDT',    price: 25.00,     change:  3.70 },
+  { symbol: 'CELO/USDT',   price: 0.8500,    change:  4.25 },
+  { symbol: 'ANKR/USDT',   price: 0.0380,    change:  5.10 },
+  { symbol: 'SKL/USDT',    price: 0.0680,    change:  4.40 },
+  { symbol: 'STORJ/USDT',  price: 0.4200,    change:  4.80 },
+  { symbol: 'BAND/USDT',   price: 1.2500,    change:  4.20 },
+  { symbol: 'WLD/USDT',    price: 2.3000,    change:  6.40 },
+  { symbol: 'STX/USDT',    price: 1.7500,    change:  5.80 },
+  { symbol: 'CFX/USDT',    price: 0.1650,    change:  4.30 },
+  { symbol: 'MAGIC/USDT',  price: 0.8500,    change:  5.20 },
+  { symbol: 'TIA/USDT',    price: 3.8000,    change:  7.10 },
+  { symbol: 'PYTH/USDT',   price: 0.3200,    change:  6.50 },
+  { symbol: 'JTO/USDT',    price: 2.1000,    change:  5.90 },
+  { symbol: 'JUP/USDT',    price: 0.5500,    change:  6.20 },
+  { symbol: 'WIF/USDT',    price: 1.4500,    change:  8.90 },
+  { symbol: 'BOME/USDT',   price: 0.0085,    change:  9.50 },
+  { symbol: 'NOT/USDT',    price: 0.0062,    change:  7.30 },
+  { symbol: 'IO/USDT',     price: 3.4000,    change:  6.10 },
+  { symbol: 'ZK/USDT',     price: 0.1200,    change:  5.80 },
+  { symbol: 'LISTA/USDT',  price: 0.4500,    change:  6.90 },
+  { symbol: 'EIGEN/USDT',  price: 2.8000,    change:  7.20 },
+  { symbol: 'HMSTR/USDT',  price: 0.0035,    change:  8.10 },
+  { symbol: 'CATI/USDT',   price: 0.1800,    change:  7.50 },
+  { symbol: 'DOGS/USDT',   price: 0.0005,    change:  6.80 },
+  { symbol: 'MAJOR/USDT',  price: 0.0420,    change:  8.40 },
+  { symbol: 'NEIRO/USDT',  price: 0.0008,    change: 12.30 },
+]
+
+export function useTicker() {
+  const [pairs, setPairs] = useState(PAIRS)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPairs(prev => prev.map(p => ({
+        ...p,
+        price: +(p.price * (1 + (Math.random() - 0.5) * 0.001)).toFixed(
+          p.price > 1000 ? 2 : p.price > 1 ? 4 : 8
+        ),
+        change: +((p.change + (Math.random() - 0.5) * 0.05)).toFixed(2)
+      })))
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
+  return pairs
 }
 
-const EXTRA_DATA = {
-  BTC:   { vol: '$42.50B',  mcap: '$1920.00B' },
-  ETH:   { vol: '$18.20B',  mcap: '$415.00B'  },
-  XRP:   { vol: '$5.20B',   mcap: '$135.00B'  },
-  BNB:   { vol: '$1.80B',   mcap: '$98.00B'   },
-  SOL:   { vol: '$4.80B',   mcap: '$82.00B'   },
-  DOGE:  { vol: '$2.80B',   mcap: '$47.00B'   },
-  ADA:   { vol: '$980.00M', mcap: '$33.50B'   },
-  TRX:   { vol: '$620.00M', mcap: '$21.00B'   },
-  AVAX:  { vol: '$780.00M', mcap: '$17.20B'   },
-  LINK:  { vol: '$920.00M', mcap: '$14.50B'   },
-  SHIB:  { vol: '$450.00M', mcap: '$13.00B'   },
-  SUI:   { vol: '$680.00M', mcap: '$12.80B'   },
-  XLM:   { vol: '$280.00M', mcap: '$12.50B'   },
-  DOT:   { vol: '$420.00M', mcap: '$10.80B'   },
-  HBAR:  { vol: '$380.00M', mcap: '$10.50B'   },
-  BCH:   { vol: '$380.00M', mcap: '$9.50B'    },
-  UNI:   { vol: '$220.00M', mcap: '$8.70B'    },
-  LTC:   { vol: '$520.00M', mcap: '$8.10B'    },
-  PEPE:  { vol: '$1.20B',   mcap: '$8.00B'    },
-  NEAR:  { vol: '$320.00M', mcap: '$5.80B'    },
-  ICP:   { vol: '$185.00M', mcap: '$5.40B'    },
-  FET:   { vol: '$420.00M', mcap: '$5.30B'    },
-  MATIC: { vol: '$320.00M', mcap: '$4.80B'    },
-  RNDR:  { vol: '$320.00M', mcap: '$4.40B'    },
-  ARB:   { vol: '$380.00M', mcap: '$4.40B'    },
-  ATOM:  { vol: '$180.00M', mcap: '$3.90B'    },
-  SEI:   { vol: '$280.00M', mcap: '$1.80B'    },
-  RUNE:  { vol: '$185.00M', mcap: '$1.80B'    },
-  MKR:   { vol: '$95.00M',  mcap: '$1.70B'    },
-  QNT:   { vol: '$42.00M',  mcap: '$1.70B'    },
-  LDO:   { vol: '$145.00M', mcap: '$1.70B'    },
-  GALA:  { vol: '$185.00M', mcap: '$1.60B'    },
-  JASMY: { vol: '$185.00M', mcap: '$1.60B'    },
-  SAND:  { vol: '$145.00M', mcap: '$1.40B'    },
-  FLOW:  { vol: '$65.00M',  mcap: '$1.30B'    },
-  MANA:  { vol: '$95.00M',  mcap: '$720.00M'  },
-  AXS:   { vol: '$75.00M',  mcap: '$680.00M'  },
-  APE:   { vol: '$85.00M',  mcap: '$480.00M'  },
-  OP:    { vol: '$210.00M', mcap: '$2.30B'    },
-  INJ:   { vol: '$180.00M', mcap: '$2.10B'    },
-  GRT:   { vol: '$65.00M',  mcap: '$420.00M'  },
-  AAVE:  { vol: '$95.00M',  mcap: '$2.80B'    },
-  SNX:   { vol: '$45.00M',  mcap: '$380.00M'  },
-  CRV:   { vol: '$55.00M',  mcap: '$310.00M'  },
-  ENS:   { vol: '$35.00M',  mcap: '$850.00M'  },
-  BLUR:  { vol: '$42.00M',  mcap: '$320.00M'  },
-  IMX:   { vol: '$65.00M',  mcap: '$1.20B'    },
-  CAKE:  { vol: '$55.00M',  mcap: '$580.00M'  },
-  COMP:  { vol: '$28.00M',  mcap: '$580.00M'  },
-  YFI:   { vol: '$22.00M',  mcap: '$240.00M'  },
-  BAL:   { vol: '$18.00M',  mcap: '$185.00M'  },
-  ZRX:   { vol: '$15.00M',  mcap: '$360.00M'  },
-  CHZ:   { vol: '$45.00M',  mcap: '$480.00M'  },
-  ENJ:   { vol: '$18.00M',  mcap: '$185.00M'  },
-  BAT:   { vol: '$22.00M',  mcap: '$340.00M'  },
-  ZIL:   { vol: '$12.00M',  mcap: '$340.00M'  },
-  ONE:   { vol: '$8.00M',   mcap: '$225.00M'  },
-  KAVA:  { vol: '$18.00M',  mcap: '$225.00M'  },
-  ALGO:  { vol: '$32.00M',  mcap: '$1.40B'    },
-  VET:   { vol: '$28.00M',  mcap: '$2.60B'    },
-  THETA: { vol: '$22.00M',  mcap: '$1.45B'    },
-  FIL:   { vol: '$85.00M',  mcap: '$2.20B'    },
-  EOS:   { vol: '$35.00M',  mcap: '$1.10B'    },
-  XTZ:   { vol: '$18.00M',  mcap: '$680.00M'  },
-  IOTA:  { vol: '$12.00M',  mcap: '$610.00M'  },
-  NEO:   { vol: '$22.00M',  mcap: '$810.00M'  },
-  WAVES: { vol: '$15.00M',  mcap: '$195.00M'  },
-  DASH:  { vol: '$35.00M',  mcap: '$310.00M'  },
-  XMR:   { vol: '$55.00M',  mcap: '$3.00B'    },
-  ZEC:   { vol: '$25.00M',  mcap: '$450.00M'  },
-  EGLD:  { vol: '$28.00M',  mcap: '$875.00M'  },
-  ROSE:  { vol: '$22.00M',  mcap: '$215.00M'  },
-  KSM:   { vol: '$18.00M',  mcap: '$385.00M'  },
-  CELO:  { vol: '$12.00M',  mcap: '$415.00M'  },
-  ANKR:  { vol: '$15.00M',  mcap: '$385.00M'  },
-  SKL:   { vol: '$8.00M',   mcap: '$185.00M'  },
-  STORJ: { vol: '$12.00M',  mcap: '$175.00M'  },
-  BAND:  { vol: '$8.00M',   mcap: '$120.00M'  },
-  WLD:   { vol: '$85.00M',  mcap: '$1.20B'    },
-  STX:   { vol: '$55.00M',  mcap: '$2.50B'    },
-  CFX:   { vol: '$35.00M',  mcap: '$520.00M'  },
-  MAGIC: { vol: '$22.00M',  mcap: '$280.00M'  },
-  TIA:   { vol: '$75.00M',  mcap: '$1.50B'    },
-  PYTH:  { vol: '$55.00M',  mcap: '$1.20B'    },
-  JTO:   { vol: '$35.00M',  mcap: '$580.00M'  },
-  JUP:   { vol: '$65.00M',  mcap: '$760.00M'  },
-  WIF:   { vol: '$185.00M', mcap: '$1.45B'    },
-  BOME:  { vol: '$95.00M',  mcap: '$580.00M'  },
-  NOT:   { vol: '$45.00M',  mcap: '$620.00M'  },
-  IO:    { vol: '$28.00M',  mcap: '$340.00M'  },
-  ZK:    { vol: '$35.00M',  mcap: '$480.00M'  },
-  LISTA: { vol: '$22.00M',  mcap: '$450.00M'  },
-  EIGEN: { vol: '$42.00M',  mcap: '$560.00M'  },
-  HMSTR: { vol: '$18.00M',  mcap: '$350.00M'  },
-  CATI:  { vol: '$15.00M',  mcap: '$180.00M'  },
-  DOGS:  { vol: '$12.00M',  mcap: '$150.00M'  },
-  MAJOR: { vol: '$8.00M',   mcap: '$420.00M'  },
-  NEIRO: { vol: '$35.00M',  mcap: '$800.00M'  },
-}
-
-const fmt = (p) => {
-  if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-  if (p >= 1)    return `$${p.toFixed(2)}`
-  if (p >= 0.01) return `$${p.toFixed(4)}`
-  return `$${p.toFixed(8)}`
-}
-
-function CoinIcon({ base, size = 36 }) {
-  const [err, setErr] = useState(false)
-  const logo = COIN_LOGOS[base]
-  return (
-    <div className="pair-icon" style={{ width: size, height: size, minWidth: size }}>
-      {logo && !err
-        ? <img
-            src={logo}
-            alt={base}
-            className="pair-coin-img"
-            width={size}
-            height={size}
-            onError={() => setErr(true)}
-          />
-        : <span className="pair-icon-fallback">{base.slice(0, 3)}</span>
-      }
-    </div>
-  )
-}
-
-export default function Markets() {
-  const pairs = useTicker()
-  const [filter,    setFilter]    = useState('all')
-  const [search,    setSearch]    = useState('')
-  const [favorites, setFavorites] = useState(['BTC', 'ETH'])
-  const [sortKey,   setSortKey]   = useState(null)
-  const [sortDir,   setSortDir]   = useState('asc')
-
-  const toggleFav = (sym) =>
-    setFavorites(prev => prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym])
-
-  const handleSort = (key) => {
-    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    else { setSortKey(key); setSortDir('asc') }
-  }
-
-  const topGainers = useMemo(() =>
-    [...pairs].sort((a, b) => b.change - a.change).slice(0, 3), [pairs])
-
-  const topLosers = useMemo(() =>
-    [...pairs].sort((a, b) => a.change - b.change).slice(0, 3), [pairs])
-
-  const filtered = useMemo(() => {
-    let list = [...pairs]
-    const base = (p) => p.symbol.split('/')[0]
-    if (filter === 'gainers')   list = list.filter(p => p.change >= 0)
-    if (filter === 'losers')    list = list.filter(p => p.change < 0)
-    if (filter === 'favorites') list = list.filter(p => favorites.includes(base(p)))
-    if (search) list = list.filter(p => p.symbol.toLowerCase().includes(search.toLowerCase()))
-    if (sortKey === 'name')   list.sort((a, b) => sortDir === 'asc' ? a.symbol.localeCompare(b.symbol) : b.symbol.localeCompare(a.symbol))
-    if (sortKey === 'price')  list.sort((a, b) => sortDir === 'asc' ? a.price - b.price : b.price - a.price)
-    if (sortKey === 'change') list.sort((a, b) => sortDir === 'asc' ? a.change - b.change : b.change - a.change)
-    return list
-  }, [pairs, filter, search, favorites, sortKey, sortDir])
-
-  const SortIcon = ({ k }) => (
-    <span className={`sort-icon ${sortKey === k ? 'active' : ''}`}>
-      {sortKey === k ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕'}
-    </span>
-  )
-
-  return (
-    <div className="dash-page">
-
-      {/* Top Gainers / Losers */}
-      <div className="movers-grid">
-        {[
-          { label: '🔥 Top Gainers', list: topGainers, isGain: true  },
-          { label: '⚡ Top Losers',  list: topLosers,  isGain: false },
-        ].map(({ label, list, isGain }) => (
-          <div key={label} className="movers-card card">
-            <div className="movers-title">{label}</div>
-            {list.map(p => {
-              const base = p.symbol.split('/')[0]
-              return (
-                <div key={p.symbol} className="mover-row">
-                  <div className="mover-left">
-                    <CoinIcon base={base} size={32} />
-                    <div className="mover-sym">{base}</div>
-                  </div>
-                  <div className="mover-right">
-                    <span className="mover-price font-mono">{fmt(p.price)}</span>
-                    <span className={`mover-badge ${isGain ? 'up' : 'down'}`}>
-                      {isGain ? `↗ +${p.change.toFixed(2)}%` : `↘ ${p.change.toFixed(2)}%`}
-                    </span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Filter + Search */}
-      <div className="markets-toolbar">
-        <div className="markets-filters">
-          {['all', 'favorites', 'gainers', 'losers'].map(f => (
-            <button
-              key={f}
-              className={`filter-btn ${filter === f ? 'active' : ''}`}
-              onClick={() => setFilter(f)}
-            >
-              {f === 'favorites' ? '★' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-        <div className="markets-search">
-          <span className="search-icon">🔍</span>
-          <input
-            type="text"
-            placeholder="Search markets..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="search-input"
-          />
-        </div>
-      </div>
-
-      {/* Table — scrollable on mobile so all columns show */}
-      <div className="card markets-table-card">
-        <div className="markets-table-scroll">
-          <table className="markets-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th className="th-sort" onClick={() => handleSort('name')}>
-                  Name <SortIcon k="name" />
-                </th>
-                <th className="th-sort" onClick={() => handleSort('price')}>
-                  Price <SortIcon k="price" />
-                </th>
-                <th className="th-sort" onClick={() => handleSort('change')}>
-                  24h <SortIcon k="change" />
-                </th>
-                <th>Volume</th>
-                <th>Market Cap</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(p => {
-                const base  = p.symbol.split('/')[0]
-                const isUp  = p.change >= 0
-                const isFav = favorites.includes(base)
-                const extra = EXTRA_DATA[base] || { vol: '—', mcap: '—' }
-                return (
-                  <tr key={p.symbol}>
-                    <td className="td-star">
-                      <button
-                        className={`star-btn ${isFav ? 'active' : ''}`}
-                        onClick={() => toggleFav(base)}
-                      >★</button>
-                    </td>
-                    <td>
-                      <div className="td-pair">
-                        <CoinIcon base={base} size={36} />
-                        <div>
-                          <div className="pair-name">{base}</div>
-                          <div className="pair-sub">{base}/USDT</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="td-price font-mono">{fmt(p.price)}</td>
-                    <td className={`td-change ${isUp ? 'up' : 'down'}`}>
-                      {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%
-                    </td>
-                    <td className="td-vol">{extra.vol}</td>
-                    <td className="td-mcap">{extra.mcap}</td>
-                    <td><button className="trade-btn">Trade</button></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-  )
-}
+// ── CRYPTO_DATA is used by other pages — DO NOT MODIFY ──
+export const CRYPTO_DATA = [
+  { id: 'BTC', name: 'Bitcoin',  symbol: 'BTC', price: 66558.00, change:  0.68, amount: 0.01, color: '#F7931A' },
+  { id: 'ETH', name: 'Ethereum', symbol: 'ETH', price: 2044.43,  change:  0.99, amount: 0.25, color: '#627EEA' },
+  { id: 'SOL', name: 'Solana',   symbol: 'SOL', price: 84.49,    change:  2.14, amount: 1.5,  color: '#9945FF' },
+  { id: 'BNB', name: 'BNB',      symbol: 'BNB', price: 606.97,   change: -0.42, amount: 0.5,  color: '#F3BA2F' },
+]
