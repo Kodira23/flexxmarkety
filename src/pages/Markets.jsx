@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useTicker } from '../hooks/useTicker'
 import './Markets.css'
 
-// Real CoinGecko logos for all 100 symbols
+// Verified CoinGecko image IDs for all 100 coins
 const COIN_LOGOS = {
   BTC:   'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png',
   ETH:   'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
@@ -205,13 +205,27 @@ const EXTRA_DATA = {
   NEIRO: { vol: '$35.00M',  mcap: '$800.00M'  },
 }
 
+const fmt = (p) => {
+  if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  if (p >= 1)    return `$${p.toFixed(2)}`
+  if (p >= 0.01) return `$${p.toFixed(4)}`
+  return `$${p.toFixed(8)}`
+}
+
 function CoinIcon({ base, size = 36 }) {
   const [err, setErr] = useState(false)
   const logo = COIN_LOGOS[base]
   return (
-    <div className="pair-icon" style={{ width: size, height: size }}>
+    <div className="pair-icon" style={{ width: size, height: size, minWidth: size }}>
       {logo && !err
-        ? <img src={logo} alt={base} className="pair-coin-img" onError={() => setErr(true)} />
+        ? <img
+            src={logo}
+            alt={base}
+            className="pair-coin-img"
+            width={size}
+            height={size}
+            onError={() => setErr(true)}
+          />
         : <span className="pair-icon-fallback">{base.slice(0, 3)}</span>
       }
     </div>
@@ -234,8 +248,11 @@ export default function Markets() {
     else { setSortKey(key); setSortDir('asc') }
   }
 
-  const topGainers = useMemo(() => [...pairs].sort((a, b) => b.change - a.change).slice(0, 3), [pairs])
-  const topLosers  = useMemo(() => [...pairs].sort((a, b) => a.change - b.change).slice(0, 3), [pairs])
+  const topGainers = useMemo(() =>
+    [...pairs].sort((a, b) => b.change - a.change).slice(0, 3), [pairs])
+
+  const topLosers = useMemo(() =>
+    [...pairs].sort((a, b) => a.change - b.change).slice(0, 3), [pairs])
 
   const filtered = useMemo(() => {
     let list = [...pairs]
@@ -256,13 +273,6 @@ export default function Markets() {
     </span>
   )
 
-  const fmt = (p) => {
-    if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    if (p >= 1)    return `$${p.toFixed(2)}`
-    if (p >= 0.01) return `$${p.toFixed(4)}`
-    return `$${p.toFixed(8)}`
-  }
-
   return (
     <div className="dash-page">
 
@@ -279,7 +289,7 @@ export default function Markets() {
               return (
                 <div key={p.symbol} className="mover-row">
                   <div className="mover-left">
-                    <CoinIcon base={base} />
+                    <CoinIcon base={base} size={32} />
                     <div className="mover-sym">{base}</div>
                   </div>
                   <div className="mover-right">
@@ -320,56 +330,65 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table — scrollable on mobile so all columns show */}
       <div className="card markets-table-card">
-        <table className="markets-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th className="th-sort" onClick={() => handleSort('name')}>Name <SortIcon k="name" /></th>
-              <th className="th-sort" onClick={() => handleSort('price')}>Price <SortIcon k="price" /></th>
-              <th className="th-sort" onClick={() => handleSort('change')}>24h <SortIcon k="change" /></th>
-              <th>Volume</th>
-              <th>Market Cap</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(p => {
-              const base  = p.symbol.split('/')[0]
-              const isUp  = p.change >= 0
-              const isFav = favorites.includes(base)
-              const extra = EXTRA_DATA[base] || { vol: '—', mcap: '—' }
-              return (
-                <tr key={p.symbol}>
-                  <td className="td-star">
-                    <button
-                      className={`star-btn ${isFav ? 'active' : ''}`}
-                      onClick={() => toggleFav(base)}
-                    >★</button>
-                  </td>
-                  <td>
-                    <div className="td-pair">
-                      <CoinIcon base={base} />
-                      <div>
-                        <div className="pair-name">{base}</div>
-                        <div className="pair-sub">{base}/USDT</div>
+        <div className="markets-table-scroll">
+          <table className="markets-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th className="th-sort" onClick={() => handleSort('name')}>
+                  Name <SortIcon k="name" />
+                </th>
+                <th className="th-sort" onClick={() => handleSort('price')}>
+                  Price <SortIcon k="price" />
+                </th>
+                <th className="th-sort" onClick={() => handleSort('change')}>
+                  24h <SortIcon k="change" />
+                </th>
+                <th>Volume</th>
+                <th>Market Cap</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(p => {
+                const base  = p.symbol.split('/')[0]
+                const isUp  = p.change >= 0
+                const isFav = favorites.includes(base)
+                const extra = EXTRA_DATA[base] || { vol: '—', mcap: '—' }
+                return (
+                  <tr key={p.symbol}>
+                    <td className="td-star">
+                      <button
+                        className={`star-btn ${isFav ? 'active' : ''}`}
+                        onClick={() => toggleFav(base)}
+                      >★</button>
+                    </td>
+                    <td>
+                      <div className="td-pair">
+                        <CoinIcon base={base} size={36} />
+                        <div>
+                          <div className="pair-name">{base}</div>
+                          <div className="pair-sub">{base}/USDT</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="td-price font-mono">{fmt(p.price)}</td>
-                  <td className={`td-change ${isUp ? 'up' : 'down'}`}>
-                    {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%
-                  </td>
-                  <td className="td-vol">{extra.vol}</td>
-                  <td className="td-mcap">{extra.mcap}</td>
-                  <td><button className="trade-btn">Trade</button></td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td className="td-price font-mono">{fmt(p.price)}</td>
+                    <td className={`td-change ${isUp ? 'up' : 'down'}`}>
+                      {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%
+                    </td>
+                    <td className="td-vol">{extra.vol}</td>
+                    <td className="td-mcap">{extra.mcap}</td>
+                    <td><button className="trade-btn">Trade</button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
   )
 }
