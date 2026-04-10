@@ -24,8 +24,8 @@ const COIN_LOGOS = {
 }
 
 const WALLET_ADDRESSES = {
-  BTC:  'bc1qq59rs336fth00xz2putnh2cp1ufwmnvdy9kdc8',
-  USDT: 'TDaZCfmg5cYEWPgHehwy5XWJrvrpW63yJ7',
+  BTC:  '1CUiUjKiH6paR13YdHSzWQJ7XjEGRXeEeu',
+  USDT: 'TPuff85NhMAfMoALCuqkVtdgmuJb7McG6D',
 }
 
 const generateSparkline = (base, n = 20) => {
