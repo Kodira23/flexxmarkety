@@ -96,17 +96,8 @@ const COIN_LOGOS = {
   JTO:   'https://assets.coingecko.com/coins/images/33228/large/jto.png',
   JUP:   'https://assets.coingecko.com/coins/images/34188/large/jup.png',
   WIF:   'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpg',
-  BOME:  'https://assets.coingecko.com/coins/images/36709/large/bome.png',
-  NOT:   'https://assets.coingecko.com/coins/images/36190/large/notcoin.jpg',
-  IO:    'https://assets.coingecko.com/coins/images/36143/large/io.jpg',
-  ZK:    'https://assets.coingecko.com/coins/images/36730/large/zksync.jpg',
-  LISTA: 'https://assets.coingecko.com/coins/images/36893/large/lista.jpg',
-  EIGEN: 'https://assets.coingecko.com/coins/images/37173/large/eigen.jpg',
-  HMSTR: 'https://assets.coingecko.com/coins/images/39102/large/hamster.jpg',
-  CATI:  'https://assets.coingecko.com/coins/images/39173/large/cati.jpg',
-  DOGS:  'https://assets.coingecko.com/coins/images/39201/large/dogs.jpg',
-  MAJOR: 'https://assets.coingecko.com/coins/images/39202/large/major.jpg',
-  NEIRO: 'https://assets.coingecko.com/coins/images/39204/large/neiro.jpg',
+  WLD:   'https://assets.coingecko.com/coins/images/31069/large/worldcoin.jpeg',
+  STX:   'https://assets.coingecko.com/coins/images/2069/large/Stacks_logo_full.png',
 }
 
 const COIN_COLORS = {
@@ -131,44 +122,7 @@ const COIN_COLORS = {
   KSM:'#E6007A', CELO:'#FBCC5C', ANKR:'#0066FF', SKL:'#444',
   STORJ:'#2683FF', BAND:'#4520E6', WLD:'#555', STX:'#5546FF',
   CFX:'#E15F1A', MAGIC:'#E2175F', TIA:'#7B2FBE', PYTH:'#8B5CF6',
-  JTO:'#9945FF', JUP:'#7AC231', WIF:'#B08850', BOME:'#FF4B00',
-  NOT:'#56A8FF', IO:'#00D4FF', ZK:'#1B53FF', LISTA:'#F0B90B',
-  EIGEN:'#5A67D8', HMSTR:'#FF8C00', CATI:'#FFD700', DOGS:'#8B4513',
-  MAJOR:'#4169E1', NEIRO:'#FF69B4',
-}
-
-// Try real logo, fall back to colored circle
-function CoinCircle({ base, size = 36 }) {
-  const [failed, setFailed] = useState(false)
-  const logo  = COIN_LOGOS[base]
-  const color = COIN_COLORS[base] || '#555'
-  const label = base.length <= 2 ? base : base.slice(0, 2)
-  const fontSize = size <= 20 ? 8 : size <= 32 ? 11 : 13
-
-  if (logo && !failed) {
-    return (
-      <img
-        src={logo}
-        alt={base}
-        width={size}
-        height={size}
-        style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}
-        onError={() => setFailed(true)}
-      />
-    )
-  }
-  return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      width: size, height: size, minWidth: size,
-      borderRadius: '50%', backgroundColor: color,
-      fontSize, fontWeight: 900, color: '#fff',
-      flexShrink: 0, userSelect: 'none', lineHeight: 1,
-      fontFamily: 'Inter, sans-serif', verticalAlign: 'middle',
-    }}>
-      {label}
-    </span>
-  )
+  JTO:'#9945FF', JUP:'#7AC231', WIF:'#B08850',
 }
 
 const EXTRA_DATA = {
@@ -259,17 +213,39 @@ const EXTRA_DATA = {
   JTO:   { vol: '$35.00M',  mcap: '$580.00M'  },
   JUP:   { vol: '$65.00M',  mcap: '$760.00M'  },
   WIF:   { vol: '$185.00M', mcap: '$1.45B'    },
-  BOME:  { vol: '$95.00M',  mcap: '$580.00M'  },
-  NOT:   { vol: '$45.00M',  mcap: '$620.00M'  },
-  IO:    { vol: '$28.00M',  mcap: '$340.00M'  },
-  ZK:    { vol: '$35.00M',  mcap: '$480.00M'  },
-  LISTA: { vol: '$22.00M',  mcap: '$450.00M'  },
-  EIGEN: { vol: '$42.00M',  mcap: '$560.00M'  },
-  HMSTR: { vol: '$18.00M',  mcap: '$350.00M'  },
-  CATI:  { vol: '$15.00M',  mcap: '$180.00M'  },
-  DOGS:  { vol: '$12.00M',  mcap: '$150.00M'  },
-  MAJOR: { vol: '$8.00M',   mcap: '$420.00M'  },
-  NEIRO: { vol: '$35.00M',  mcap: '$800.00M'  },
+}
+
+function CoinCircle({ base, size = 36 }) {
+  const [failed, setFailed] = useState(false)
+  const logo  = COIN_LOGOS[base]
+  const color = COIN_COLORS[base] || '#555'
+  const label = base.length <= 2 ? base : base.slice(0, 2)
+  const fontSize = size <= 20 ? 8 : size <= 32 ? 11 : 13
+
+  if (logo && !failed) {
+    return (
+      <img
+        src={logo}
+        alt={base}
+        width={size}
+        height={size}
+        style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'inline-block', verticalAlign: 'middle' }}
+        onError={() => setFailed(true)}
+      />
+    )
+  }
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      width: size, height: size, minWidth: size,
+      borderRadius: '50%', backgroundColor: color,
+      fontSize, fontWeight: 900, color: '#fff',
+      flexShrink: 0, userSelect: 'none', lineHeight: 1,
+      fontFamily: 'Syne, sans-serif', verticalAlign: 'middle',
+    }}>
+      {label}
+    </span>
+  )
 }
 
 const fmt = (p) => {
@@ -280,13 +256,6 @@ const fmt = (p) => {
 }
 
 // ── BOT DEFINITIONS ────────────────────────────────────────────────────
-// $100 → $200 in 5 minutes = 300s
-// interval=3000ms → 100 ticks in 300s
-// Each tick: stake = alloc * 0.1, gained = stake * r
-// Need total gain = $100 on $100 alloc
-// Per tick needed: $100/100 = $1, stake=$10, so r=0.10 per tick on average
-// With losses included: some ticks lose ~30%, net drift must still = 0.10
-// So drift=0.13, volatility=0.06 → ~70% win rate, net ≈ 0.10/tick
 const BOT_CONFIGS = [
   {
     id: 1,
@@ -297,8 +266,8 @@ const BOT_CONFIGS = [
     interval: 3000,
     drift: 0.14,
     volatility: 0.05,
-    lossChance: 0.25,   // 25% losses → ~75% win rate
-    lossMult: 0.35,     // losses are small
+    lossChance: 0.25,
+    lossMult: 0.35,
   },
   {
     id: 2,
@@ -309,12 +278,11 @@ const BOT_CONFIGS = [
     interval: 3000,
     drift: 0.14,
     volatility: 0.06,
-    lossChance: 0.26,   // 26% losses → ~74% win rate
+    lossChance: 0.26,
     lossMult: 0.38,
   },
 ]
 
-// ── INSUFFICIENT BALANCE BANNER ────────────────────────────────────────
 function InsufficientBanner() {
   return (
     <div style={{
@@ -337,7 +305,6 @@ function InsufficientBanner() {
   )
 }
 
-// ── SINGLE BOT CARD ────────────────────────────────────────────────────
 function BotCard({ bot, balance, userId }) {
   const canRun       = balance >= MIN_BALANCE
   const [active,     setActive]     = useState(false)
@@ -371,7 +338,6 @@ function BotCard({ bot, balance, userId }) {
   function tick() {
     const total      = winsRef.current + lossesRef.current
     const currentWR  = total > 0 ? winsRef.current / total : 1
-    // Force a win if win rate drops below 74%
     const forceWin   = currentWR < 0.74
     const isLoss     = forceWin ? false : Math.random() < bot.lossChance
     const noise      = (Math.random() * bot.volatility)
@@ -513,7 +479,7 @@ function BotCard({ bot, balance, userId }) {
       )}
 
       {log.length > 0 && (
-        <div style={{ background: '#000000aa', borderRadius: 8, padding: '8px 12px', margin: '8px 0', maxHeight: 120, overflowY: 'auto', fontFamily: 'monospace', fontSize: 11 }}>
+        <div style={{ background: '#000000aa', borderRadius: 8, padding: '8px 12px', margin: '8px 0', maxHeight: 120, overflowY: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
           {log.map((l, i) => (
             <div key={i} style={{ color: l.color, marginBottom: 2 }}>
               <span style={{ opacity: 0.45, marginRight: 6 }}>{l.ts}</span>{l.msg}
@@ -539,7 +505,6 @@ function BotCard({ bot, balance, userId }) {
   )
 }
 
-// ── PLACEHOLDER ────────────────────────────────────────────────────────
 function PlaceholderPage({ title, icon, description }) {
   return (
     <div className="dash-main">
@@ -595,12 +560,14 @@ export function MarketsPage() {
 
   return (
     <div className="dash-main">
-      <div className="dash-content" style={{ padding: '24px' }}>
+      <div className="dash-content markets-page-wrapper">
+
         {/* Page header */}
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 28, color: 'var(--text-primary)', marginBottom: 4 }}>Markets</h1>
-          <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>Explore and trade cryptocurrencies</p>
+        <div className="markets-page-header">
+          <h1 className="markets-page-title">Markets</h1>
+          <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
         </div>
+
         {/* Top Gainers / Losers */}
         <div className="movers-grid">
           {[
@@ -614,7 +581,7 @@ export function MarketsPage() {
                 return (
                   <div key={p.symbol} className="mover-row">
                     <div className="mover-left">
-                      <CoinCircle base={base} size={32} />
+                      <CoinCircle base={base} size={34} />
                       <div className="mover-sym">{base}</div>
                     </div>
                     <div className="mover-right">
@@ -681,7 +648,11 @@ export function MarketsPage() {
                         </div>
                       </td>
                       <td className="td-price font-mono">{fmt(p.price)}</td>
-                      <td className={`td-change ${isUp ? 'up' : 'down'}`}>{isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%</td>
+                      <td className={`td-change ${isUp ? 'up' : 'down'}`}>
+                        <span className={`change-pill ${isUp ? 'up' : 'down'}`}>
+                          {isUp ? '↗' : '↘'} {isUp ? '+' : ''}{p.change.toFixed(2)}%
+                        </span>
+                      </td>
                       <td className="td-vol">{extra.vol}</td>
                       <td className="td-mcap">{extra.mcap}</td>
                       <td><button className="trade-btn">Trade</button></td>
@@ -692,6 +663,62 @@ export function MarketsPage() {
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── RECENT TRADES PANEL ────────────────────────────────────────────────
+function RecentTradesPanel({ basePrice }) {
+  const [trades, setTrades] = useState(() => {
+    return Array.from({ length: 20 }, (_, i) => {
+      const price = basePrice + (Math.random() - 0.5) * 200
+      const amount = (Math.random() * 0.5 + 0.01).toFixed(4)
+      const now = new Date()
+      now.setSeconds(now.getSeconds() - i * 5)
+      const isBuy = Math.random() > 0.5
+      return {
+        id: i,
+        price: price.toFixed(2),
+        amount,
+        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        isBuy,
+      }
+    })
+  })
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const price = basePrice + (Math.random() - 0.5) * 200
+      const amount = (Math.random() * 0.5 + 0.01).toFixed(4)
+      const isBuy = Math.random() > 0.45
+      setTrades(prev => [{
+        id: Date.now(),
+        price: price.toFixed(2),
+        amount,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        isBuy,
+      }, ...prev].slice(0, 30))
+    }, 1500)
+    return () => clearInterval(interval)
+  }, [basePrice])
+
+  return (
+    <div className="recent-trades-panel">
+      <div className="recent-trades-header">Recent Trades</div>
+      <div className="recent-trades-cols">
+        <span>Price</span>
+        <span>Amount</span>
+        <span>Time</span>
+      </div>
+      <div className="recent-trades-list">
+        {trades.map((t, i) => (
+          <div key={t.id} className="recent-trade-row" style={{ animationDelay: i === 0 ? '0ms' : undefined }}>
+            <span className={`rt-price ${t.isBuy ? 'buy' : 'sell'}`}>{t.price}</span>
+            <span className="rt-amount">{t.amount}</span>
+            <span className="rt-time">{t.time}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -729,45 +756,24 @@ export function SpotPage() {
     }
   }
 
-  // Generate fake order book
-  const askOrders = Array.from({ length: 8 }, (_, i) => {
-    const p = (currentPair?.price || 97500) + (8 - i) * 97.5
-    return { price: p.toFixed(2), amount: (Math.random() * 2).toFixed(4), total: (p * Math.random() * 2).toFixed(3) }
-  }).reverse()
-
-  const bidOrders = Array.from({ length: 8 }, (_, i) => {
-    const p = (currentPair?.price || 97500) - i * 97.5
-    return { price: p.toFixed(2), amount: (Math.random() * 2).toFixed(4), total: (p * Math.random() * 2).toFixed(3) }
-  })
-
-  const [obTab, setObTab] = useState('both')
-
-  const topPairs = pairs.slice(0, 6)
-
   return (
     <div className="dash-main" style={{ overflow: 'hidden' }}>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 
         {/* Header bar */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 24,
-          padding: '12px 20px', borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-card)', flexShrink: 0, flexWrap: 'wrap',
-        }}>
+        <div className="spot-header-bar">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <CoinCircle base={base} size={36} />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>
-                  {currentPair?.symbol}
-                </span>
+                <span className="spot-pair-name">{currentPair?.symbol}</span>
                 <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Bitcoin</span>
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 22, fontWeight: 700, color: isUp ? 'var(--green)' : 'var(--red)' }}>
+              <div className={`spot-cur-price ${isUp ? 'up' : 'down'}`}>
                 {fmt(currentPair?.price || 0)}
               </div>
               <div style={{ fontSize: 12, color: isUp ? 'var(--green)' : 'var(--red)' }}>
@@ -781,7 +787,7 @@ export function SpotPage() {
             ].map(({ label, val }) => (
               <div key={label}>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>{label}</div>
-                <div style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 13, color: 'var(--text-primary)' }}>{val}</div>
+                <div className="spot-stat-val">{val}</div>
               </div>
             ))}
           </div>
@@ -801,65 +807,15 @@ export function SpotPage() {
             </div>
           </div>
 
-          {/* Order book */}
-          <div style={{
-            width: 260, flexShrink: 0, borderLeft: '1px solid var(--border)',
-            display: 'flex', flexDirection: 'column', background: 'var(--bg-card)',
-            overflow: 'hidden',
-          }}>
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Order Book</div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {['both','bids','asks'].map(t => (
-                  <button key={t} onClick={() => setObTab(t)} style={{
-                    flex: 1, padding: '4px 0', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                    background: obTab === t ? 'var(--green)' : 'var(--bg-secondary)',
-                    color: obTab === t ? '#000' : 'var(--text-muted)',
-                  }}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 16px', fontSize: 10, color: 'var(--text-muted)', fontWeight: 700, letterSpacing: 1 }}>
-              <span>PRICE</span><span>AMOUNT</span><span>TOTAL</span>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {(obTab !== 'bids') && askOrders.map((o, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 16px', fontSize: 11, fontFamily: 'JetBrains Mono,monospace' }}>
-                  <span style={{ color: 'var(--red)' }}>{o.price}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{o.amount}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{o.total}</span>
-                </div>
-              ))}
-              <div style={{ padding: '6px 16px', background: 'var(--bg-secondary)', fontFamily: 'JetBrains Mono,monospace', fontWeight: 700, fontSize: 14, color: isUp ? 'var(--green)' : 'var(--red)', textAlign: 'center' }}>
-                {fmt(currentPair?.price || 0)}
-              </div>
-              {(obTab !== 'asks') && bidOrders.map((o, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 16px', fontSize: 11, fontFamily: 'JetBrains Mono,monospace' }}>
-                  <span style={{ color: 'var(--green)' }}>{o.price}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{o.amount}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{o.total}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Recent Trades panel */}
+          <RecentTradesPanel basePrice={currentPair?.price || 97500} />
 
           {/* Trade panel */}
-          <div style={{
-            width: 280, flexShrink: 0, borderLeft: '1px solid var(--border)',
-            display: 'flex', flexDirection: 'column', background: 'var(--bg-card)',
-            padding: 16, gap: 12, overflowY: 'auto',
-          }}>
+          <div className="trade-panel-right">
             {/* Buy/Sell tabs */}
-            <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+            <div className="trade-side-tabs">
               {['buy','sell'].map(s => (
-                <button key={s} onClick={() => setSide(s)} style={{
-                  flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer',
-                  fontWeight: 700, fontSize: 14, fontFamily: 'Syne,sans-serif',
-                  background: side === s ? (s === 'buy' ? 'var(--green)' : 'var(--red)') : 'transparent',
-                  color: side === s ? '#000' : 'var(--text-muted)',
-                }}>
+                <button key={s} onClick={() => setSide(s)} className={`trade-side-tab ${side === s ? s : ''}`}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}
@@ -868,12 +824,7 @@ export function SpotPage() {
             {/* Limit/Market */}
             <div style={{ display: 'flex', gap: 8 }}>
               {['limit','market'].map(t => (
-                <button key={t} onClick={() => setOrderType(t)} style={{
-                  flex: 1, padding: '6px 0', borderRadius: 8, border: '1px solid var(--border)', cursor: 'pointer',
-                  fontSize: 12, fontWeight: 600,
-                  background: orderType === t ? 'var(--bg-secondary)' : 'transparent',
-                  color: orderType === t ? 'var(--text-primary)' : 'var(--text-muted)',
-                }}>
+                <button key={t} onClick={() => setOrderType(t)} className={`order-type-btn ${orderType === t ? 'active' : ''}`}>
                   {t.charAt(0).toUpperCase() + t.slice(1)}
                 </button>
               ))}
@@ -881,45 +832,32 @@ export function SpotPage() {
 
             {/* Price input */}
             <div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Price (USDT)</div>
+              <div className="trade-input-label">Price (USDT)</div>
               <input
                 type="number"
                 value={price}
                 onChange={e => setPrice(e.target.value)}
                 placeholder={currentPair?.price.toFixed(2)}
-                style={{
-                  width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                  borderRadius: 8, padding: '10px 12px', color: 'var(--text-primary)', fontSize: 14,
-                  fontFamily: 'JetBrains Mono,monospace', boxSizing: 'border-box',
-                }}
+                className="trade-input"
               />
             </div>
 
             {/* Amount input */}
             <div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Amount ({base})</div>
+              <div className="trade-input-label">Amount ({base})</div>
               <input
                 type="number"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
                 placeholder="0.00"
-                style={{
-                  width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                  borderRadius: 8, padding: '10px 12px', color: 'var(--text-primary)', fontSize: 14,
-                  fontFamily: 'JetBrains Mono,monospace', boxSizing: 'border-box',
-                }}
+                className="trade-input"
               />
             </div>
 
             {/* Percentage buttons */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
               {[25, 50, 75, 100].map(pct => (
-                <button key={pct} onClick={() => handlePct(pct)} style={{
-                  padding: '6px 0', borderRadius: 6, border: '1px solid var(--border)', cursor: 'pointer',
-                  fontSize: 11, fontWeight: 600,
-                  background: pctSelected === pct ? 'var(--green)' : 'var(--bg-secondary)',
-                  color: pctSelected === pct ? '#000' : 'var(--text-muted)',
-                }}>
+                <button key={pct} onClick={() => handlePct(pct)} className={`pct-btn ${pctSelected === pct ? 'active' : ''}`}>
                   {pct}%
                 </button>
               ))}
@@ -927,34 +865,33 @@ export function SpotPage() {
 
             {/* Total */}
             <div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Total (USDT)</div>
+              <div className="trade-input-label">Total (USDT)</div>
               <input
                 type="text" readOnly value={total}
                 placeholder="0.00"
-                style={{
-                  width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                  borderRadius: 8, padding: '10px 12px', color: 'var(--text-secondary)', fontSize: 14,
-                  fontFamily: 'JetBrains Mono,monospace', boxSizing: 'border-box',
-                }}
+                className="trade-input readonly"
               />
             </div>
 
+            {/* Fee row */}
+            <div className="trade-fee-row">
+              <span>Fee (0.1%)</span>
+              <span>${total ? (parseFloat(total) * 0.001).toFixed(4) : '0.0000'}</span>
+            </div>
+
+            {/* Available */}
+            <div className="trade-available-row">
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13 }}>📋</span>
+                Available (USDT)
+              </span>
+              <span className="trade-available-val">{Number(balance || 0).toFixed(0)} USDT</span>
+            </div>
+
             {/* Submit button */}
-            <button style={{
-              width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', cursor: 'pointer',
-              fontFamily: 'Syne,sans-serif', fontWeight: 700, fontSize: 15,
-              background: side === 'buy' ? 'var(--green)' : 'var(--red)',
-              color: '#000', marginTop: 4,
-            }}>
+            <button className={`trade-submit-btn ${side}`}>
               {side === 'buy' ? `Buy ${base}` : `Sell ${base}`}
             </button>
-
-            {/* Balance info */}
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center' }}>
-              Available: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                ${Number(balance || 0).toFixed(2)} USDT
-              </span>
-            </div>
           </div>
         </div>
       </div>
