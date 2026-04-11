@@ -7,20 +7,17 @@
   align-items: center;
   width: 100%;
 }
-
 .ticker-track {
   display: flex;
   align-items: center;
-  animation: ticker-scroll 60s linear infinite;
+  animation: ticker-scroll 120s linear infinite;
   white-space: nowrap;
   will-change: transform;
 }
-
 @keyframes ticker-scroll {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-
 .ticker-item {
   display: inline-flex;
   align-items: center;
@@ -30,7 +27,6 @@
   font-size: 13px;
   font-family: 'Inter', sans-serif;
 }
-
 .coin-logo {
   width: 22px;
   height: 22px;
@@ -38,30 +34,25 @@
   object-fit: cover;
   flex-shrink: 0;
 }
-
 .ticker-symbol {
   color: #ffffff;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: 0.01em;
 }
-
 .ticker-price {
   color: #ffffff;
   font-size: 13px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
-
 .ticker-change {
   font-size: 13px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
-
 .ticker-change.up   { color: #22c55e; }
 .ticker-change.down { color: #ef4444; }
-
 @media (max-width: 768px) {
   .ticker-wrapper { height: 34px; }
   .ticker-item {
@@ -73,5 +64,5 @@
   .ticker-symbol,
   .ticker-price,
   .ticker-change { font-size: 11px; }
-  .ticker-track { animation-duration: 40s; }
+  .ticker-track { animation-duration: 80s; }
 }
