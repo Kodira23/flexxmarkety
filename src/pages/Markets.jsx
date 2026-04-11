@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { useTicker } from '../hooks/useTicker'
 import './Markets.css'
 
@@ -39,7 +39,7 @@ const ICON_SUPPORTED = new Set([
   'STX','COMP','YFI','BAL','ZRX','CHZ','ENS','CAKE','IMX','ONE',
 ])
 
-function CoinIcon({ base, size = 36 }) {
+const CoinIcon = memo(function CoinIcon({ base, size = 36 }) {
   const [failed, setFailed] = useState(false)
   const color = COIN_COLORS[base] || '#555'
   const fontSize = size <= 20 ? 7 : size <= 24 ? 8 : size <= 32 ? 11 : 13
@@ -68,7 +68,7 @@ function CoinIcon({ base, size = 36 }) {
       onError={() => setFailed(true)}
     />
   )
-}
+})
 
 const EXTRA_DATA = {
   BTC:   { vol: '$42.50B',  mcap: '$1920.00B' },
