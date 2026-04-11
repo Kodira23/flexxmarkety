@@ -33,17 +33,20 @@ const COIN_COLORS = {
 // Pure CSS circle — no image, no CDN, always renders
 const CoinIcon = memo(function CoinIcon({ base, size = 36 }) {
   const color = COIN_COLORS[base] || '#555'
-  const fontSize = size <= 20 ? 7 : size <= 24 ? 8 : size <= 32 ? 10 : 12
+  // Use 2 chars max so text fits cleanly inside the circle
+  const label = base.length <= 2 ? base : base.slice(0, 2)
+  const fontSize = size <= 20 ? 8 : size <= 32 ? 11 : 13
   return (
     <div
       className="pair-icon"
       style={{
         width: size, height: size, minWidth: size,
-        background: color, fontSize, fontWeight: 800,
-        color: '#fff', letterSpacing: '-0.5px', userSelect: 'none',
+        background: color, fontSize, fontWeight: 900,
+        color: '#fff', letterSpacing: '0px', userSelect: 'none',
+        lineHeight: 1,
       }}
     >
-      {base.slice(0, 3)}
+      {label}
     </div>
   )
 })
