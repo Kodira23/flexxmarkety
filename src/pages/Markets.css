@@ -128,7 +128,7 @@
 }
 .search-input::placeholder { color: var(--text-muted); }
 
-/* ── Table wrapper — horizontally scrollable on mobile ── */
+/* ── Table wrapper ── */
 .markets-table-card { padding: 0; overflow: hidden; }
 
 .markets-table-scroll {
@@ -195,9 +195,9 @@
   gap: 12px;
 }
 
+/* ── Coin icon — works for both <img> and <div> ── */
 .pair-icon {
   border-radius: 50%;
-  background: var(--green-dim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -214,7 +214,7 @@
 }
 
 .pair-icon-fallback {
-  color: var(--green);
+  color: #fff;
   font-size: 10px;
   font-weight: 800;
   font-family: 'Syne', sans-serif;
@@ -233,7 +233,7 @@
 }
 
 /* ── Other cells ── */
-.td-price  { color: var(--text-primary);   font-family: 'JetBrains Mono', monospace; }
+.td-price  { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
 .td-change { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
 .td-change.up   { color: var(--green); }
 .td-change.down { color: var(--red); }
@@ -268,15 +268,33 @@
 
   .markets-filters { justify-content: space-between; }
 
-  .filter-btn { padding: 6px 10px; font-size: 12px; }
+  .filter-btn { padding: 6px 8px; font-size: 11px; }
 
   .markets-search { max-width: 100%; }
 
-  /* table scrolls horizontally — all columns remain visible */
-  .markets-table-scroll { overflow-x: auto; }
-  .markets-table { min-width: 680px; }
+  /* table scrolls horizontally so all columns stay visible */
+  .markets-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
-  .mover-price { display: none; }
+  /* tighter padding on mobile so columns fit */
+  .markets-table { min-width: 620px; }
 
+  .markets-table th,
+  .markets-table td { padding: 10px 10px; font-size: 12px; }
+
+  .pair-name { font-size: 12px; }
+  .pair-sub  { font-size: 10px; }
+
+  .td-price  { font-size: 12px; }
+  .td-change { font-size: 11px; }
+  .td-vol,
+  .td-mcap   { font-size: 11px; }
+
+  .trade-btn { padding: 5px 10px; font-size: 11px; }
+
+  /* mover price stays visible on mobile now */
+  .mover-price { display: block; font-size: 11px; }
   .mover-badge { font-size: 11px; padding: 3px 8px; }
 }
