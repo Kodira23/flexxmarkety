@@ -7,22 +7,22 @@ const COIN_COLORS = {
   SOL:'#9945FF', DOGE:'#C2A633', ADA:'#0033AD', TRX:'#EF0027',
   AVAX:'#E84142', LINK:'#2A5ADA', SHIB:'#FFA409', SUI:'#4DA2FF',
   XLM:'#7D00FF', DOT:'#E6007A', HBAR:'#00BABC', BCH:'#8DC351',
-  UNI:'#FF007A', LTC:'#BFBBBB', PEPE:'#00A550', NEAR:'#00C1DE',
+  UNI:'#FF007A', LTC:'#A8A9AD', PEPE:'#00A550', NEAR:'#00C1DE',
   ICP:'#29ABE2', FET:'#1D2B55', MATIC:'#8247E5', RNDR:'#CC3000',
-  ARB:'#28A0F0', ATOM:'#2E3148', SEI:'#9B1C1C', RUNE:'#2ECC71',
+  ARB:'#28A0F0', ATOM:'#6F7390', SEI:'#CC3333', RUNE:'#2ECC71',
   MKR:'#1AAB9B', QNT:'#272D5A', LDO:'#00A3FF', GALA:'#0033FF',
   JASMY:'#2B4EFF', SAND:'#04ADEF', FLOW:'#00EF8B', MANA:'#FF2D55',
   AXS:'#0055D5', APE:'#0054F9', OP:'#FF0420', INJ:'#00BFFF',
   GRT:'#6F4CFF', AAVE:'#B6509E', SNX:'#00D1FF', CRV:'#D63636',
   ENS:'#5284FF', BLUR:'#FF8700', IMX:'#17B5CB', CAKE:'#FE8C00',
-  COMP:'#00D395', YFI:'#006AE3', BAL:'#666', ZRX:'#888',
+  COMP:'#00D395', YFI:'#006AE3', BAL:'#1E1E1E', ZRX:'#555',
   CHZ:'#CD0124', ENJ:'#7866D5', BAT:'#FF5000', ZIL:'#29CCC4',
   ONE:'#00AEE9', KAVA:'#FF564F', ALGO:'#3A3A3A', VET:'#15BDFF',
   THETA:'#2AB8E6', FIL:'#0090FF', EOS:'#454545', XTZ:'#2C7DF7',
   IOTA:'#131F37', NEO:'#58BF00', WAVES:'#0155FF', DASH:'#008DE4',
   XMR:'#FF6600', ZEC:'#ECB244', EGLD:'#1A4FE0', ROSE:'#4E8DFF',
-  KSM:'#333', CELO:'#FBCC5C', ANKR:'#0066FF', SKL:'#444',
-  STORJ:'#2683FF', BAND:'#4520E6', WLD:'#333', STX:'#5546FF',
+  KSM:'#E6007A', CELO:'#FBCC5C', ANKR:'#0066FF', SKL:'#444',
+  STORJ:'#2683FF', BAND:'#4520E6', WLD:'#555', STX:'#5546FF',
   CFX:'#E15F1A', MAGIC:'#E2175F', TIA:'#7B2FBE', PYTH:'#8B5CF6',
   JTO:'#9945FF', JUP:'#7AC231', WIF:'#B08850', BOME:'#FF4B00',
   NOT:'#56A8FF', IO:'#00D4FF', ZK:'#1B53FF', LISTA:'#F0B90B',
@@ -30,43 +30,20 @@ const COIN_COLORS = {
   MAJOR:'#4169E1', NEIRO:'#FF69B4',
 }
 
-const ICON_SUPPORTED = new Set([
-  'BTC','ETH','XRP','BNB','SOL','DOGE','ADA','TRX','AVAX','LINK',
-  'SHIB','XLM','DOT','BCH','UNI','LTC','NEAR','MATIC','ARB','ATOM',
-  'MKR','SAND','FLOW','MANA','AXS','APE','OP','GRT','AAVE','SNX',
-  'CRV','ENJ','BAT','ZIL','KAVA','ALGO','VET','THETA','FIL','EOS',
-  'XTZ','NEO','WAVES','DASH','XMR','ZEC','KSM','ANKR','STORJ','BAND',
-  'STX','COMP','YFI','BAL','ZRX','CHZ','ENS','CAKE','IMX','ONE',
-])
-
+// Pure CSS circle — no image, no CDN, always renders
 const CoinIcon = memo(function CoinIcon({ base, size = 36 }) {
-  const [failed, setFailed] = useState(false)
   const color = COIN_COLORS[base] || '#555'
-  const fontSize = size <= 20 ? 7 : size <= 24 ? 8 : size <= 32 ? 11 : 13
-
-  if (!ICON_SUPPORTED.has(base) || failed) {
-    return (
-      <div style={{
-        width: size, height: size, minWidth: size, flexShrink: 0,
-        borderRadius: '50%', background: color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize, fontWeight: 800, color: '#fff',
-        letterSpacing: '-0.5px', userSelect: 'none',
-      }}>
-        {base.slice(0, 3)}
-      </div>
-    )
-  }
-
+  const fontSize = size <= 20 ? 7 : size <= 24 ? 8 : size <= 32 ? 10 : 12
   return (
-    <img
-      src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${base.toLowerCase()}.png`}
-      alt={base}
-      width={size}
-      height={size}
-      style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block' }}
-      onError={() => setFailed(true)}
-    />
+    <div style={{
+      width: size, height: size, minWidth: size, flexShrink: 0,
+      borderRadius: '50%', background: color,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize, fontWeight: 800, color: '#fff',
+      letterSpacing: '-0.5px', userSelect: 'none',
+    }}>
+      {base.slice(0, 3)}
+    </div>
   )
 })
 
