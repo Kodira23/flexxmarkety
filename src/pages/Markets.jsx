@@ -2,106 +2,13 @@ import { useState, useMemo } from 'react'
 import { useTicker } from '../hooks/useTicker'
 import './Markets.css'
 
-const COIN_LOGOS = {
-  BTC:   'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-  ETH:   'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-  XRP:   'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
-  BNB:   'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-  SOL:   'https://assets.coingecko.com/coins/images/4128/large/solana.png',
-  DOGE:  'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
-  ADA:   'https://assets.coingecko.com/coins/images/975/large/cardano.png',
-  TRX:   'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
-  AVAX:  'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
-  LINK:  'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
-  SHIB:  'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
-  SUI:   'https://assets.coingecko.com/coins/images/26375/large/sui_asset.jpeg',
-  XLM:   'https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png',
-  DOT:   'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
-  HBAR:  'https://assets.coingecko.com/coins/images/3688/large/hbar.png',
-  BCH:   'https://assets.coingecko.com/coins/images/780/large/bitcoin-cash-circle.png',
-  UNI:   'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
-  LTC:   'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
-  PEPE:  'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg',
-  NEAR:  'https://assets.coingecko.com/coins/images/10365/large/near.jpg',
-  ICP:   'https://assets.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png',
-  FET:   'https://assets.coingecko.com/coins/images/5681/large/Fetch.jpg',
-  MATIC: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',
-  RNDR:  'https://assets.coingecko.com/coins/images/11636/large/rndr.png',
-  ARB:   'https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg',
-  ATOM:  'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png',
-  SEI:   'https://assets.coingecko.com/coins/images/28205/large/Sei_Logo_-_Transparent.png',
-  RUNE:  'https://assets.coingecko.com/coins/images/6595/large/Rune200x200.png',
-  MKR:   'https://assets.coingecko.com/coins/images/1364/large/Mark_Maker.png',
-  QNT:   'https://assets.coingecko.com/coins/images/3370/large/5ZOu7brX_400x400.jpg',
-  LDO:   'https://assets.coingecko.com/coins/images/13573/large/Lido_DAO.png',
-  GALA:  'https://assets.coingecko.com/coins/images/12493/large/GALA-COINGECKO.png',
-  JASMY: 'https://assets.coingecko.com/coins/images/13876/large/JASMY200x200.jpg',
-  SAND:  'https://assets.coingecko.com/coins/images/12129/large/sandbox_logo.jpg',
-  FLOW:  'https://assets.coingecko.com/coins/images/13446/large/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png',
-  MANA:  'https://assets.coingecko.com/coins/images/878/large/decentraland-mana.png',
-  AXS:   'https://assets.coingecko.com/coins/images/13029/large/axie_infinity_logo.png',
-  APE:   'https://assets.coingecko.com/coins/images/24383/large/apecoin.jpg',
-  OP:    'https://assets.coingecko.com/coins/images/25244/large/Optimism.png',
-  INJ:   'https://assets.coingecko.com/coins/images/12882/large/Secondary_Symbol.png',
-  GRT:   'https://assets.coingecko.com/coins/images/13397/large/Graph_Token.png',
-  AAVE:  'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',
-  SNX:   'https://assets.coingecko.com/coins/images/3406/large/SNX.png',
-  CRV:   'https://assets.coingecko.com/coins/images/12124/large/Curve.png',
-  ENS:   'https://assets.coingecko.com/coins/images/19785/large/acatxTm8_400x400.jpg',
-  BLUR:  'https://assets.coingecko.com/coins/images/28453/large/blur.png',
-  IMX:   'https://assets.coingecko.com/coins/images/17233/large/immutableX-symbol-BLK-RGB.png',
-  CAKE:  'https://assets.coingecko.com/coins/images/12632/large/pancakeswap-cake-logo_%281%29.png',
-  COMP:  'https://assets.coingecko.com/coins/images/10775/large/COMP.png',
-  YFI:   'https://assets.coingecko.com/coins/images/11849/large/yearn-finance.png',
-  BAL:   'https://assets.coingecko.com/coins/images/11683/large/Balancer.png',
-  ZRX:   'https://assets.coingecko.com/coins/images/863/large/0x.png',
-  CHZ:   'https://assets.coingecko.com/coins/images/8834/large/Chiliz.png',
-  ENJ:   'https://assets.coingecko.com/coins/images/1102/large/enjin-coin-logo.png',
-  BAT:   'https://assets.coingecko.com/coins/images/677/large/basic-attention-token.png',
-  ZIL:   'https://assets.coingecko.com/coins/images/2687/large/Zilliqa-logo.png',
-  ONE:   'https://assets.coingecko.com/coins/images/4344/large/Y88JAze.png',
-  KAVA:  'https://assets.coingecko.com/coins/images/9761/large/kava.png',
-  ALGO:  'https://assets.coingecko.com/coins/images/4380/large/download.png',
-  VET:   'https://assets.coingecko.com/coins/images/1167/large/VeChain-Logo-768x725.png',
-  THETA: 'https://assets.coingecko.com/coins/images/2538/large/theta-token-logo.png',
-  FIL:   'https://assets.coingecko.com/coins/images/12817/large/filecoin.png',
-  EOS:   'https://assets.coingecko.com/coins/images/738/large/eos-eos-logo.png',
-  XTZ:   'https://assets.coingecko.com/coins/images/976/large/Tezos-logo.png',
-  IOTA:  'https://assets.coingecko.com/coins/images/692/large/IOTA_Swirl.png',
-  NEO:   'https://assets.coingecko.com/coins/images/480/large/NEO_512_512.png',
-  WAVES: 'https://assets.coingecko.com/coins/images/425/large/waves.png',
-  DASH:  'https://assets.coingecko.com/coins/images/19/large/dash-logo.png',
-  XMR:   'https://assets.coingecko.com/coins/images/69/large/monero_logo.png',
-  ZEC:   'https://assets.coingecko.com/coins/images/486/large/circle-zcash-color.png',
-  EGLD:  'https://assets.coingecko.com/coins/images/12335/large/egld-token-logo.png',
-  ROSE:  'https://assets.coingecko.com/coins/images/13162/large/rose.png',
-  KSM:   'https://assets.coingecko.com/coins/images/9568/large/m4zRhP5e_400x400.jpg',
-  CELO:  'https://assets.coingecko.com/coins/images/11090/large/InjXBNx9_400x400.jpg',
-  ANKR:  'https://assets.coingecko.com/coins/images/8455/large/Ankr.png',
-  SKL:   'https://assets.coingecko.com/coins/images/13245/large/SKALE_token_300x300.png',
-  STORJ: 'https://assets.coingecko.com/coins/images/949/large/storj.png',
-  BAND:  'https://assets.coingecko.com/coins/images/9545/large/Band_token_blue_violet_token.png',
-  WLD:   'https://assets.coingecko.com/coins/images/31069/large/worldcoin.jpeg',
-  STX:   'https://assets.coingecko.com/coins/images/2069/large/Stacks_logo_full.png',
-  CFX:   'https://assets.coingecko.com/coins/images/13079/large/3vuYMbjN.png',
-  MAGIC: 'https://assets.coingecko.com/coins/images/18623/large/magic.png',
-  TIA:   'https://assets.coingecko.com/coins/images/33172/large/celestia.png',
-  PYTH:  'https://assets.coingecko.com/coins/images/31924/large/pyth.png',
-  JTO:   'https://assets.coingecko.com/coins/images/33228/large/jto.png',
-  JUP:   'https://assets.coingecko.com/coins/images/34188/large/jup.png',
-  WIF:   'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpg',
-  BOME:  'https://assets.coingecko.com/coins/images/36709/large/bome.png',
-  NOT:   'https://assets.coingecko.com/coins/images/36190/large/notcoin.jpg',
-  IO:    'https://assets.coingecko.com/coins/images/36143/large/io.jpg',
-  ZK:    'https://assets.coingecko.com/coins/images/36730/large/zksync.jpg',
-  LISTA: 'https://assets.coingecko.com/coins/images/36893/large/lista.jpg',
-  EIGEN: 'https://assets.coingecko.com/coins/images/37173/large/eigen.jpg',
-  HMSTR: 'https://assets.coingecko.com/coins/images/39102/large/hamster.jpg',
-  CATI:  'https://assets.coingecko.com/coins/images/39173/large/cati.jpg',
-  DOGS:  'https://assets.coingecko.com/coins/images/39201/large/dogs.jpg',
-  MAJOR: 'https://assets.coingecko.com/coins/images/39202/large/major.jpg',
-  NEIRO: 'https://assets.coingecko.com/coins/images/39204/large/neiro.jpg',
-}
+// Using cryptoicons.co CDN - reliable open source crypto icon CDN
+const getLogoUrl = (symbol) =>
+  `https://cryptoicons.org/api/icon/${symbol.toLowerCase()}/200`
+
+// Fallback to another CDN if cryptoicons fails
+const getLogoFallback = (symbol) =>
+  `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${symbol.toLowerCase()}.png`
 
 const EXTRA_DATA = {
   BTC:   { vol: '$42.50B',  mcap: '$1920.00B' },
@@ -204,6 +111,45 @@ const EXTRA_DATA = {
   NEIRO: { vol: '$35.00M',  mcap: '$800.00M'  },
 }
 
+// Coins that exist in the jsdelivr cryptocurrency-icons repo
+const JSDELIVR_SUPPORTED = new Set([
+  'BTC','ETH','XRP','BNB','SOL','DOGE','ADA','TRX','AVAX','LINK',
+  'SHIB','XLM','DOT','BCH','UNI','LTC','NEAR','MATIC','ARB','ATOM',
+  'MKR','SAND','FLOW','MANA','AXS','APE','OP','GRT','AAVE','SNX',
+  'CRV','ENJ','BAT','ZIL','KAVA','ALGO','VET','THETA','FIL','EOS',
+  'XTZ','NEO','WAVES','DASH','XMR','ZEC','KSM','ANKR','STORJ','BAND',
+  'STX','COMP','YFI','BAL','ZRX','CHZ','ENS','CAKE','IMX','ONE',
+])
+
+// Color map for generated fallback avatars
+const COIN_COLORS = {
+  BTC:'#F7931A', ETH:'#627EEA', XRP:'#00AAE4', BNB:'#F3BA2F',
+  SOL:'#9945FF', DOGE:'#C2A633', ADA:'#0033AD', TRX:'#EF0027',
+  AVAX:'#E84142', LINK:'#2A5ADA', SHIB:'#FFA409', SUI:'#4DA2FF',
+  XLM:'#7D00FF', DOT:'#E6007A', HBAR:'#00BABC', BCH:'#8DC351',
+  UNI:'#FF007A', LTC:'#BFBBBB', PEPE:'#00A550', NEAR:'#00C1DE',
+  ICP:'#29ABE2', FET:'#1D2B55', MATIC:'#8247E5', RNDR:'#CC3000',
+  ARB:'#28A0F0', ATOM:'#2E3148', SEI:'#9B1C1C', RUNE:'#33FF99',
+  MKR:'#1AAB9B', QNT:'#272D5A', LDO:'#00A3FF', GALA:'#0033FF',
+  JASMY:'#2B4EFF', SAND:'#04ADEF', FLOW:'#00EF8B', MANA:'#FF2D55',
+  AXS:'#0055D5', APE:'#0054F9', OP:'#FF0420', INJ:'#00BFFF',
+  GRT:'#6F4CFF', AAVE:'#B6509E', SNX:'#00D1FF', CRV:'#FF0000',
+  ENS:'#5284FF', BLUR:'#FF8700', IMX:'#17B5CB', CAKE:'#FE8C00',
+  COMP:'#00D395', YFI:'#006AE3', BAL:'#1E1E1E', ZRX:'#302C2C',
+  CHZ:'#CD0124', ENJ:'#7866D5', BAT:'#FF5000', ZIL:'#29CCC4',
+  ONE:'#00AEE9', KAVA:'#FF564F', ALGO:'#000000', VET:'#15BDFF',
+  THETA:'#2AB8E6', FIL:'#0090FF', EOS:'#000000', XTZ:'#2C7DF7',
+  IOTA:'#131F37', NEO:'#58BF00', WAVES:'#0155FF', DASH:'#008DE4',
+  XMR:'#FF6600', ZEC:'#ECB244', EGLD:'#1A4FE0', ROSE:'#4E8DFF',
+  KSM:'#000000', CELO:'#FBCC5C', ANKR:'#0066FF', SKL:'#000000',
+  STORJ:'#2683FF', BAND:'#4520E6', WLD:'#000000', STX:'#5546FF',
+  CFX:'#E15F1A', MAGIC:'#E2175F', TIA:'#7B2FBE', PYTH:'#E6DAFE',
+  JTO:'#9945FF', JUP:'#C7F284', WIF:'#B08850', BOME:'#FF4B00',
+  NOT:'#56A8FF', IO:'#00D4FF', ZK:'#1B53FF', LISTA:'#F0B90B',
+  EIGEN:'#1A1A2E', HMSTR:'#FF8C00', CATI:'#FFD700', DOGS:'#8B4513',
+  MAJOR:'#4169E1', NEIRO:'#FF69B4', GRT:'#6F4CFF', BLUR:'#FF8700',
+}
+
 const fmt = (p) => {
   if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   if (p >= 1)    return `$${p.toFixed(2)}`
@@ -212,22 +158,37 @@ const fmt = (p) => {
 }
 
 function CoinIcon({ base, size = 36 }) {
-  const [err, setErr] = useState(false)
-  const logo = COIN_LOGOS[base]
+  const [stage, setStage] = useState(0)
+  // stage 0 = jsdelivr, stage 1 = text fallback
+  const color = COIN_COLORS[base] || '#555'
+  const fontSize = size <= 24 ? 9 : size <= 32 ? 11 : 13
+
+  if (!JSDELIVR_SUPPORTED.has(base) || stage >= 1) {
+    // Colored circle with text initials
+    return (
+      <div style={{
+        width: size, height: size, minWidth: size,
+        borderRadius: '50%',
+        background: color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize, fontWeight: 700, color: '#fff',
+        letterSpacing: '-0.5px',
+        flexShrink: 0,
+      }}>
+        {base.slice(0, 3)}
+      </div>
+    )
+  }
+
   return (
-    <div className="pair-icon" style={{ width: size, height: size, minWidth: size }}>
-      {logo && !err
-        ? <img
-            src={logo}
-            alt={base}
-            className="pair-coin-img"
-            width={size}
-            height={size}
-            onError={() => setErr(true)}
-          />
-        : <span className="pair-icon-fallback">{base.slice(0, 3)}</span>
-      }
-    </div>
+    <img
+      src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${base.toLowerCase()}.png`}
+      alt={base}
+      width={size}
+      height={size}
+      style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+      onError={() => setStage(1)}
+    />
   )
 }
 
