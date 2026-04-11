@@ -2,13 +2,73 @@ import { useState, useMemo } from 'react'
 import { useTicker } from '../hooks/useTicker'
 import './Markets.css'
 
-// Using cryptoicons.co CDN - reliable open source crypto icon CDN
-const getLogoUrl = (symbol) =>
-  `https://cryptoicons.org/api/icon/${symbol.toLowerCase()}/200`
+const COIN_COLORS = {
+  BTC:'#F7931A', ETH:'#627EEA', XRP:'#00AAE4', BNB:'#F3BA2F',
+  SOL:'#9945FF', DOGE:'#C2A633', ADA:'#0033AD', TRX:'#EF0027',
+  AVAX:'#E84142', LINK:'#2A5ADA', SHIB:'#FFA409', SUI:'#4DA2FF',
+  XLM:'#7D00FF', DOT:'#E6007A', HBAR:'#00BABC', BCH:'#8DC351',
+  UNI:'#FF007A', LTC:'#BFBBBB', PEPE:'#00A550', NEAR:'#00C1DE',
+  ICP:'#29ABE2', FET:'#1D2B55', MATIC:'#8247E5', RNDR:'#CC3000',
+  ARB:'#28A0F0', ATOM:'#2E3148', SEI:'#9B1C1C', RUNE:'#2ECC71',
+  MKR:'#1AAB9B', QNT:'#272D5A', LDO:'#00A3FF', GALA:'#0033FF',
+  JASMY:'#2B4EFF', SAND:'#04ADEF', FLOW:'#00EF8B', MANA:'#FF2D55',
+  AXS:'#0055D5', APE:'#0054F9', OP:'#FF0420', INJ:'#00BFFF',
+  GRT:'#6F4CFF', AAVE:'#B6509E', SNX:'#00D1FF', CRV:'#D63636',
+  ENS:'#5284FF', BLUR:'#FF8700', IMX:'#17B5CB', CAKE:'#FE8C00',
+  COMP:'#00D395', YFI:'#006AE3', BAL:'#666', ZRX:'#888',
+  CHZ:'#CD0124', ENJ:'#7866D5', BAT:'#FF5000', ZIL:'#29CCC4',
+  ONE:'#00AEE9', KAVA:'#FF564F', ALGO:'#3A3A3A', VET:'#15BDFF',
+  THETA:'#2AB8E6', FIL:'#0090FF', EOS:'#454545', XTZ:'#2C7DF7',
+  IOTA:'#131F37', NEO:'#58BF00', WAVES:'#0155FF', DASH:'#008DE4',
+  XMR:'#FF6600', ZEC:'#ECB244', EGLD:'#1A4FE0', ROSE:'#4E8DFF',
+  KSM:'#333', CELO:'#FBCC5C', ANKR:'#0066FF', SKL:'#444',
+  STORJ:'#2683FF', BAND:'#4520E6', WLD:'#333', STX:'#5546FF',
+  CFX:'#E15F1A', MAGIC:'#E2175F', TIA:'#7B2FBE', PYTH:'#8B5CF6',
+  JTO:'#9945FF', JUP:'#7AC231', WIF:'#B08850', BOME:'#FF4B00',
+  NOT:'#56A8FF', IO:'#00D4FF', ZK:'#1B53FF', LISTA:'#F0B90B',
+  EIGEN:'#5A67D8', HMSTR:'#FF8C00', CATI:'#FFD700', DOGS:'#8B4513',
+  MAJOR:'#4169E1', NEIRO:'#FF69B4',
+}
 
-// Fallback to another CDN if cryptoicons fails
-const getLogoFallback = (symbol) =>
-  `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${symbol.toLowerCase()}.png`
+const ICON_SUPPORTED = new Set([
+  'BTC','ETH','XRP','BNB','SOL','DOGE','ADA','TRX','AVAX','LINK',
+  'SHIB','XLM','DOT','BCH','UNI','LTC','NEAR','MATIC','ARB','ATOM',
+  'MKR','SAND','FLOW','MANA','AXS','APE','OP','GRT','AAVE','SNX',
+  'CRV','ENJ','BAT','ZIL','KAVA','ALGO','VET','THETA','FIL','EOS',
+  'XTZ','NEO','WAVES','DASH','XMR','ZEC','KSM','ANKR','STORJ','BAND',
+  'STX','COMP','YFI','BAL','ZRX','CHZ','ENS','CAKE','IMX','ONE',
+])
+
+function CoinIcon({ base, size = 36 }) {
+  const [failed, setFailed] = useState(false)
+  const color = COIN_COLORS[base] || '#555'
+  const fontSize = size <= 20 ? 7 : size <= 24 ? 8 : size <= 32 ? 11 : 13
+
+  if (!ICON_SUPPORTED.has(base) || failed) {
+    return (
+      <div style={{
+        width: size, height: size, minWidth: size, flexShrink: 0,
+        borderRadius: '50%', background: color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize, fontWeight: 800, color: '#fff',
+        letterSpacing: '-0.5px', userSelect: 'none',
+      }}>
+        {base.slice(0, 3)}
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${base.toLowerCase()}.png`}
+      alt={base}
+      width={size}
+      height={size}
+      style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0, display: 'block' }}
+      onError={() => setFailed(true)}
+    />
+  )
+}
 
 const EXTRA_DATA = {
   BTC:   { vol: '$42.50B',  mcap: '$1920.00B' },
@@ -111,85 +171,11 @@ const EXTRA_DATA = {
   NEIRO: { vol: '$35.00M',  mcap: '$800.00M'  },
 }
 
-// Coins that exist in the jsdelivr cryptocurrency-icons repo
-const JSDELIVR_SUPPORTED = new Set([
-  'BTC','ETH','XRP','BNB','SOL','DOGE','ADA','TRX','AVAX','LINK',
-  'SHIB','XLM','DOT','BCH','UNI','LTC','NEAR','MATIC','ARB','ATOM',
-  'MKR','SAND','FLOW','MANA','AXS','APE','OP','GRT','AAVE','SNX',
-  'CRV','ENJ','BAT','ZIL','KAVA','ALGO','VET','THETA','FIL','EOS',
-  'XTZ','NEO','WAVES','DASH','XMR','ZEC','KSM','ANKR','STORJ','BAND',
-  'STX','COMP','YFI','BAL','ZRX','CHZ','ENS','CAKE','IMX','ONE',
-])
-
-// Color map for generated fallback avatars
-const COIN_COLORS = {
-  BTC:'#F7931A', ETH:'#627EEA', XRP:'#00AAE4', BNB:'#F3BA2F',
-  SOL:'#9945FF', DOGE:'#C2A633', ADA:'#0033AD', TRX:'#EF0027',
-  AVAX:'#E84142', LINK:'#2A5ADA', SHIB:'#FFA409', SUI:'#4DA2FF',
-  XLM:'#7D00FF', DOT:'#E6007A', HBAR:'#00BABC', BCH:'#8DC351',
-  UNI:'#FF007A', LTC:'#BFBBBB', PEPE:'#00A550', NEAR:'#00C1DE',
-  ICP:'#29ABE2', FET:'#1D2B55', MATIC:'#8247E5', RNDR:'#CC3000',
-  ARB:'#28A0F0', ATOM:'#2E3148', SEI:'#9B1C1C', RUNE:'#33FF99',
-  MKR:'#1AAB9B', QNT:'#272D5A', LDO:'#00A3FF', GALA:'#0033FF',
-  JASMY:'#2B4EFF', SAND:'#04ADEF', FLOW:'#00EF8B', MANA:'#FF2D55',
-  AXS:'#0055D5', APE:'#0054F9', OP:'#FF0420', INJ:'#00BFFF',
-  GRT:'#6F4CFF', AAVE:'#B6509E', SNX:'#00D1FF', CRV:'#FF0000',
-  ENS:'#5284FF', BLUR:'#FF8700', IMX:'#17B5CB', CAKE:'#FE8C00',
-  COMP:'#00D395', YFI:'#006AE3', BAL:'#1E1E1E', ZRX:'#302C2C',
-  CHZ:'#CD0124', ENJ:'#7866D5', BAT:'#FF5000', ZIL:'#29CCC4',
-  ONE:'#00AEE9', KAVA:'#FF564F', ALGO:'#000000', VET:'#15BDFF',
-  THETA:'#2AB8E6', FIL:'#0090FF', EOS:'#000000', XTZ:'#2C7DF7',
-  IOTA:'#131F37', NEO:'#58BF00', WAVES:'#0155FF', DASH:'#008DE4',
-  XMR:'#FF6600', ZEC:'#ECB244', EGLD:'#1A4FE0', ROSE:'#4E8DFF',
-  KSM:'#000000', CELO:'#FBCC5C', ANKR:'#0066FF', SKL:'#000000',
-  STORJ:'#2683FF', BAND:'#4520E6', WLD:'#000000', STX:'#5546FF',
-  CFX:'#E15F1A', MAGIC:'#E2175F', TIA:'#7B2FBE', PYTH:'#E6DAFE',
-  JTO:'#9945FF', JUP:'#C7F284', WIF:'#B08850', BOME:'#FF4B00',
-  NOT:'#56A8FF', IO:'#00D4FF', ZK:'#1B53FF', LISTA:'#F0B90B',
-  EIGEN:'#1A1A2E', HMSTR:'#FF8C00', CATI:'#FFD700', DOGS:'#8B4513',
-  MAJOR:'#4169E1', NEIRO:'#FF69B4', GRT:'#6F4CFF', BLUR:'#FF8700',
-}
-
 const fmt = (p) => {
   if (p >= 1000) return `$${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   if (p >= 1)    return `$${p.toFixed(2)}`
   if (p >= 0.01) return `$${p.toFixed(4)}`
   return `$${p.toFixed(8)}`
-}
-
-function CoinIcon({ base, size = 36 }) {
-  const [stage, setStage] = useState(0)
-  // stage 0 = jsdelivr, stage 1 = text fallback
-  const color = COIN_COLORS[base] || '#555'
-  const fontSize = size <= 24 ? 9 : size <= 32 ? 11 : 13
-
-  if (!JSDELIVR_SUPPORTED.has(base) || stage >= 1) {
-    // Colored circle with text initials
-    return (
-      <div style={{
-        width: size, height: size, minWidth: size,
-        borderRadius: '50%',
-        background: color,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize, fontWeight: 700, color: '#fff',
-        letterSpacing: '-0.5px',
-        flexShrink: 0,
-      }}>
-        {base.slice(0, 3)}
-      </div>
-    )
-  }
-
-  return (
-    <img
-      src={`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${base.toLowerCase()}.png`}
-      alt={base}
-      width={size}
-      height={size}
-      style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-      onError={() => setStage(1)}
-    />
-  )
 }
 
 export default function Markets() {
@@ -236,7 +222,6 @@ export default function Markets() {
   return (
     <div className="dash-page">
 
-      {/* Top Gainers / Losers */}
       <div className="movers-grid">
         {[
           { label: '🔥 Top Gainers', list: topGainers, isGain: true  },
@@ -265,7 +250,6 @@ export default function Markets() {
         ))}
       </div>
 
-      {/* Filter + Search */}
       <div className="markets-toolbar">
         <div className="markets-filters">
           {['all', 'favorites', 'gainers', 'losers'].map(f => (
@@ -290,22 +274,15 @@ export default function Markets() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="card markets-table-card">
         <div className="markets-table-scroll">
           <table className="markets-table">
             <thead>
               <tr>
                 <th></th>
-                <th className="th-sort" onClick={() => handleSort('name')}>
-                  Name <SortIcon k="name" />
-                </th>
-                <th className="th-sort" onClick={() => handleSort('price')}>
-                  Price <SortIcon k="price" />
-                </th>
-                <th className="th-sort" onClick={() => handleSort('change')}>
-                  24h <SortIcon k="change" />
-                </th>
+                <th className="th-sort" onClick={() => handleSort('name')}>Name <SortIcon k="name" /></th>
+                <th className="th-sort" onClick={() => handleSort('price')}>Price <SortIcon k="price" /></th>
+                <th className="th-sort" onClick={() => handleSort('change')}>24h <SortIcon k="change" /></th>
                 <th>Volume</th>
                 <th>Market Cap</th>
                 <th>Action</th>
