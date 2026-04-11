@@ -30,22 +30,29 @@ const COIN_COLORS = {
   MAJOR:'#4169E1', NEIRO:'#FF69B4',
 }
 
-// Pure CSS circle — no image, no CDN, always renders
+// No className — fully self-contained with inline styles only
 const CoinIcon = memo(function CoinIcon({ base, size = 36 }) {
   const color = COIN_COLORS[base] || '#555'
-  // Use 2 chars max so text fits cleanly inside the circle
   const label = base.length <= 2 ? base : base.slice(0, 2)
   const fontSize = size <= 20 ? 8 : size <= 32 ? 11 : 13
   return (
-    <div
-      className="pair-icon"
-      style={{
-        width: size, height: size, minWidth: size,
-        background: color, fontSize, fontWeight: 900,
-        color: '#fff', letterSpacing: '0px', userSelect: 'none',
-        lineHeight: 1,
-      }}
-    >
+    <div style={{
+      width: `${size}px`,
+      height: `${size}px`,
+      minWidth: `${size}px`,
+      borderRadius: '50%',
+      background: color,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: `${fontSize}px`,
+      fontWeight: 900,
+      color: '#ffffff',
+      flexShrink: 0,
+      userSelect: 'none',
+      lineHeight: 1,
+      fontFamily: 'Inter, sans-serif',
+    }}>
       {label}
     </div>
   )
