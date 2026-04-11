@@ -35,13 +35,14 @@ const CoinIcon = memo(function CoinIcon({ base, size = 36 }) {
   const color = COIN_COLORS[base] || '#555'
   const fontSize = size <= 20 ? 7 : size <= 24 ? 8 : size <= 32 ? 10 : 12
   return (
-    <div style={{
-      width: size, height: size, minWidth: size, flexShrink: 0,
-      borderRadius: '50%', background: color,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize, fontWeight: 800, color: '#fff',
-      letterSpacing: '-0.5px', userSelect: 'none',
-    }}>
+    <div
+      className="pair-icon"
+      style={{
+        width: size, height: size, minWidth: size,
+        background: color, fontSize, fontWeight: 800,
+        color: '#fff', letterSpacing: '-0.5px', userSelect: 'none',
+      }}
+    >
       {base.slice(0, 3)}
     </div>
   )
