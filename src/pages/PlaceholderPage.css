@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════
-   FONTS — must be imported FIRST before everything else
+   FONTS — Syne for UI, Times New Roman for numbers
 ═══════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap');
 
 /* ═══════════════════════════════════════════════════════
    CSS VARIABLES — exact colors from screenshots
@@ -18,17 +18,19 @@
   --green-dim:      #00c85318;
   --red:            #ff3b5c;
   --red-dim:        #ff3b5c18;
+  --font-num:       'Times New Roman', Times, serif;
 }
 
 /* ═══════════════════════════════════════════════════════
    GLOBAL FONT OVERRIDE
 ═══════════════════════════════════════════════════════ */
 .dash-main,
-.dash-main *:not(.font-mono):not(input):not(button) {
+.dash-main *:not(.font-num):not(input):not(button) {
   font-family: 'Syne', sans-serif;
 }
 
-.font-mono,
+/* All numeric / price / mono elements → Times New Roman */
+.font-num,
 .td-price,
 .mover-price,
 .ob-price,
@@ -46,8 +48,11 @@
 .trade-input,
 .bot-log,
 .pair-sub,
-.avail-val {
-  font-family: 'JetBrains Mono', monospace !important;
+.avail-val,
+.bots-stat-value,
+.bot-meta-value,
+.bot-config-input {
+  font-family: var(--font-num) !important;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -103,8 +108,13 @@
 }
 .markets-page-header { margin-bottom: 2px; }
 .markets-page-title  {
-  font-family: 'Syne',sans-serif; font-weight: 800; font-size: 28px;
-  color: var(--text-primary); margin-bottom: 4px; letter-spacing: -0.5px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 42px;
+  line-height: 1.05;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  letter-spacing: -1.5px;
 }
 .markets-page-sub { font-size: 13px; color: var(--text-muted); }
 
@@ -426,7 +436,7 @@
   content:''; position: absolute; top:-60px; right:-60px; width:300px; height:300px;
   background: radial-gradient(circle,#ffffff10,transparent 70%); pointer-events: none;
 }
-.bots-hero-title { font-size:26px; font-weight:800; color:#fff; margin-bottom:6px; }
+.bots-hero-title { font-size:36px; font-weight:800; color:#fff; margin-bottom:6px; line-height:1.05; letter-spacing:-1px; }
 .bots-hero-sub   { font-size:13px; color:#ffffffaa; margin-bottom:20px; }
 .bots-hero-stats { display:flex; gap:28px; flex-wrap:wrap; }
 .bots-stat       { display:flex; flex-direction:column; gap:2px; }
@@ -441,7 +451,7 @@
 
 .bots-section        { display:flex; flex-direction:column; gap:18px; }
 .bots-section-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
-.bots-section-title  { font-size:19px; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
+.bots-section-title  { font-size:26px; font-weight:800; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.5px; line-height:1.1; }
 .bots-section-sub    { font-size:13px; color:var(--text-muted); }
 .bots-create-btn     {
   background:var(--green); color:#000; border:none; padding:10px 20px; border-radius:10px;
@@ -525,21 +535,45 @@
 ═══════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
 
-  /* Markets — show ALL columns on mobile (no hiding) */
+  /* Markets heading — keep big but not clipped */
   .markets-page-wrapper { padding: 14px 14px 80px; gap: 14px; }
-  .markets-page-title   { font-size: 22px; }
+  .markets-page-title   { font-size: 28px; letter-spacing: -0.5px; }
   .movers-grid          { grid-template-columns: 1fr; }
   .markets-toolbar      { flex-direction: column; align-items: stretch; gap: 10px; }
   .markets-search       { min-width: unset; width: 100%; }
 
-  /* Override — keep ALL columns visible on mobile */
-  .th-hide-sm { display: table-cell !important; }
-  .td-hide-sm { display: table-cell !important; }
+  /* ── Mobile table: compact 4-column layout matching screenshot ── */
+  /* Remove horizontal scroll — instead hide Volume, MarketCap, Action */
+  .markets-table-scroll { overflow-x: hidden; }
+  .markets-table        { min-width: unset; width: 100%; }
 
-  /* Make table horizontally scrollable on mobile so nothing is cut */
-  .markets-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .markets-table        { min-width: 700px; }
-  .markets-table th, .markets-table td { padding: 11px 10px; }
+  /* Hide Volume, Market Cap, Action on mobile */
+  .markets-table th.th-vol,
+  .markets-table td.td-vol,
+  .markets-table th.th-mcap,
+  .markets-table td.td-mcap,
+  .markets-table th.th-action,
+  .markets-table td.td-action { display: none !important; }
+
+  .markets-table th, .markets-table td { padding: 10px 8px; }
+
+  /* Star column tight */
+  .td-star { width: 28px; }
+  .star-btn { font-size: 15px; }
+
+  /* Coin cell — tighter */
+  .td-coin   { gap: 8px; }
+  .pair-name { font-size: 13px; }
+  .pair-sub  { font-size: 10px; }
+
+  /* Price */
+  .td-price  { font-size: 13px; white-space: nowrap; }
+
+  /* 24h pill — compact */
+  .change-pill { font-size: 11px; padding: 3px 7px; white-space: nowrap; }
+
+  /* Trade btn hidden via class on mobile */
+  .trade-btn-mobile-hide { display: none !important; }
 
   /* Spot — switch to stacked mobile layout */
   .spot-main    { overflow: auto !important; }
