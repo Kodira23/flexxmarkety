@@ -350,7 +350,7 @@ function PlaceholderPage({ title, icon, description }) {
 }
 
 // ── MARKETS PAGE ───────────────────────────────────────────────────────
-export function MarketsPage() {
+export function MarketsPage({ onNavigate }) {
   const allPairs = useTicker()
   const pairs = useMemo(() => allPairs.filter(p => !EXCLUDED.has(p.symbol.split('/')[0])), [allPairs])
 
@@ -387,7 +387,7 @@ export function MarketsPage() {
   return (
     <div className="dash-main">
       <div className="markets-page-wrapper">
-        {/* Header */}
+        {/* Header — editorial bold style */}
         <div className="markets-page-header">
           <h1 className="markets-page-title">Markets</h1>
           <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
@@ -445,19 +445,19 @@ export function MarketsPage() {
           </div>
         </div>
 
-        {/* Table — ALL columns always visible, horizontal scroll on mobile */}
+        {/* Table — compact on mobile, full on desktop */}
         <div className="markets-table-card">
           <div className="markets-table-scroll">
             <table className="markets-table">
               <thead>
                 <tr>
-                  <th style={{width:36}}></th>
+                  <th style={{width:28}}></th>
                   <th className="th-sort" onClick={()=>handleSort('name')}>Name <SortIcon k="name"/></th>
                   <th className="th-sort" onClick={()=>handleSort('price')}>Price <SortIcon k="price"/></th>
                   <th className="th-sort" onClick={()=>handleSort('change')}>24h <SortIcon k="change"/></th>
-                  <th>Volume</th>
-                  <th>Market Cap</th>
-                  <th>Action</th>
+                  <th className="th-vol">Volume</th>
+                  <th className="th-mcap">Market Cap</th>
+                  <th className="th-action">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -486,9 +486,16 @@ export function MarketsPage() {
                           {isUp?'↗ +':'↘ '}{p.change.toFixed(2)}%
                         </span>
                       </td>
-                      <td className="td-muted">{extra.vol}</td>
-                      <td className="td-muted">{extra.mcap}</td>
-                      <td><button className="trade-btn">Trade</button></td>
+                      <td className="td-muted td-vol">{extra.vol}</td>
+                      <td className="td-muted td-mcap">{extra.mcap}</td>
+                      <td className="td-action">
+                        <button
+                          className="trade-btn"
+                          onClick={() => onNavigate && onNavigate('home')}
+                        >
+                          Trade
+                        </button>
+                      </td>
                     </tr>
                   )
                 })}
