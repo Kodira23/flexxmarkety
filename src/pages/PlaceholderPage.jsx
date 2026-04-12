@@ -151,18 +151,25 @@ const EXTRA_DATA = {
 function CoinCircle({ base, size = 36 }) {
   const [failed, setFailed] = useState(false)
   const logo  = COIN_LOGOS[base]
-  const color = COIN_COLORS[base] || '#555'
+  const color = COIN_COLORS[base] || '#333'
   const label = base.length <= 2 ? base : base.slice(0, 2)
   const fontSize = size <= 20 ? 8 : size <= 32 ? 11 : 13
   if (logo && !failed) {
-    return <img src={logo} alt={base} width={size} height={size}
-      style={{ borderRadius:'50%', objectFit:'cover', flexShrink:0, display:'inline-block', verticalAlign:'middle' }}
-      onError={() => setFailed(true)} />
+    return (
+      <img
+        src={logo} alt={base} width={size} height={size}
+        style={{ borderRadius:'50%', objectFit:'cover', flexShrink:0, display:'inline-block', verticalAlign:'middle' }}
+        onError={() => setFailed(true)}
+      />
+    )
   }
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', justifyContent:'center', width:size, height:size, minWidth:size,
-      borderRadius:'50%', backgroundColor:color, fontSize, fontWeight:900, color:'#fff', flexShrink:0, userSelect:'none',
-      lineHeight:1, fontFamily:'Syne,sans-serif', verticalAlign:'middle' }}>{label}</span>
+    <span style={{
+      display:'inline-flex', alignItems:'center', justifyContent:'center',
+      width:size, height:size, minWidth:size, borderRadius:'50%',
+      backgroundColor:color, fontSize, fontWeight:900, color:'#fff', flexShrink:0,
+      userSelect:'none', lineHeight:1, fontFamily:'Syne,sans-serif', verticalAlign:'middle'
+    }}>{label}</span>
   )
 }
 
@@ -201,10 +208,10 @@ function BotCard({ bot, balance, userId }) {
   const [pnl,setPnl]               = useState(0)
   const [wins,setWins]             = useState(0)
   const [losses,setLosses]         = useState(0)
-  const intervalRef = useRef(null)
+  const intervalRef  = useRef(null)
   const allocatedRef = useRef(0)
-  const winsRef = useRef(0)
-  const lossesRef = useRef(0)
+  const winsRef      = useRef(0)
+  const lossesRef    = useRef(0)
 
   useEffect(() => () => clearInterval(intervalRef.current), [])
 
@@ -232,7 +239,7 @@ function BotCard({ bot, balance, userId }) {
       setPnl(prev => parseFloat((prev + gained).toFixed(2)))
       if (gained >= 0) { setWins(w => w+1); winsRef.current++ } else { setLosses(l => l+1); lossesRef.current++ }
       const up = gained >= 0
-      addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%)`, up?'#16a34a':'#ff4d6a')
+      addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%)`, up?'#00c853':'#ff3b5c')
     })
   }
 
@@ -240,25 +247,25 @@ function BotCard({ bot, balance, userId }) {
     if (!canRun || !configured) return
     if (active) { clearInterval(intervalRef.current); setActive(false); addLog('🛑 Bot stopped','#ffaa00'); return }
     const alloc = parseFloat(allocation)
-    if (!alloc || alloc < 10) { addLog('⚠️ Set allocation ≥ $10 first','#ff4d6a'); return }
-    if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff4d6a'); return }
+    if (!alloc || alloc < 10) { addLog('⚠️ Set allocation ≥ $10 first','#ff3b5c'); return }
+    if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
     allocatedRef.current = alloc
     setActive(true)
-    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation`, '#16a34a')
+    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation`, '#00c853')
     intervalRef.current = setInterval(tick, bot.interval)
   }
 
   function handleSaveConfig() {
     const alloc = parseFloat(allocation)
-    if (!alloc || alloc < 10) { addLog('⚠️ Enter allocation ≥ $10','#ff4d6a'); return }
-    if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff4d6a'); return }
+    if (!alloc || alloc < 10) { addLog('⚠️ Enter allocation ≥ $10','#ff3b5c'); return }
+    if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
     setConfigured(true); setShowConfig(false)
-    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated`, '#16a34a')
+    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated`, '#00c853')
   }
 
   const totalTrades    = wins + losses
   const statusLabel    = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
-  const statusColor    = active ? '#16a34a' : configured ? '#ffaa00' : '#888'
+  const statusColor    = active ? '#00c853' : configured ? '#ffaa00' : '#555'
   const configureIsNext = canRun && !configured && !showConfig
   const saveIsNext      = showConfig
   const startIsNext     = canRun && configured && !active
@@ -277,9 +284,9 @@ function BotCard({ bot, balance, userId }) {
       <p className="bot-desc">{bot.description}</p>
       <div className="bot-meta">
         <div className="bot-meta-item"><span className="bot-meta-label">Risk</span><span className={`bot-meta-value risk-${bot.risk.toLowerCase()}`}>{bot.risk}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">P&L</span><span className="bot-meta-value" style={{color:pnl>=0?'#16a34a':'#ff4d6a',fontWeight:700}}>{pnl>=0?'+':''}${pnl.toFixed(2)}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">Wins</span><span className="bot-meta-value" style={{color:'#16a34a'}}>{wins}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">Losses</span><span className="bot-meta-value" style={{color:'#ff4d6a'}}>{losses}</span></div>
+        <div className="bot-meta-item"><span className="bot-meta-label">P&L</span><span className="bot-meta-value" style={{color:pnl>=0?'#00c853':'#ff3b5c',fontWeight:700}}>{pnl>=0?'+':''}${pnl.toFixed(2)}</span></div>
+        <div className="bot-meta-item"><span className="bot-meta-label">Wins</span><span className="bot-meta-value" style={{color:'#00c853'}}>{wins}</span></div>
+        <div className="bot-meta-item"><span className="bot-meta-label">Losses</span><span className="bot-meta-value" style={{color:'#ff3b5c'}}>{losses}</span></div>
         {totalTrades > 0 && <div className="bot-meta-item"><span className="bot-meta-label">Win Rate</span><span className="bot-meta-value">{((wins/totalTrades)*100).toFixed(0)}%</span></div>}
         {configured && <div className="bot-meta-item"><span className="bot-meta-label">Allocation</span><span className="bot-meta-value">${parseFloat(allocation||0).toFixed(2)}</span></div>}
       </div>
@@ -314,8 +321,12 @@ function BotCard({ bot, balance, userId }) {
         <button className={`bot-btn-configure ${configureIsNext?'btn-next':''}`} onClick={()=>{if(canRun)setShowConfig(v=>!v)}} disabled={!canRun||active}>
           {showConfig?'✕ Close Config':'⚙️ Configure'}
         </button>
-        <button className={`bot-btn-start ${startIsNext?'btn-next':''}`} onClick={handleStart} disabled={!canRun||!configured}
-          style={active?{background:'#ff4d6a22',color:'#ff4d6a',border:'1px solid #ff4d6a55'}:{}}>
+        <button
+          className={`bot-btn-start ${startIsNext?'btn-next':''}`}
+          onClick={handleStart}
+          disabled={!canRun||!configured}
+          style={active?{background:'#ff3b5c22',color:'#ff3b5c',border:'1px solid #ff3b5c55'}:{}}
+        >
           {active?'⏹ Stop Bot':'▶ Start Bot'}
         </button>
       </div>
@@ -327,7 +338,7 @@ function PlaceholderPage({ title, icon, description }) {
   return (
     <div className="dash-main">
       <div className="placeholder-content">
-        <div className="placeholder-card card">
+        <div className="placeholder-card">
           <div className="ph-icon">{icon}</div>
           <h2 className="ph-title">{title}</h2>
           <p className="ph-desc">{description}</p>
@@ -341,7 +352,6 @@ function PlaceholderPage({ title, icon, description }) {
 // ── MARKETS PAGE ───────────────────────────────────────────────────────
 export function MarketsPage() {
   const allPairs = useTicker()
-  // Filter out excluded coins at the source
   const pairs = useMemo(() => allPairs.filter(p => !EXCLUDED.has(p.symbol.split('/')[0])), [allPairs])
 
   const [filter,setFilter]       = useState('all')
@@ -368,28 +378,42 @@ export function MarketsPage() {
     return list
   }, [pairs,filter,search,favorites,sortKey,sortDir])
 
-  const SortIcon = ({k}) => <span className={`sort-icon ${sortKey===k?'active':''}`}>{sortKey===k?(sortDir==='asc'?'↑':'↓'):'↕'}</span>
+  const SortIcon = ({k}) => (
+    <span className={`sort-icon ${sortKey===k?'active':''}`}>
+      {sortKey===k?(sortDir==='asc'?'↑':'↓'):'↕'}
+    </span>
+  )
 
   return (
     <div className="dash-main">
       <div className="markets-page-wrapper">
+        {/* Header */}
         <div className="markets-page-header">
           <h1 className="markets-page-title">Markets</h1>
           <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
         </div>
 
+        {/* Top Gainers / Losers */}
         <div className="movers-grid">
-          {[{label:'🔥 Top Gainers',list:topGainers,isGain:true},{label:'⚡ Top Losers',list:topLosers,isGain:false}].map(({label,list,isGain})=>(
+          {[
+            {label:'🔥 Top Gainers', list:topGainers, isGain:true},
+            {label:'⚡ Top Losers',  list:topLosers,  isGain:false}
+          ].map(({label,list,isGain}) => (
             <div key={label} className="movers-card">
               <div className="movers-title">{label}</div>
               {list.map(p => {
                 const base = p.symbol.split('/')[0]
                 return (
                   <div key={p.symbol} className="mover-row">
-                    <div className="mover-left"><CoinCircle base={base} size={34}/><div className="mover-sym">{base}</div></div>
+                    <div className="mover-left">
+                      <CoinCircle base={base} size={34}/>
+                      <div className="mover-sym">{base}</div>
+                    </div>
                     <div className="mover-right">
                       <span className="mover-price">{fmt(p.price)}</span>
-                      <span className={`mover-badge ${isGain?'up':'down'}`}>{isGain?`↗ +${p.change.toFixed(2)}%`:`↘ ${p.change.toFixed(2)}%`}</span>
+                      <span className={`mover-badge ${isGain?'up':'down'}`}>
+                        {isGain ? `↗ +${p.change.toFixed(2)}%` : `↘ ${p.change.toFixed(2)}%`}
+                      </span>
                     </div>
                   </div>
                 )
@@ -398,20 +422,30 @@ export function MarketsPage() {
           ))}
         </div>
 
+        {/* Toolbar */}
         <div className="markets-toolbar">
           <div className="markets-filters">
-            {['all','favorites','gainers','losers'].map(f=>(
-              <button key={f} className={`filter-btn ${filter===f?'active':''}`} onClick={()=>setFilter(f)}>
-                {f==='favorites'?'★':f.charAt(0).toUpperCase()+f.slice(1)}
+            {['all','favorites','gainers','losers'].map(f => (
+              <button
+                key={f}
+                className={`filter-btn ${filter===f?'active':''}`}
+                onClick={() => setFilter(f)}
+              >
+                {f==='favorites' ? '★' : f.charAt(0).toUpperCase()+f.slice(1)}
               </button>
             ))}
           </div>
           <div className="markets-search">
             <span className="search-icon">🔍</span>
-            <input type="text" placeholder="Search markets..." value={search} onChange={e=>setSearch(e.target.value)} className="search-input"/>
+            <input
+              type="text" placeholder="Search markets..."
+              value={search} onChange={e=>setSearch(e.target.value)}
+              className="search-input"
+            />
           </div>
         </div>
 
+        {/* Table — ALL columns always visible, horizontal scroll on mobile */}
         <div className="markets-table-card">
           <div className="markets-table-scroll">
             <table className="markets-table">
@@ -421,30 +455,39 @@ export function MarketsPage() {
                   <th className="th-sort" onClick={()=>handleSort('name')}>Name <SortIcon k="name"/></th>
                   <th className="th-sort" onClick={()=>handleSort('price')}>Price <SortIcon k="price"/></th>
                   <th className="th-sort" onClick={()=>handleSort('change')}>24h <SortIcon k="change"/></th>
-                  <th className="th-hide-sm">Volume</th>
-                  <th className="th-hide-sm">Market Cap</th>
+                  <th>Volume</th>
+                  <th>Market Cap</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(p=>{
+                {filtered.map(p => {
                   const base  = p.symbol.split('/')[0]
                   const isUp  = p.change >= 0
                   const isFav = favorites.includes(base)
                   const extra = EXTRA_DATA[base] || {vol:'—',mcap:'—'}
                   return (
                     <tr key={p.symbol}>
-                      <td className="td-star"><button className={`star-btn ${isFav?'active':''}`} onClick={()=>toggleFav(base)}>★</button></td>
+                      <td className="td-star">
+                        <button className={`star-btn ${isFav?'active':''}`} onClick={()=>toggleFav(base)}>★</button>
+                      </td>
                       <td>
                         <div className="td-coin">
                           <CoinCircle base={base} size={36}/>
-                          <div><div className="pair-name">{base}</div><div className="pair-sub">{base}/USDT</div></div>
+                          <div>
+                            <div className="pair-name">{base}</div>
+                            <div className="pair-sub">{base}/USDT</div>
+                          </div>
                         </div>
                       </td>
                       <td className="td-price">{fmt(p.price)}</td>
-                      <td><span className={`change-pill ${isUp?'up':'down'}`}>{isUp?'↗ +':'↘ '}{p.change.toFixed(2)}%</span></td>
-                      <td className="td-hide-sm td-muted">{extra.vol}</td>
-                      <td className="td-hide-sm td-muted">{extra.mcap}</td>
+                      <td>
+                        <span className={`change-pill ${isUp?'up':'down'}`}>
+                          {isUp?'↗ +':'↘ '}{p.change.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="td-muted">{extra.vol}</td>
+                      <td className="td-muted">{extra.mcap}</td>
                       <td><button className="trade-btn">Trade</button></td>
                     </tr>
                   )
@@ -458,7 +501,7 @@ export function MarketsPage() {
   )
 }
 
-// ── RECENT TRADES FEED (renders inside the order book panel) ───────────
+// ── RECENT TRADES FEED ─────────────────────────────────────────────────
 function RecentTradesFeed({ basePrice }) {
   const [trades, setTrades] = useState(() =>
     Array.from({length:16}, (_,i) => {
@@ -522,15 +565,13 @@ export function SpotPage() {
     }
   }
 
-  // Generate fake order book
   const askOrders = Array.from({length:8},(_,i)=>{ const p=(currentPair?.price||97500)+(8-i)*97.5; return{price:p.toFixed(2),amount:(Math.random()*2).toFixed(4),total:(p*Math.random()*2).toFixed(3)} }).reverse()
   const bidOrders = Array.from({length:8},(_,i)=>{ const p=(currentPair?.price||97500)-i*97.5; return{price:p.toFixed(2),amount:(Math.random()*2).toFixed(4),total:(p*Math.random()*2).toFixed(3)} })
 
   return (
     <div className="dash-main spot-main">
       <div className="spot-wrap">
-
-        {/* ── Header bar ── */}
+        {/* Header bar */}
         <div className="spot-header-bar">
           <div className="spot-header-left">
             <CoinCircle base={base} size={34}/>
@@ -539,7 +580,11 @@ export function SpotPage() {
             <span className={`spot-change-tag ${isUp?'up':'down'}`}>{isUp?'+':''}{currentPair?.change.toFixed(2)}%</span>
           </div>
           <div className="spot-header-stats">
-            {[{label:'24h High',val:fmt((currentPair?.price||0)*1.008)},{label:'24h Low',val:fmt((currentPair?.price||0)*0.992)},{label:'24h Vol',val:EXTRA_DATA[base]?.vol||'—'}].map(({label,val})=>(
+            {[
+              {label:'24h High',val:fmt((currentPair?.price||0)*1.008)},
+              {label:'24h Low', val:fmt((currentPair?.price||0)*0.992)},
+              {label:'24h Vol', val:EXTRA_DATA[base]?.vol||'—'}
+            ].map(({label,val}) => (
               <div key={label} className="spot-stat">
                 <span className="spot-stat-label">{label}</span>
                 <span className="spot-stat-val">{val}</span>
@@ -548,33 +593,32 @@ export function SpotPage() {
           </div>
         </div>
 
-        {/* ── Mobile tab switcher (only visible on small screens) ── */}
+        {/* Mobile tabs */}
         <div className="spot-mobile-tabs">
-          {['chart','book','trade'].map(t=>(
+          {['chart','book','trade'].map(t => (
             <button key={t} className={`spot-mobile-tab ${mobileTab===t?'active':''}`} onClick={()=>setMobileTab(t)}>
               {t==='chart'?'📈 Chart':t==='book'?'📒 Book':'💰 Trade'}
             </button>
           ))}
         </div>
 
-        {/* ── 3-column body ── */}
+        {/* 3-column body */}
         <div className="spot-body">
-
           {/* Chart */}
           <div className={`spot-chart-area ${mobileTab!=='chart'?'mob-hide':''}`}>
             <iframe
               src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE:${base}USDT&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=131722&studies=[]&theme=dark&style=1&timezone=Etc/UTC&withdateranges=1&showpopupbutton=1&locale=en`}
               style={{width:'100%',height:'100%',border:'none',display:'block'}}
-              title="TradingView Chart"/>
+              title="TradingView Chart"
+            />
           </div>
 
-          {/* Order Book + Recent Trades */}
+          {/* Order Book */}
           <div className={`spot-ob-panel ${mobileTab!=='book'?'mob-hide':''}`}>
-            {/* Order Book header */}
             <div className="ob-header">
               <span className="ob-title">Order Book</span>
               <div className="ob-tabs">
-                {['both','bids','asks'].map(t=>(
+                {['both','bids','asks'].map(t => (
                   <button key={t} className={`ob-tab ${obTab===t?'active':''}`} onClick={()=>setObTab(t)}>
                     {t.charAt(0).toUpperCase()+t.slice(1)}
                   </button>
@@ -583,20 +627,17 @@ export function SpotPage() {
             </div>
             <div className="ob-cols"><span>Price</span><span>Amount</span><span>Total</span></div>
             <div className="ob-rows">
-              {/* Asks */}
-              {obTab!=='bids' && askOrders.map((o,i)=>(
+              {obTab!=='bids' && askOrders.map((o,i) => (
                 <div key={i} className="ob-row">
                   <span className="ob-price sell">{o.price}</span>
                   <span className="ob-amt">{o.amount}</span>
                   <span className="ob-total">{o.total}</span>
                 </div>
               ))}
-              {/* Mid price */}
-              <div className="ob-mid" style={{color:isUp?'var(--green)':'var(--red)'}}>
+              <div className="ob-mid" style={{color:isUp?'#00c853':'#ff3b5c'}}>
                 {fmt(currentPair?.price||0)}
               </div>
-              {/* Bids */}
-              {obTab!=='asks' && bidOrders.map((o,i)=>(
+              {obTab!=='asks' && bidOrders.map((o,i) => (
                 <div key={i} className="ob-row">
                   <span className="ob-price buy">{o.price}</span>
                   <span className="ob-amt">{o.amount}</span>
@@ -604,22 +645,20 @@ export function SpotPage() {
                 </div>
               ))}
             </div>
-
-            {/* ── Recent Trades directly below order book ── */}
             <RecentTradesFeed basePrice={currentPair?.price||97500}/>
           </div>
 
           {/* Trade panel */}
           <div className={`spot-trade-panel ${mobileTab!=='trade'?'mob-hide':''}`}>
             <div className="trade-side-tabs">
-              {['buy','sell'].map(s=>(
+              {['buy','sell'].map(s => (
                 <button key={s} className={`trade-side-tab ${side===s?s:''}`} onClick={()=>setSide(s)}>
                   {s.charAt(0).toUpperCase()+s.slice(1)}
                 </button>
               ))}
             </div>
             <div className="order-type-row">
-              {['limit','market'].map(t=>(
+              {['limit','market'].map(t => (
                 <button key={t} className={`order-type-btn ${orderType===t?'active':''}`} onClick={()=>setOrderType(t)}>
                   {t.charAt(0).toUpperCase()+t.slice(1)}
                 </button>
@@ -634,7 +673,7 @@ export function SpotPage() {
               <input type="number" className="trade-input" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00"/>
             </div>
             <div className="pct-row">
-              {[25,50,75,100].map(pct=>(
+              {[25,50,75,100].map(pct => (
                 <button key={pct} className={`pct-btn ${pctSelected===pct?'active':''}`} onClick={()=>handlePct(pct)}>{pct}%</button>
               ))}
             </div>
@@ -673,13 +712,16 @@ export function BotsPage() {
             <h1 className="bots-hero-title">Automated Trading</h1>
             <p className="bots-hero-sub">Create and manage algorithmic trading strategies</p>
             <div className="bots-hero-stats">
-              <div className="bots-stat"><span className="bots-stat-value">{BOT_CONFIGS.length}</span><span className="bots-stat-label">Total Bots</span></div>
+              <div className="bots-stat">
+                <span className="bots-stat-value">{BOT_CONFIGS.length}</span>
+                <span className="bots-stat-label">Total Bots</span>
+              </div>
               <div className="bots-stat">
                 <span className="bots-stat-value">{loading?'...':'$'+Number(balance??0).toLocaleString(undefined,{minimumFractionDigits:2})}</span>
                 <span className="bots-stat-label">Available Balance</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value" style={{color:canRun?'#16a34a':'#ff4d6a'}}>{canRun?'Ready':'Locked'}</span>
+                <span className="bots-stat-value" style={{color:canRun?'#00c853':'#ff3b5c'}}>{canRun?'Ready':'Locked'}</span>
                 <span className="bots-stat-label">Bot Status</span>
               </div>
             </div>
@@ -698,7 +740,7 @@ export function BotsPage() {
             <button className="bots-create-btn" disabled={!canRun}>Create DCA Bot</button>
           </div>
           <div className="bots-grid">
-            {BOT_CONFIGS.map(bot=>(
+            {BOT_CONFIGS.map(bot => (
               <BotCard key={bot.id} bot={bot} balance={balance??0} userId={user?.id}/>
             ))}
           </div>
