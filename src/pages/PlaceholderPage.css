@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
 
 /* ── Base font ── */
@@ -326,8 +326,8 @@
 
 .markets-page-wrapper {
   padding: 28px 28px 80px;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -336,13 +336,14 @@
 /* Header */
 .markets-page-header { margin-bottom: 4px; }
 .markets-page-title {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(32px, 4vw, 48px);
-  font-weight: 900;
-  letter-spacing: -2px;
+  font-family: 'Bebas Neue', 'Syne', sans-serif;
+  font-size: clamp(52px, 7vw, 82px);
+  font-weight: 400;
+  letter-spacing: 1px;
   color: var(--text-primary);
-  line-height: 1.05;
+  line-height: 1.0;
   margin-bottom: 4px;
+  text-transform: uppercase;
 }
 .markets-page-sub {
   font-family: 'Syne', sans-serif;
