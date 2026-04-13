@@ -337,14 +337,19 @@
 .markets-page-header { margin-bottom: 4px; }
 .markets-page-title {
   font-family: 'Syne', sans-serif;
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 800;
-  letter-spacing: -1.5px;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 900;
+  letter-spacing: -2px;
   color: var(--text-primary);
-  line-height: 1.1;
+  line-height: 1.05;
   margin-bottom: 4px;
 }
-.markets-page-sub { font-size: 14px; color: var(--text-muted); }
+.markets-page-sub {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
 
 /* Movers grid */
 .movers-grid {
@@ -363,10 +368,11 @@
 }
 .movers-title {
   font-family: 'Syne', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 2px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
 }
 .mover-row {
   display: flex;
@@ -458,11 +464,13 @@
 .markets-table th {
   padding: 12px 16px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
   color: var(--text-muted);
   text-align: left;
   white-space: nowrap;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 .th-sort { cursor: pointer; user-select: none; }
 .th-sort:hover { color: var(--text-primary); }
@@ -560,22 +568,35 @@
   /* Hide Volume and Market Cap on mobile */
   .th-vol, .th-mcap, .td-vol, .td-mcap { display: none; }
 
-  /* Tighter table cells on mobile */
+  /* Tighter cells on mobile */
   .markets-table th,
-  .markets-table td { padding: 10px 8px; }
-  .markets-table    { min-width: unset; width: 100%; }
+  .markets-table td { padding: 8px 6px; }
 
-  /* Make trade button more compact */
-  .trade-btn { padding: 7px 12px; font-size: 12px; }
+  /* Let table fill full width with no overflow */
+  .markets-table-scroll { overflow-x: visible; width: 100%; }
+  .markets-table        { min-width: unset; width: 100%; table-layout: fixed; }
+  .markets-table-card   { border-radius: 10px; overflow: visible; }
 
-  /* Price column font size */
-  .td-price { font-size: 12px; }
-  .pair-name { font-size: 13px; }
-  .change-pill { font-size: 11px; padding: 3px 6px; }
+  /* Fixed column widths so Trade button is never cut */
+  .markets-table th:nth-child(1),
+  .markets-table td:nth-child(1) { width: 28px; padding: 8px 4px; }   /* star */
+  .markets-table th:nth-child(2),
+  .markets-table td:nth-child(2) { width: 36%; }                        /* name */
+  .markets-table th:nth-child(3),
+  .markets-table td:nth-child(3) { width: 28%; }                        /* price */
+  .markets-table th:nth-child(4),
+  .markets-table td:nth-child(4) { width: 20%; }                        /* 24h */
+  .markets-table th:nth-child(7),
+  .markets-table td:nth-child(7) { width: 60px; text-align: right; }    /* action */
 
-  /* Ensure table fills width properly */
-  .markets-table-scroll { overflow-x: hidden; }
-  .markets-table-card   { border-radius: 10px; }
+  /* Compact styles */
+  .trade-btn    { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
+  .td-price     { font-size: 12px; }
+  .pair-name    { font-size: 12px; }
+  .pair-sub     { display: none; }
+  .change-pill  { font-size: 10px; padding: 2px 5px; }
+  .td-star      { padding: 8px 2px 8px 8px; }
+  .td-coin      { gap: 6px; }
 }
 
 /* ══════════════════════════════════════════════════════
