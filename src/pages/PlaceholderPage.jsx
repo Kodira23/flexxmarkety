@@ -7,7 +7,7 @@ import './PlaceholderPage.css'
 
 const MIN_BALANCE = 50
 
-// ── COINS TO EXCLUDE (no real symbols) ────────────────────────────────
+// ── COINS TO EXCLUDE ───────────────────────────────────────────────────
 const EXCLUDED = new Set(['BOME','NOT','IO','ZK','LISTA','EIGEN','HMSTR','CATI','DOGS','MAJOR','NEIRO'])
 
 // ── COIN LOGOS ─────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ function CoinCircle({ base, size = 36 }) {
       display:'inline-flex', alignItems:'center', justifyContent:'center',
       width:size, height:size, minWidth:size, borderRadius:'50%',
       backgroundColor:color, fontSize, fontWeight:900, color:'#fff', flexShrink:0,
-      userSelect:'none', lineHeight:1, fontFamily:'Syne,sans-serif', verticalAlign:'middle'
+      userSelect:'none', lineHeight:1, fontFamily:'Inter,sans-serif', verticalAlign:'middle'
     }}>{label}</span>
   )
 }
@@ -350,6 +350,7 @@ function PlaceholderPage({ title, icon, description }) {
 }
 
 // ── MARKETS PAGE ───────────────────────────────────────────────────────
+// onNavigate prop: call onNavigate('home') to go to Home.jsx
 export function MarketsPage({ onNavigate }) {
   const allPairs = useTicker()
   const pairs = useMemo(() => allPairs.filter(p => !EXCLUDED.has(p.symbol.split('/')[0])), [allPairs])
@@ -384,10 +385,16 @@ export function MarketsPage({ onNavigate }) {
     </span>
   )
 
+  // ── Navigate to Home.jsx when Trade is clicked ─────────────────────
+  const handleTrade = () => {
+    if (onNavigate) onNavigate('home')
+  }
+
   return (
     <div className="dash-main">
       <div className="markets-page-wrapper">
-        {/* Header — editorial bold style */}
+
+        {/* Header */}
         <div className="markets-page-header">
           <h1 className="markets-page-title">Markets</h1>
           <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
@@ -431,7 +438,7 @@ export function MarketsPage({ onNavigate }) {
                 className={`filter-btn ${filter===f?'active':''}`}
                 onClick={() => setFilter(f)}
               >
-                {f==='favorites' ? '★' : f.charAt(0).toUpperCase()+f.slice(1)}
+                {f==='favorites' ? '★ Watchlist' : f.charAt(0).toUpperCase()+f.slice(1)}
               </button>
             ))}
           </div>
@@ -445,7 +452,7 @@ export function MarketsPage({ onNavigate }) {
           </div>
         </div>
 
-        {/* Table — compact on mobile, full on desktop */}
+        {/* Table */}
         <div className="markets-table-card">
           <div className="markets-table-scroll">
             <table className="markets-table">
@@ -489,10 +496,8 @@ export function MarketsPage({ onNavigate }) {
                       <td className="td-muted td-vol">{extra.vol}</td>
                       <td className="td-muted td-mcap">{extra.mcap}</td>
                       <td className="td-action">
-                        <button
-                          className="trade-btn"
-                          onClick={() => onNavigate && onNavigate('home')}
-                        >
+                        {/* ✅ Clicking Trade navigates to Home.jsx */}
+                        <button className="trade-btn" onClick={handleTrade}>
                           Trade
                         </button>
                       </td>
@@ -503,6 +508,7 @@ export function MarketsPage({ onNavigate }) {
             </table>
           </div>
         </div>
+
       </div>
     </div>
   )
@@ -578,7 +584,6 @@ export function SpotPage() {
   return (
     <div className="dash-main spot-main">
       <div className="spot-wrap">
-        {/* Header bar */}
         <div className="spot-header-bar">
           <div className="spot-header-left">
             <CoinCircle base={base} size={34}/>
@@ -600,7 +605,6 @@ export function SpotPage() {
           </div>
         </div>
 
-        {/* Mobile tabs */}
         <div className="spot-mobile-tabs">
           {['chart','book','trade'].map(t => (
             <button key={t} className={`spot-mobile-tab ${mobileTab===t?'active':''}`} onClick={()=>setMobileTab(t)}>
@@ -609,9 +613,7 @@ export function SpotPage() {
           ))}
         </div>
 
-        {/* 3-column body */}
         <div className="spot-body">
-          {/* Chart */}
           <div className={`spot-chart-area ${mobileTab!=='chart'?'mob-hide':''}`}>
             <iframe
               src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE:${base}USDT&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=131722&studies=[]&theme=dark&style=1&timezone=Etc/UTC&withdateranges=1&showpopupbutton=1&locale=en`}
@@ -620,7 +622,6 @@ export function SpotPage() {
             />
           </div>
 
-          {/* Order Book */}
           <div className={`spot-ob-panel ${mobileTab!=='book'?'mob-hide':''}`}>
             <div className="ob-header">
               <span className="ob-title">Order Book</span>
@@ -655,7 +656,6 @@ export function SpotPage() {
             <RecentTradesFeed basePrice={currentPair?.price||97500}/>
           </div>
 
-          {/* Trade panel */}
           <div className={`spot-trade-panel ${mobileTab!=='trade'?'mob-hide':''}`}>
             <div className="trade-side-tabs">
               {['buy','sell'].map(s => (
