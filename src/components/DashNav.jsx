@@ -1,97 +1,126 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../supabase'
 import './DashNav.css'
 
-const NAV = [
-  { icon: '📊', label: 'Dashboard', to: '/dashboard' },
-  { icon: '💱', label: 'Markets', to: '/markets' },
-  { icon: '⚡', label: 'Trade', to: '/spot' },
-  { icon: '🤖', label: 'Bots', to: '/bots' },
+const NAV_ITEMS = [
+  { id: 'home',    label: 'Dashboard', icon: '📊' },
+  { id: 'markets', label: 'Markets',   icon: '📈' },
+  { id: 'spot',    label: 'Spot',      icon: '⚡' },
+  { id: 'futures', label: 'Futures',   icon: '🔮' },
+  { id: 'bots',    label: 'Bots',      icon: '🤖' },
 ]
 
-const MOBILE_NAV = [
-  { icon: '📊', label: 'Dashboard', to: '/dashboard' },
-  { icon: '💱', label: 'Markets', to: '/markets' },
-  { icon: '🤖', label: 'Bots', to: '/bots' },
-  { icon: '⚡', label: 'Trade', to: '/spot' },
-]
+export default function DashNav({ activePage, onNavigate }) {
+  const { user, signOut } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
 
-export default function DashNav() {
-  const { user } = useAuth()
-  const navigate = useNavigate()
-  const email = user?.email || 'Guest'
-  const initials = email.slice(0, 2).toUpperCase()
+  const initials = user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : 'FL'
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    setTimeout(() => { window.location.href = '/' }, 500)
+  function handleNav(id) {
+    onNavigate?.(id)
+    setMenuOpen(false)
+  }
+
+  function handleSignOut() {
+    setMenuOpen(false)
+    signOut?.()
   }
 
   return (
     <>
-      {/* ── DESKTOP: top header ── */}
-      <nav className="dashnav-header">
-        <div className="dashnav-logo">
+      {/* ══ DESKTOP HEADER ══ */}
+      <header className="dashnav-header">
+        <button className="dashnav-logo" onClick={() => handleNav('home')}>
           <span className="logo-icon-nav">◈</span>
           <div className="logo-text-stack">
-            <span className="logo-top">Flexx</span>
-            <span className="logo-bottom">MARKET</span>
+            <span className="logo-top">Flexxmarket</span>
+            <span className="logo-bottom">Pro Trading</span>
           </div>
-        </div>
-        <div className="dashnav-links">
-          {NAV.map(n => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              className={({ isActive }) => `dashnav-link ${isActive ? 'active' : ''}`}
-              end={n.to === '/dashboard'}
+        </button>
+
+        <nav className="dashnav-links">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              className={`dashnav-link ${activePage === item.id ? 'active' : ''}`}
+              onClick={() => handleNav(item.id)}
             >
-              <span className="nav-icon">{n.icon}</span>
-              <span>{n.label}</span>
-            </NavLink>
+              <span className="nav-icon">{item.icon}</span>
+              {item.label}
+            </button>
           ))}
-        </div>
+        </nav>
+
         <div className="dashnav-right">
           <div className="dashnav-user">
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
-              <span className="user-email">{email}</span>
+              <span className="user-email">{user?.email || 'trader@flexx.com'}</span>
+              <span className="user-plan">Pro Plan</span>
             </div>
           </div>
-          <button className="logout-btn" onClick={handleSignOut}>↪ Sign Out</button>
-        </div>
-      </nav>
-
-      {/* ── MOBILE: top header ── */}
-      <header className="mobile-header">
-        <div className="mobile-logo">
-          <span className="logo-icon-nav">◈</span>
-          <div className="logo-text-stack">
-            <span className="logo-top">Flexx</span>
-            <span className="logo-bottom">MARKET</span>
-          </div>
-        </div>
-        <div className="mobile-header-right">
-          <div className="user-avatar" onClick={() => navigate('/dashboard')}>{initials}</div>
-          <button className="mobile-signout" onClick={handleSignOut}>↪</button>
+          <button className="logout-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
       </header>
 
-      {/* ── MOBILE: bottom tab bar ── */}
-      <nav className="dashnav-footer">
-        {MOBILE_NAV.map(n => (
-          <NavLink
-            key={n.to}
-            to={n.to}
-            className={({ isActive }) => `footer-link ${isActive ? 'active' : ''}`}
-            end={n.to === '/dashboard'}
+      {/* ══ MOBILE HEADER ══ */}
+      <header className="mobile-header">
+        <button className="mobile-logo" onClick={() => handleNav('home')}>
+          <span className="mobile-logo-icon">◈</span>
+          <span className="mobile-logo-text">Flexxmarket</span>
+        </button>
+
+        <div className="mobile-header-right">
+          <button
+            className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
+            onClick={() => setMenuOpen(v => !v)}
+            aria-label="Open menu"
           >
-            <span className="footer-icon">{n.icon}</span>
-            <span className="footer-label">{n.label}</span>
-          </NavLink>
+            <span className="ham-line" />
+            <span className="ham-line" />
+            <span className="ham-line" />
+          </button>
+        </div>
+      </header>
+
+      {/* ══ BACKDROP ══ */}
+      <div
+        className={`mobile-dropdown-backdrop ${menuOpen ? 'open' : ''}`}
+        onClick={() => setMenuOpen(false)}
+      />
+
+      {/* ══ DROPDOWN MENU ══ */}
+      <nav className={`mobile-dropdown ${menuOpen ? 'open' : ''}`}>
+
+        {/* Nav items */}
+        {NAV_ITEMS.map(item => (
+          <button
+            key={item.id}
+            className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
+            onClick={() => handleNav(item.id)}
+          >
+            <span className="mobile-dropdown-icon">{item.icon}</span>
+            {item.label}
+          </button>
         ))}
+
+        <div className="mobile-dropdown-divider" />
+
+        {/* User row */}
+        <div className="mobile-dropdown-user">
+          <div className="mobile-dropdown-avatar">{initials}</div>
+          <span className="mobile-dropdown-email">
+            {user?.email || 'trader@flexx.com'}
+          </span>
+        </div>
+
+        {/* Sign out */}
+        <button className="mobile-dropdown-logout" onClick={handleSignOut}>
+          <span className="mobile-dropdown-icon">🚪</span>
+          Sign Out
+        </button>
       </nav>
     </>
   )
