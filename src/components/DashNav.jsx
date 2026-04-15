@@ -6,7 +6,6 @@ const NAV_ITEMS = [
   { id: 'home',    label: 'Dashboard', icon: '📊' },
   { id: 'markets', label: 'Markets',   icon: '📈' },
   { id: 'spot',    label: 'Spot',      icon: '⚡' },
-  { id: 'futures', label: 'Futures',   icon: '🔮' },
   { id: 'bots',    label: 'Bots',      icon: '🤖' },
 ];
 
