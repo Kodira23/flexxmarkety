@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import './DashNav.css'
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import './DashNav.css';
 
 const NAV_ITEMS = [
   { id: 'home',    label: 'Dashboard', icon: '📊' },
@@ -8,29 +8,32 @@ const NAV_ITEMS = [
   { id: 'spot',    label: 'Spot',      icon: '⚡' },
   { id: 'futures', label: 'Futures',   icon: '🔮' },
   { id: 'bots',    label: 'Bots',      icon: '🤖' },
-]
+];
 
 export default function DashNav({ activePage, onNavigate }) {
-  const { user, signOut } = useAuth()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const { user, signOut } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const initials = user?.email
     ? user.email.slice(0, 2).toUpperCase()
-    : 'FL'
+    : 'FL';
 
+  // DISABLED NAVIGATION – links do nothing
   function handleNav(id) {
-    onNavigate?.(id)
-    setMenuOpen(false)
+    // Intentionally empty: no navigation, no state change
+    // (you can also add a console.log for debugging)
+    console.log(`Navigation to ${id} is disabled.`);
+    setMenuOpen(false);
   }
 
   function handleSignOut() {
-    setMenuOpen(false)
-    signOut?.()
+    setMenuOpen(false);
+    signOut?.();
   }
 
   return (
     <>
-      {/* ══ DESKTOP HEADER ══ */}
+      {/* ══ DESKTOP HEADER (≥768px) ══ */}
       <header className="dashnav-header">
         <button className="dashnav-logo" onClick={() => handleNav('home')}>
           <span className="logo-icon-nav">◈</span>
@@ -58,14 +61,14 @@ export default function DashNav({ activePage, onNavigate }) {
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
               <span className="user-email">{user?.email || 'trader@flexx.com'}</span>
-              <span className="user-plan">Pro Plan</span>
+              {/* "Pro Plan" removed as requested */}
             </div>
           </div>
           <button className="logout-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
       </header>
 
-      {/* ══ MOBILE HEADER ══ */}
+      {/* ══ MOBILE HEADER (<768px) ══ */}
       <header className="mobile-header">
         <button className="mobile-logo" onClick={() => handleNav('home')}>
           <span className="mobile-logo-icon">◈</span>
@@ -73,6 +76,10 @@ export default function DashNav({ activePage, onNavigate }) {
         </button>
 
         <div className="mobile-header-right">
+          {/* User icon (avatar) added next to hamburger */}
+          <div className="mobile-user-icon">
+            <div className="mobile-avatar-small">{initials}</div>
+          </div>
           <button
             className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(v => !v)}
@@ -93,8 +100,6 @@ export default function DashNav({ activePage, onNavigate }) {
 
       {/* ══ DROPDOWN MENU ══ */}
       <nav className={`mobile-dropdown ${menuOpen ? 'open' : ''}`}>
-
-        {/* Nav items */}
         {NAV_ITEMS.map(item => (
           <button
             key={item.id}
@@ -108,7 +113,6 @@ export default function DashNav({ activePage, onNavigate }) {
 
         <div className="mobile-dropdown-divider" />
 
-        {/* User row */}
         <div className="mobile-dropdown-user">
           <div className="mobile-dropdown-avatar">{initials}</div>
           <span className="mobile-dropdown-email">
@@ -116,12 +120,19 @@ export default function DashNav({ activePage, onNavigate }) {
           </span>
         </div>
 
-        {/* Sign out */}
         <button className="mobile-dropdown-logout" onClick={handleSignOut}>
           <span className="mobile-dropdown-icon">🚪</span>
           Sign Out
         </button>
       </nav>
+
+      {/* ══ MOBILE FOOTER (only visible on <768px) ══ */}
+      <footer className="mobile-footer">
+        <div className="mobile-footer-inner">
+          <span className="mobile-footer-logo">◈ Flexxmarket</span>
+          <span className="mobile-footer-copy">© 2025 · Pro Trading</span>
+        </div>
+      </footer>
     </>
-  )
+  );
 }
