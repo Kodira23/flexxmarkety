@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -10,16 +10,16 @@ import Admin from './pages/Admin'
 import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage'
 import './components/DashNav.css'
 
-// Layout for all protected pages (dashboard, markets, spot, futures, bots)
-function DashLayout({ children }) {
+// Layout that receives activePage and onNavigate
+function DashLayout({ children, activePage, onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <DashNav />
+      <DashNav activePage={activePage} onNavigate={onNavigate} />
       <main style={{ flex: 1 }}>
         {children}
       </main>
 
-      {/* DESKTOP FOOTER (visible on ≥768px) */}
+      {/* DESKTOP FOOTER */}
       <footer className="dashnav-desktop-footer">
         <div className="desktop-footer-inner">
           <div className="desktop-footer-logo">
@@ -35,7 +35,7 @@ function DashLayout({ children }) {
         </div>
       </footer>
 
-      {/* MOBILE FOOTER (visible only on <768px) */}
+      {/* MOBILE FOOTER */}
       <footer className="mobile-footer">
         <div className="mobile-footer-inner">
           <span className="mobile-footer-logo">◈ Flexxmarket</span>
@@ -46,9 +46,73 @@ function DashLayout({ children }) {
   )
 }
 
+// Wrapper component that manages navigation state
+function ProtectedPages() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Determine active page based on current path
+  const getActivePage = () => {
+    const path = location.pathname;
+    if (path === '/dashboard') return 'home';
+    if (path === '/markets') return 'markets';
+    if (path === '/spot') return 'spot';
+    if (path === '/futures') return 'futures';
+    if (path === '/bots') return 'bots';
+    return 'home';
+  };
+
+  const handleNavigate = (pageId) => {
+    switch (pageId) {
+      case 'home':
+        navigate('/dashboard');
+        break;
+      case 'markets':
+        navigate('/markets');
+        break;
+      case 'spot':
+        navigate('/spot');
+        break;
+      case 'futures':
+        navigate('/futures');
+        break;
+      case 'bots':
+        navigate('/bots');
+        break;
+      default:
+        navigate('/dashboard');
+    }
+  };
+
+  // Render the appropriate page component based on route
+  const renderPage = () => {
+    const path = location.pathname;
+    switch (path) {
+      case '/dashboard':
+        return <Dashboard />;
+      case '/markets':
+        return <MarketsPage />;
+      case '/spot':
+        return <SpotPage />;
+      case '/futures':
+        return <FuturesPage />;
+      case '/bots':
+        return <BotsPage />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  return (
+    <DashLayout activePage={getActivePage()} onNavigate={handleNavigate}>
+      {renderPage()}
+    </DashLayout>
+  );
+}
+
 function AppRoutes() {
-  const location = useLocation()
-  const isAdmin = location.pathname === '/admin'
+  const location = useLocation();
+  const isAdmin = location.pathname === '/admin';
 
   return (
     <>
@@ -56,27 +120,27 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <DashLayout><Dashboard /></DashLayout>
+            <ProtectedPages />
           </ProtectedRoute>
         } />
         <Route path="/markets" element={
           <ProtectedRoute>
-            <DashLayout><MarketsPage /></DashLayout>
+            <ProtectedPages />
           </ProtectedRoute>
         } />
         <Route path="/spot" element={
           <ProtectedRoute>
-            <DashLayout><SpotPage /></DashLayout>
+            <ProtectedPages />
           </ProtectedRoute>
         } />
         <Route path="/futures" element={
           <ProtectedRoute>
-            <DashLayout><FuturesPage /></DashLayout>
+            <ProtectedPages />
           </ProtectedRoute>
         } />
         <Route path="/bots" element={
           <ProtectedRoute>
-            <DashLayout><BotsPage /></DashLayout>
+            <ProtectedPages />
           </ProtectedRoute>
         } />
         <Route path="/admin" element={
@@ -85,7 +149,7 @@ function AppRoutes() {
       </Routes>
       {!isAdmin && <ChatWidget />}
     </>
-  )
+  );
 }
 
 export default function App() {
@@ -95,5 +159,5 @@ export default function App() {
         <AppRoutes />
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
