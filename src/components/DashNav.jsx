@@ -16,7 +16,7 @@ export default function DashNav({ activePage, onNavigate }) {
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'FL';
 
-  // DISABLED navigation – links do nothing (only log)
+  // All navigation links are DISABLED – only Sign Out works
   const handleNav = (id) => {
     console.log(`Navigation to ${id} is disabled (demo mode).`);
     setMenuOpen(false);
@@ -57,14 +57,13 @@ export default function DashNav({ activePage, onNavigate }) {
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
               <span className="user-email">{user?.email || 'trader@flexx.com'}</span>
-              {/* "Pro Plan" removed */}
             </div>
           </div>
           <button className="logout-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
       </header>
 
-      {/* MOBILE HEADER */}
+      {/* MOBILE HEADER (no footer inside) */}
       <header className="mobile-header">
         <button className="mobile-logo" onClick={() => handleNav('home')}>
           <span className="mobile-logo-icon">◈</span>
@@ -115,14 +114,6 @@ export default function DashNav({ activePage, onNavigate }) {
           <span className="mobile-dropdown-icon">🚪</span> Sign Out
         </button>
       </nav>
-
-      {/* MOBILE FOOTER (only visible on phones) */}
-      <footer className="mobile-footer">
-        <div className="mobile-footer-inner">
-          <span className="mobile-footer-logo">◈ Flexxmarket</span>
-          <span className="mobile-footer-copy">© 2025 · Pro Trading</span>
-        </div>
-      </footer>
     </>
   );
 }
