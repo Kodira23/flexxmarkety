@@ -151,12 +151,9 @@
   max-width: 150px;
 }
 
+/* "Pro Plan" hidden – removed as requested */
 .user-plan {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--green);
-  letter-spacing: 0.3px;
+  display: none;
 }
 
 .logout-btn {
@@ -232,6 +229,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ── User icon next to hamburger ── */
+.mobile-user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+.mobile-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), #00a8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: #000;
+  text-transform: uppercase;
 }
 
 /* ── Hamburger button ── */
@@ -449,38 +469,11 @@
 }
 
 /* ════════════════════════════════════════
-   SHARED ANIMATION
+   MOBILE FOOTER (only visible on <768px)
 ════════════════════════════════════════ */
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-3px); }
-}
-/* ── Mobile user icon next to hamburger ── */
-.mobile-user-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mobile-avatar-small {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--green), #00a8ff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 800;
-  color: #000;
-  text-transform: uppercase;
-}
-
-/* ── Mobile footer (sticky at bottom) ── */
 .mobile-footer {
-  display: none;  /* hidden on desktop */
+  display: none;
   position: sticky;
   bottom: 0;
   width: 100%;
@@ -522,7 +515,11 @@
   color: var(--text-muted);
 }
 
-/* Remove any leftover "Pro Plan" from desktop user-info */
-.user-plan {
-  display: none;
+/* ════════════════════════════════════════
+   SHARED ANIMATION
+════════════════════════════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
 }
