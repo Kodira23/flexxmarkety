@@ -1,15 +1,3 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import ProtectedRoute from './components/ProtectedRoute'
-import AdminRoute from './components/AdminRoute'
-import ChatWidget from './components/ChatWidget'
-import DashNav from './components/DashNav'
-import Home from './pages/Home'
-import Dashboard from './pages/Dashboard'
-import Admin from './pages/Admin'
-import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage'
-import './components/DashNav.css'
-
 function DashLayout({ children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -17,6 +5,8 @@ function DashLayout({ children }) {
       <main style={{ flex: 1 }}>
         {children}
       </main>
+
+      {/* DESKTOP FOOTER (visible ≥768px) */}
       <footer className="dashnav-desktop-footer">
         <div className="desktop-footer-inner">
           <div className="desktop-footer-logo">
@@ -31,58 +21,14 @@ function DashLayout({ children }) {
           </div>
         </div>
       </footer>
+
+      {/* MOBILE FOOTER (visible only on <768px) */}
+      <footer className="mobile-footer">
+        <div className="mobile-footer-inner">
+          <span className="mobile-footer-logo">◈ Flexxmarket</span>
+          <span className="mobile-footer-copy">© 2026 · Pro Trading</span>
+        </div>
+      </footer>
     </div>
-  )
-}
-
-function AppRoutes() {
-  const location = useLocation()
-  const isAdmin = location.pathname === '/admin'
-
-  return (
-    <>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <DashLayout><Dashboard /></DashLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/markets" element={
-          <ProtectedRoute>
-            <DashLayout><MarketsPage /></DashLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/spot" element={
-          <ProtectedRoute>
-            <DashLayout><SpotPage /></DashLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/futures" element={
-          <ProtectedRoute>
-            <DashLayout><FuturesPage /></DashLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/bots" element={
-          <ProtectedRoute>
-            <DashLayout><BotsPage /></DashLayout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin" element={
-          <AdminRoute><Admin /></AdminRoute>
-        } />
-      </Routes>
-      {!isAdmin && <ChatWidget />}
-    </>
-  )
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
-  )
+  );
 }
