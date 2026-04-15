@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { id: 'home',    label: 'Dashboard', icon: '📊' },
   { id: 'markets', label: 'Markets',   icon: '📈' },
   { id: 'spot',    label: 'Spot',      icon: '⚡' },
+  { id: 'futures', label: 'Futures',   icon: '🔮' },
   { id: 'bots',    label: 'Bots',      icon: '🤖' },
 ];
 
@@ -15,11 +16,8 @@ export default function DashNav({ activePage, onNavigate }) {
 
   const initials = user?.email?.slice(0, 2).toUpperCase() || 'FL';
 
-  // ✅ Navigation is NOW ACTIVE – calls onNavigate to change page
   const handleNav = (id) => {
-    if (onNavigate) {
-      onNavigate(id);
-    }
+    if (onNavigate) onNavigate(id);
     setMenuOpen(false);
   };
 
@@ -58,7 +56,6 @@ export default function DashNav({ activePage, onNavigate }) {
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
               <span className="user-email">{user?.email || 'trader@flexx.com'}</span>
-              {/* "Pro Plan" removed */}
             </div>
           </div>
           <button className="logout-btn" onClick={handleSignOut}>Sign Out</button>
@@ -71,9 +68,7 @@ export default function DashNav({ activePage, onNavigate }) {
           <span className="mobile-logo-icon">◈</span>
           <span className="mobile-logo-text">Flexxmarket</span>
         </button>
-
         <div className="mobile-header-right">
-          {/* User icon next to hamburger */}
           <div className="mobile-user-icon">
             <div className="mobile-avatar-small">{initials}</div>
           </div>
@@ -89,13 +84,11 @@ export default function DashNav({ activePage, onNavigate }) {
         </div>
       </header>
 
-      {/* BACKDROP */}
+      {/* BACKDROP & DROPDOWN */}
       <div
         className={`mobile-dropdown-backdrop ${menuOpen ? 'open' : ''}`}
         onClick={() => setMenuOpen(false)}
       />
-
-      {/* DROPDOWN MENU */}
       <nav className={`mobile-dropdown ${menuOpen ? 'open' : ''}`}>
         {NAV_ITEMS.map(item => (
           <button
