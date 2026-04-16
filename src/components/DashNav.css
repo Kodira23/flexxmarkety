@@ -175,7 +175,7 @@
 }
 
 /* ════════════════════════════════════════
-   MOBILE HEADER (< 768px) - NOW FIXED
+   MOBILE HEADER (< 768px) - FIXED
 ════════════════════════════════════════ */
 
 .mobile-header {
@@ -199,6 +199,18 @@
 
 @media (min-width: 768px) {
   .mobile-header { display: none; }
+}
+
+/* Spacer to prevent content from hiding under fixed header */
+.mobile-header-spacer {
+  display: none;
+}
+@media (max-width: 767px) {
+  .mobile-header-spacer {
+    display: block;
+    height: 56px;
+    width: 100%;
+  }
 }
 
 .mobile-logo {
