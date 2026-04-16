@@ -1,6 +1,303 @@
-/* Replace the existing .mobile-dropdown and .mobile-dropdown-backdrop rules
-   with the following (keep the rest of DashNav.css as is) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
+/* ════════════════════════════════════════
+   DESKTOP HEADER (≥ 768px)
+════════════════════════════════════════ */
+
+.dashnav-header {
+  display: none;
+  width: 100%;
+  height: 60px;
+  background: rgba(10, 12, 15, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  align-items: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+@media (min-width: 768px) {
+  .dashnav-header { display: flex; }
+}
+
+/* Logo */
+.dashnav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+  margin-right: 16px;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.logo-icon-nav {
+  font-size: 18px;
+  color: var(--green);
+  animation: float 3s ease-in-out infinite;
+}
+
+.logo-text-stack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  gap: 2px;
+}
+
+.logo-top {
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.logo-bottom {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Nav links */
+.dashnav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.dashnav-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dashnav-link:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+}
+
+.dashnav-link.active {
+  background: var(--green-dim);
+  color: var(--green);
+  font-weight: 600;
+  border: 1px solid #16a34a22;
+}
+
+.nav-icon { font-size: 14px; }
+
+/* Right side */
+.dashnav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.dashnav-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), #00a8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.user-info { display: flex; flex-direction: column; gap: 1px; }
+
+.user-email {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* "Pro Plan" hidden */
+.user-plan {
+  display: none;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  border-color: var(--red, #ff4d6a);
+  color: var(--red, #ff4d6a);
+}
+
+/* ════════════════════════════════════════
+   MOBILE HEADER (< 768px)
+════════════════════════════════════════ */
+
+.mobile-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  width: 100%;
+  height: 56px;
+  background: rgba(10, 12, 15, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .mobile-header { display: none; }
+}
+
+.mobile-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mobile-logo-icon {
+  font-size: 18px;
+  color: var(--green);
+}
+
+.mobile-logo-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.mobile-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* User icon next to hamburger */
+.mobile-user-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+.mobile-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), #00a8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: #000;
+  text-transform: uppercase;
+}
+
+/* Hamburger button */
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover,
+.hamburger-btn.open {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+
+.ham-line {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.25s ease;
+  transform-origin: center;
+}
+
+.hamburger-btn.open .ham-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.hamburger-btn.open .ham-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger-btn.open .ham-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Backdrop */
 .mobile-dropdown-backdrop {
   display: none;
   position: fixed;
@@ -38,10 +335,198 @@
   transform: translateX(0);
 }
 
-/* Keep all internal item styles exactly as before – they already work well */
-.mobile-dropdown-link,
-.mobile-dropdown-divider,
-.mobile-dropdown-user,
+.mobile-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mobile-dropdown-link:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+}
+.mobile-dropdown-link.active {
+  color: var(--green);
+  background: var(--green-dim);
+  font-weight: 600;
+}
+
+.mobile-dropdown-icon {
+  font-size: 18px;
+  width: 26px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mobile-dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 20px;
+}
+
+.mobile-dropdown-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px 6px;
+}
+.mobile-dropdown-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), #00a8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #000;
+  flex-shrink: 0;
+}
+.mobile-dropdown-email {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mobile-dropdown-logout {
-  /* no changes needed – they inherit the panel's width */
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--red, #ff4d6a);
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+  box-sizing: border-box;
+}
+.mobile-dropdown-logout:hover {
+  background: rgba(255,77,106,0.08);
+}
+
+/* ════════════════════════════════════════
+   DESKTOP BOTTOM FOOTER (≥ 768px)
+════════════════════════════════════════ */
+
+.dashnav-desktop-footer {
+  display: none;
+  width: 100%;
+  height: 48px;
+  background: rgba(10, 12, 15, 0.95);
+  border-top: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+  .dashnav-desktop-footer { display: block; }
+}
+
+.desktop-footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.desktop-footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.desktop-footer-copy {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════
+   MOBILE FOOTER (only visible <768px)
+════════════════════════════════════════ */
+
+.mobile-footer {
+  display: none;
+  width: 100%;
+  height: 48px;
+  background: rgba(10, 12, 15, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+}
+
+@media (max-width: 767px) {
+  .mobile-footer {
+    display: block;
+  }
+}
+
+.mobile-footer-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-footer-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: -0.3px;
+}
+
+.mobile-footer-copy {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ════════════════════════════════════════
+   SHARED ANIMATION
+════════════════════════════════════════ */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
+}
+
+/* Kill old footer tab bar completely (if any) */
+.dashnav-footer,
+.footer-link,
+.footer-icon,
+.footer-label,
+.footer-avatar {
+  display: none !important;
 }
