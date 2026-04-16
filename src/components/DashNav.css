@@ -175,15 +175,13 @@
 }
 
 /* ════════════════════════════════════════
-   MOBILE HEADER (< 768px) - FIXED
+   MOBILE HEADER (< 768px)
 ════════════════════════════════════════ */
 
 .mobile-header {
   display: flex;
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 200;
   width: 100%;
   height: 56px;
@@ -199,18 +197,6 @@
 
 @media (min-width: 768px) {
   .mobile-header { display: none; }
-}
-
-/* Spacer to prevent content from hiding under fixed header */
-.mobile-header-spacer {
-  display: none;
-}
-@media (max-width: 767px) {
-  .mobile-header-spacer {
-    display: block;
-    height: 56px;
-    width: 100%;
-  }
 }
 
 .mobile-logo {
