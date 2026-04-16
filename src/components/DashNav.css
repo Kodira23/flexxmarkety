@@ -175,13 +175,15 @@
 }
 
 /* ════════════════════════════════════════
-   MOBILE HEADER (< 768px)
+   MOBILE HEADER (< 768px) - NOW FIXED
 ════════════════════════════════════════ */
 
 .mobile-header {
   display: flex;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 200;
   width: 100%;
   height: 56px;
