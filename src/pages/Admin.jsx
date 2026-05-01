@@ -59,26 +59,62 @@ function ErrorBox({ title, message, hint, onRetry }) {
 }
 
 // ── USERS PANEL ────────────────────────────────────────────────────────
+// Requires a `user_status` table in your public schema:
+//
+//   CREATE TABLE IF NOT EXISTS public.user_status (
+//     user_id   uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+//     is_active boolean NOT NULL DEFAULT true,
+//     updated_at timestamptz DEFAULT now()
+//   );
+//   ALTER TABLE public.user_status ENABLE ROW LEVEL SECURITY;
+//   CREATE POLICY "Admins can manage user_status"
+//     ON public.user_status FOR ALL USING (true);
+//
 function UsersPanel() {
-  const [users,   setUsers]   = useState([])
-  const [search,  setSearch]  = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
+  const [users,      setUsers]      = useState([])
+  const [statusMap,  setStatusMap]  = useState({})   // user_id → is_active
+  const [search,     setSearch]     = useState('')
+  const [loading,    setLoading]    = useState(true)
+  const [error,      setError]      = useState(null)
+  const [toggling,   setToggling]   = useState(null)  // user_id being toggled
 
-  useEffect(() => { fetchUsers() }, [])
+  useEffect(() => { fetchAll() }, [])
 
-  async function fetchUsers() {
+  async function fetchAll() {
     setLoading(true)
     setError(null)
 
-    const { data, error: err } = await supabase
-      .from('admin_users')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const [{ data: usersData, error: usersErr }, { data: statusData }] = await Promise.all([
+      supabase.from('admin_users').select('*').order('created_at', { ascending: false }),
+      supabase.from('user_status').select('user_id, is_active'),
+    ])
 
     setLoading(false)
-    if (err) { setError(err.message); return }
-    setUsers(data || [])
+    if (usersErr) { setError(usersErr.message); return }
+
+    setUsers(usersData || [])
+    const map = {}
+    ;(statusData || []).forEach(s => { map[s.user_id] = s.is_active })
+    setStatusMap(map)
+  }
+
+  async function toggleActive(user) {
+    // Default to active if no row exists yet
+    const currentlyActive = statusMap[user.id] !== false
+    const newValue = !currentlyActive
+    setToggling(user.id)
+
+    const { error } = await supabase.from('user_status').upsert(
+      { user_id: user.id, is_active: newValue, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    )
+
+    setToggling(null)
+    if (error) {
+      alert('Could not update status: ' + error.message)
+      return
+    }
+    setStatusMap(prev => ({ ...prev, [user.id]: newValue }))
   }
 
   const filtered = users.filter(u =>
@@ -103,7 +139,7 @@ function UsersPanel() {
           title="Cannot load users"
           message={error}
           hint="Make sure you have run the CREATE VIEW public.admin_users SQL in the Supabase SQL Editor and granted SELECT to authenticated/anon roles."
-          onRetry={fetchUsers}
+          onRetry={fetchAll}
         />
       )}
 
@@ -117,33 +153,46 @@ function UsersPanel() {
             <thead>
               <tr>
                 <th>#</th><th>Name</th><th>Email</th>
-                <th>Registered</th><th>Last Login</th><th>Status</th>
+                <th>Registered</th><th>Last Login</th><th>Status</th><th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((u, idx) => (
-                <tr key={u.id}>
-                  <td className="td-date">{idx + 1}</td>
-                  <td>{u.full_name || <span style={{ opacity: 0.4 }}>—</span>}</td>
-                  <td className="td-email">{u.email}</td>
-                  <td className="td-date">
-                    {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
-                  </td>
-                  <td className="td-date">
-                    {u.last_sign_in_at
-                      ? new Date(u.last_sign_in_at).toLocaleString([], {
-                          month: 'short', day: 'numeric',
-                          hour: '2-digit', minute: '2-digit',
-                        })
-                      : <span style={{ opacity: 0.4 }}>Never</span>}
-                  </td>
-                  <td>
-                    <span className={`status-badge ${u.last_sign_in_at ? 'approved' : 'pending'}`}>
-                      {u.last_sign_in_at ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((u, idx) => {
+                const isActive = statusMap[u.id] !== false  // default true
+                return (
+                  <tr key={u.id} style={{ opacity: isActive ? 1 : 0.55 }}>
+                    <td className="td-date">{idx + 1}</td>
+                    <td>{u.full_name || <span style={{ opacity: 0.4 }}>—</span>}</td>
+                    <td className="td-email">{u.email}</td>
+                    <td className="td-date">
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="td-date">
+                      {u.last_sign_in_at
+                        ? new Date(u.last_sign_in_at).toLocaleString([], {
+                            month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })
+                        : <span style={{ opacity: 0.4 }}>Never</span>}
+                    </td>
+                    <td>
+                      <span className={`status-badge ${isActive ? 'approved' : 'rejected'}`}>
+                        {isActive ? 'Active' : 'Deactivated'}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className={isActive ? 'btn-reject' : 'btn-approve'}
+                        style={{ fontSize: 12, padding: '4px 10px' }}
+                        disabled={toggling === u.id}
+                        onClick={() => toggleActive(u)}
+                      >
+                        {toggling === u.id ? '…' : isActive ? 'Deactivate' : 'Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -226,7 +275,7 @@ function ChatsPanel() {
     })
     if (error) {
       setSendError(error.message)
-      setReply(text) // restore so user doesn't lose their message
+      setReply(text)
       return
     }
     await supabase.from('chats').update({
@@ -241,7 +290,6 @@ function ChatsPanel() {
 
   return (
     <div className="chats-layout">
-      {/* Chat list */}
       <div className="chats-list-col">
         <div className="chats-list-header">
           <span className="admin-section-title">Support Inbox</span>
@@ -252,12 +300,7 @@ function ChatsPanel() {
 
         {chatError && (
           <div style={{ padding: '0 8px' }}>
-            <ErrorBox
-              title="Cannot load chats"
-              message={chatError}
-              hint={RLS_HINT}
-              onRetry={fetchChats}
-            />
+            <ErrorBox title="Cannot load chats" message={chatError} hint={RLS_HINT} onRetry={fetchChats} />
           </div>
         )}
 
@@ -283,7 +326,6 @@ function ChatsPanel() {
         </div>
       </div>
 
-      {/* Message thread */}
       <div className="chats-thread-col">
         {!activeChat ? (
           <div className="admin-no-chat">
@@ -371,21 +413,16 @@ function BalancesPanel() {
   async function fetchAll() {
     setLoading(true)
 
-    // 1. All users
     const { data: users } = await supabase
       .from('admin_users')
       .select('id, email, full_name, created_at')
       .order('created_at', { ascending: false })
 
-    // 2. All existing balance rows
-    const { data: balances } = await supabase
-      .from('balances')
-      .select('*')
+    const { data: balances } = await supabase.from('balances').select('*')
 
     const balanceMap = {}
     ;(balances || []).forEach(b => { balanceMap[b.user_id] = b })
 
-    // 3. Merge — every user gets a row, $0.00 if no balance exists yet
     const merged = (users || []).map(u => ({
       user_id:    u.id,
       user_email: u.email,
@@ -410,24 +447,18 @@ function BalancesPanel() {
     let error
 
     if (editing.has_row) {
-      // Row exists → UPDATE only the amount column (avoids schema mismatch)
       ;({ error } = await supabase
         .from('balances')
         .update({ amount: newAmount, updated_at: now })
         .eq('user_id', editing.user_id))
     } else {
-      // No row yet → INSERT a minimal row
       ;({ error } = await supabase
         .from('balances')
         .insert({ user_id: editing.user_id, amount: newAmount, updated_at: now }))
     }
 
     setSaving(false)
-    if (error) {
-      console.error('Save balance error:', error)
-      setSaveError(error.message)
-      return
-    }
+    if (error) { setSaveError(error.message); return }
     setEditing(null)
     fetchAll()
   }
@@ -451,12 +482,11 @@ function BalancesPanel() {
         <ErrorBox
           title="Could not save balance"
           message={saveError}
-          hint="Check that your balances table has a user_id column and that RLS policies allow INSERT/UPDATE for admins. You may also need to run: ALTER TABLE balances ADD COLUMN IF NOT EXISTS updated_at timestamptz;"
+          hint="Check that your balances table has a user_id column and that RLS policies allow INSERT/UPDATE for admins."
         />
       )}
 
       {loading && <div className="admin-empty-state"><p>Loading…</p></div>}
-
       {!loading && filtered.length === 0 && (
         <div className="admin-empty-state"><span>💰</span><p>No users found.</p></div>
       )}
@@ -535,6 +565,7 @@ function WithdrawalsPanel() {
   const [withdrawals, setWithdrawals] = useState([])
   const [filter,      setFilter]      = useState('all')
   const [error,       setError]       = useState(null)
+  const [processing,  setProcessing]  = useState(null)  // id being approved/rejected
 
   useEffect(() => {
     fetchWithdrawals()
@@ -555,11 +586,73 @@ function WithdrawalsPanel() {
     else setWithdrawals(data || [])
   }
 
-  async function updateStatus(id, status) {
-    const { error } = await supabase.from('withdrawals')
-      .update({ status, updated_at: new Date().toISOString() })
+  // ── Approve: deduct balance then mark approved ──────────────────────
+  async function approveWithdrawal(w) {
+    setProcessing(w.id)
+    const now = new Date().toISOString()
+
+    // 1. Fetch current balance row
+    const { data: balRow, error: balErr } = await supabase
+      .from('balances')
+      .select('amount')
+      .eq('user_id', w.user_id)
+      .single()
+
+    if (balErr && balErr.code !== 'PGRST116') {
+      // PGRST116 = no rows found; anything else is a real error
+      alert('Could not fetch balance: ' + balErr.message)
+      setProcessing(null)
+      return
+    }
+
+    const currentAmount = balRow?.amount ?? 0
+    const withdrawAmount = Number(w.amount)
+
+    if (currentAmount < withdrawAmount) {
+      alert(
+        `Insufficient balance.\n\n` +
+        `User balance: $${currentAmount.toFixed(2)}\n` +
+        `Withdrawal: $${withdrawAmount.toFixed(2)}\n\n` +
+        `Approve anyway?`
+      )
+      // Uncomment the line below to hard-block approvals when balance is insufficient:
+      // setProcessing(null); return
+    }
+
+    const newAmount = Math.max(0, currentAmount - withdrawAmount)
+
+    // 2. Upsert balance (update if row exists, insert if not)
+    const { error: upsertErr } = await supabase
+      .from('balances')
+      .upsert(
+        { user_id: w.user_id, amount: newAmount, updated_at: now },
+        { onConflict: 'user_id' }
+      )
+
+    if (upsertErr) {
+      alert('Failed to update balance: ' + upsertErr.message)
+      setProcessing(null)
+      return
+    }
+
+    // 3. Mark withdrawal as approved
+    const { error: statusErr } = await supabase
+      .from('withdrawals')
+      .update({ status: 'approved', updated_at: now })
+      .eq('id', w.id)
+
+    if (statusErr) alert('Balance updated but withdrawal status failed: ' + statusErr.message)
+    setProcessing(null)
+  }
+
+  async function rejectWithdrawal(id) {
+    setProcessing(id)
+    const { error } = await supabase
+      .from('withdrawals')
+      .update({ status: 'rejected', updated_at: new Date().toISOString() })
       .eq('id', id)
-    if (error) alert('Update failed: ' + error.message)
+    if (error) alert('Rejection failed: ' + error.message)
+    setProcessing(null)
   }
 
   const filtered = filter === 'all' ? withdrawals : withdrawals.filter(w => w.status === filter)
@@ -624,8 +717,20 @@ function WithdrawalsPanel() {
               <span className={`status-badge ${w.status}`}>{w.status}</span>
               {w.status === 'pending' && (
                 <div className="wc-actions">
-                  <button className="btn-approve" onClick={() => updateStatus(w.id, 'approved')}>Approve</button>
-                  <button className="btn-reject"  onClick={() => updateStatus(w.id, 'rejected')}>Reject</button>
+                  <button
+                    className="btn-approve"
+                    disabled={processing === w.id}
+                    onClick={() => approveWithdrawal(w)}
+                  >
+                    {processing === w.id ? '…' : 'Approve'}
+                  </button>
+                  <button
+                    className="btn-reject"
+                    disabled={processing === w.id}
+                    onClick={() => rejectWithdrawal(w.id)}
+                  >
+                    {processing === w.id ? '…' : 'Reject'}
+                  </button>
                 </div>
               )}
             </div>
