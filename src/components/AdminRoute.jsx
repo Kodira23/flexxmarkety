@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 // Paste your Supabase user UID here
 // Find it: Supabase Dashboard → Authentication → Users → your account → copy the UUID
 const ADMIN_UIDS = [
-  '5d0d3819-23d1-416e-bd83-9340cd9945be',
+  'c4e52c6e-09a7-4909-add2-2a5bdf2b757f',
 ]
 
 export default function AdminRoute({ children }) {
