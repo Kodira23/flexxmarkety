@@ -71,16 +71,30 @@ export default function ChatWidget() {
     const text = input.trim()
     if (!text || !chatId) return
     setInput('')
-    await supabase.from('chats').upsert({
-      id: chatId,
+
+    // Create/update the chat thread. user_id must be set to satisfy RLS
+    // (policy requires auth.uid() = user_id on insert/update).
+    const { error: chatErr } = await supabase.from('chats').upsert({
+      id:           chatId,
+      user_id:      chatId,
       user_name:    user?.user_metadata?.full_name || user?.email || 'Guest',
       user_email:   user?.email || '',
       last_message: text,
       updated_at:   new Date().toISOString(),
     })
-    await supabase.from('messages').insert({
-      chat_id: chatId, text, role: 'user', seen_by_agent: false,
+    if (chatErr) {
+      console.error('Chat upsert failed:', chatErr.message)
+      return
+    }
+
+    // Insert the message. Only seen_by_user exists in the schema
+    // (there is no seen_by_agent column).
+    const { error: msgErr } = await supabase.from('messages').insert({
+      chat_id: chatId, text, role: 'user', seen_by_user: true,
     })
+    if (msgErr) {
+      console.error('Message insert failed:', msgErr.message)
+    }
   }
 
   function handleKey(e) {
