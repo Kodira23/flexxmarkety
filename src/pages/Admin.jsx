@@ -95,24 +95,13 @@ function ErrorBox({ title, message, hint, onRetry }) {
 }
 
 // ── USERS PANEL ────────────────────────────────────────────────────────
-// Requires a `user_status` table in your public schema:
-//
-//   CREATE TABLE IF NOT EXISTS public.user_status (
-//     user_id   uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-//     is_active boolean NOT NULL DEFAULT true,
-//     updated_at timestamptz DEFAULT now()
-//   );
-//   ALTER TABLE public.user_status ENABLE ROW LEVEL SECURITY;
-//   CREATE POLICY "Admins can manage user_status"
-//     ON public.user_status FOR ALL USING (true);
-//
 function UsersPanel() {
   const [users,      setUsers]      = useState([])
-  const [statusMap,  setStatusMap]  = useState({})   // user_id → is_active
+  const [statusMap,  setStatusMap]  = useState({})
   const [search,     setSearch]     = useState('')
   const [loading,    setLoading]    = useState(true)
   const [error,      setError]      = useState(null)
-  const [toggling,   setToggling]   = useState(null)  // user_id being toggled
+  const [toggling,   setToggling]   = useState(null)
 
   useEffect(() => { fetchAll() }, [])
 
@@ -135,7 +124,6 @@ function UsersPanel() {
   }
 
   async function toggleActive(user) {
-    // Default to active if no row exists yet
     const currentlyActive = statusMap[user.id] !== false
     const newValue = !currentlyActive
     setToggling(user.id)
@@ -194,7 +182,7 @@ function UsersPanel() {
             </thead>
             <tbody>
               {filtered.map((u, idx) => {
-                const isActive = statusMap[u.id] !== false  // default true
+                const isActive = statusMap[u.id] !== false
                 return (
                   <tr key={u.id} style={{ opacity: isActive ? 1 : 0.55 }}>
                     <td className="td-date">{idx + 1}</td>
@@ -601,7 +589,7 @@ function WithdrawalsPanel() {
   const [withdrawals, setWithdrawals] = useState([])
   const [filter,      setFilter]      = useState('all')
   const [error,       setError]       = useState(null)
-  const [processing,  setProcessing]  = useState(null)  // id being approved/rejected
+  const [processing,  setProcessing]  = useState(null)
 
   useEffect(() => {
     fetchWithdrawals()
@@ -622,12 +610,10 @@ function WithdrawalsPanel() {
     else setWithdrawals(data || [])
   }
 
-  // ── Approve: deduct balance then mark approved ──────────────────────
   async function approveWithdrawal(w) {
     setProcessing(w.id)
     const now = new Date().toISOString()
 
-    // 1. Fetch current balance row
     const { data: balRow, error: balErr } = await supabase
       .from('balances')
       .select('amount')
@@ -635,7 +621,6 @@ function WithdrawalsPanel() {
       .single()
 
     if (balErr && balErr.code !== 'PGRST116') {
-      // PGRST116 = no rows found; anything else is a real error
       alert('Could not fetch balance: ' + balErr.message)
       setProcessing(null)
       return
@@ -651,13 +636,10 @@ function WithdrawalsPanel() {
         `Withdrawal: $${withdrawAmount.toFixed(2)}\n\n` +
         `Approve anyway?`
       )
-      // Uncomment the line below to hard-block approvals when balance is insufficient:
-      // setProcessing(null); return
     }
 
     const newAmount = Math.max(0, currentAmount - withdrawAmount)
 
-    // 2. Upsert balance (update if row exists, insert if not)
     const { error: upsertErr } = await supabase
       .from('balances')
       .upsert(
@@ -671,7 +653,6 @@ function WithdrawalsPanel() {
       return
     }
 
-    // 3. Mark withdrawal as approved
     const { error: statusErr } = await supabase
       .from('withdrawals')
       .update({ status: 'approved', updated_at: now })
