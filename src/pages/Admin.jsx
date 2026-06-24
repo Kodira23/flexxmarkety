@@ -6,45 +6,9 @@ const TABS = ['👥 Users', '💬 Chats', '💰 Balances', '📤 Withdrawals']
 
 export default function Admin() {
   const [tab, setTab] = useState(0)
-  const [debugInfo, setDebugInfo] = useState(null)
-
-  useEffect(() => {
-    async function checkSession() {
-      const { data: { user }, error: authErr } = await supabase.auth.getUser()
-      if (!user) {
-        setDebugInfo({ loggedIn: false, authErr: authErr?.message })
-        return
-      }
-      const { data: profile, error: profileErr } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle()
-      setDebugInfo({
-        loggedIn: true,
-        email: user.email,
-        id: user.id,
-        role: profile?.role ?? 'NO PROFILE ROW FOUND',
-        profileErr: profileErr?.message,
-      })
-    }
-    checkSession()
-  }, [])
 
   return (
     <div className="admin-layout">
-      {debugInfo && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
-          background: debugInfo.role === 'admin' ? '#16a34a' : '#ff4d6a',
-          color: '#fff', padding: '10px 16px', fontSize: 13, fontFamily: 'monospace',
-        }}>
-          {debugInfo.loggedIn
-            ? `Logged in as: ${debugInfo.email} (${debugInfo.id}) — role: ${debugInfo.role}${debugInfo.profileErr ? ' | profile error: ' + debugInfo.profileErr : ''}`
-            : `⚠️ NOT LOGGED IN — no active session${debugInfo.authErr ? ' (' + debugInfo.authErr + ')' : ''}`}
-        </div>
-      )}
-
       <div className="admin-sidebar">
         <div className="admin-sidebar-header">
           <div className="admin-logo">⬡ Admin Panel</div>
