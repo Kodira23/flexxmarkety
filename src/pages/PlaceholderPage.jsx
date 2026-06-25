@@ -352,14 +352,11 @@ function BotCard({ bot, balance, userId }) {
       <p className="bot-desc">{bot.description}</p>
       <div className="bot-meta">
         <div className="bot-meta-item"><span className="bot-meta-label">Risk</span><span className={`bot-meta-value risk-${bot.risk.toLowerCase()}`}>{bot.risk}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">Simulated P&L</span><span className="bot-meta-value" style={{color:pnl>=0?'#00c853':'#ff3b5c',fontWeight:700}}>{pnl>=0?'+':''}${pnl.toFixed(2)}</span></div>
+        <div className="bot-meta-item"><span className="bot-meta-label">P&L</span><span className="bot-meta-value" style={{color:pnl>=0?'#00c853':'#ff3b5c',fontWeight:700}}>{pnl>=0?'+':''}${pnl.toFixed(2)}</span></div>
         <div className="bot-meta-item"><span className="bot-meta-label">Wins</span><span className="bot-meta-value" style={{color:'#00c853'}}>{wins}</span></div>
         <div className="bot-meta-item"><span className="bot-meta-label">Losses</span><span className="bot-meta-value" style={{color:'#ff3b5c'}}>{losses}</span></div>
         {totalTrades > 0 && <div className="bot-meta-item"><span className="bot-meta-label">Win Rate</span><span className="bot-meta-value">{((wins/totalTrades)*100).toFixed(0)}%</span></div>}
         {configured && <div className="bot-meta-item"><span className="bot-meta-label">Allocation</span><span className="bot-meta-value">${parseFloat(allocation||0).toFixed(2)}</span></div>}
-      </div>
-      <div style={{ fontSize: 11, opacity: 0.5, marginTop: -4, marginBottom: 8 }}>
-        Simulated performance only — does not affect your real Available Balance.
       </div>
       {canRun && !active && (
         <div className="bot-steps">
@@ -780,11 +777,11 @@ export function FuturesPage() {
 export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
-  const canRun               = (balance ?? 0) >= MIN_BALANCE
   const [lockedInBots, setLockedInBots] = useState(0)
 
   // Sum of allocations for currently-active simulated bots.
-  // Display only — never written back to `balances`.
+  // This never touches `balances` in the database — it's purely used
+  // below to compute a *displayed* available figure.
   useEffect(() => {
     if (!user?.id) return
 
@@ -813,6 +810,14 @@ export function BotsPage() {
     return () => supabase.removeChannel(channel)
   }, [user?.id])
 
+  // Displayed Available Balance = real balance minus whatever is currently
+  // allocated to running bots. This makes starting a bot visually draw
+  // down the number the user sees here, without writing anything to the
+  // real `balances` row — deposits/withdrawals are computed from the
+  // real balance only, never from this adjusted figure.
+  const displayedAvailable = Math.max(0, (balance ?? 0) - lockedInBots)
+  const canRun = displayedAvailable >= MIN_BALANCE
+
   return (
     <div className="dash-main">
       <div className="bots-content">
@@ -826,12 +831,12 @@ export function BotsPage() {
                 <span className="bots-stat-label">Total Bots</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value">{loading?'...':'$'+Number(balance??0).toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                <span className="bots-stat-value">{loading?'...':'$'+displayedAvailable.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
                 <span className="bots-stat-label">Available Balance</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value" style={{color:'#3b82f6'}}>${lockedInBots.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
-                <span className="bots-stat-label">Locked in Bots (simulated)</span>
+                <span className="bots-stat-label">Locked in Bots</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value" style={{color:canRun?'#00c853':'#ff3b5c'}}>{canRun?'Ready':'Locked'}</span>
@@ -848,13 +853,13 @@ export function BotsPage() {
           <div className="bots-section-header">
             <div>
               <h2 className="bots-section-title">Dollar-Cost Averaging Bots</h2>
-              <p className="bots-section-sub">Regular purchases of assets regardless of price · simulated performance only</p>
+              <p className="bots-section-sub">Regular purchases of assets regardless of price</p>
             </div>
             <button className="bots-create-btn" disabled={!canRun}>Create DCA Bot</button>
           </div>
           <div className="bots-grid">
             {BOT_CONFIGS.map(bot => (
-              <BotCard key={bot.id} bot={bot} balance={balance??0} userId={user?.id}/>
+              <BotCard key={bot.id} bot={bot} balance={displayedAvailable} userId={user?.id}/>
             ))}
           </div>
         </div>
