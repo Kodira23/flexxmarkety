@@ -254,7 +254,7 @@ function BotCard({ bot, balance, userId }) {
 
   // Persist simulated state. Touches bot_simulated_pnl ONLY — never balances.
   async function persist(patch) {
-    await supabase.from('bot_simulated_pnl').upsert({
+    const { error } = await supabase.from('bot_simulated_pnl').upsert({
       user_id: userId,
       bot_id: bot.id,
       pnl, wins, losses,
@@ -264,6 +264,7 @@ function BotCard({ bot, balance, userId }) {
       updated_at: new Date().toISOString(),
       ...patch,
     }, { onConflict: 'user_id,bot_id' })
+    if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
   }
 
   function tick() {
@@ -289,7 +290,9 @@ function BotCard({ bot, balance, userId }) {
         pnl: next, wins: newWins, losses: newLosses,
         allocation: allocatedRef.current, configured: true, active: true,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,bot_id' })
+      }, { onConflict: 'user_id,bot_id' }).then(({ error }) => {
+        if (error) console.error('bot_simulated_pnl tick upsert failed:', error.message)
+      })
       return next
     })
 
@@ -791,7 +794,11 @@ export function BotsPage() {
         .select('allocation, active')
         .eq('user_id', user.id)
         .eq('active', true)
-        .then(({ data }) => {
+        .then(({ data, error }) => {
+          if (error) {
+            console.error('bot_simulated_pnl fetch failed:', error.message)
+            return
+          }
           const total = (data || []).reduce((sum, row) => sum + Number(row.allocation || 0), 0)
           setLockedInBots(total)
         })
@@ -833,10 +840,6 @@ export function BotsPage() {
               <div className="bots-stat">
                 <span className="bots-stat-value">{loading?'...':'$'+displayedAvailable.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
                 <span className="bots-stat-label">Available Balance</span>
-              </div>
-              <div className="bots-stat">
-                <span className="bots-stat-value" style={{color:'#3b82f6'}}>${lockedInBots.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
-                <span className="bots-stat-label">Locked in Bots</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value" style={{color:canRun?'#00c853':'#ff3b5c'}}>{canRun?'Ready':'Locked'}</span>
