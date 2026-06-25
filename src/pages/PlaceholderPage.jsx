@@ -198,6 +198,10 @@ function InsufficientBanner() {
   )
 }
 
+// ── BOT CARD ─────────────────────────────────────────────────────────
+// NOTE: This bot is a simulation only. It writes exclusively to the
+// `bot_simulated_pnl` table — never to `balances`. The user's real
+// Available Balance (used for the canRun gate below) is read-only here.
 function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
   const [active,setActive]         = useState(false)
@@ -208,22 +212,58 @@ function BotCard({ bot, balance, userId }) {
   const [pnl,setPnl]               = useState(0)
   const [wins,setWins]             = useState(0)
   const [losses,setLosses]         = useState(0)
+  const [loaded,setLoaded]         = useState(false)
   const intervalRef  = useRef(null)
   const allocatedRef = useRef(0)
   const winsRef      = useRef(0)
   const lossesRef    = useRef(0)
 
-  useEffect(() => () => clearInterval(intervalRef.current), [])
+  // Load persisted simulated state for this user + bot on mount
+  useEffect(() => {
+    if (!userId) return
+    supabase
+      .from('bot_simulated_pnl')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('bot_id', bot.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setPnl(data.pnl ?? 0)
+          setWins(data.wins ?? 0)
+          setLosses(data.losses ?? 0)
+          setAllocation(data.allocation ? String(data.allocation) : '')
+          setConfigured(!!data.configured)
+          winsRef.current = data.wins ?? 0
+          lossesRef.current = data.losses ?? 0
+          allocatedRef.current = data.allocation ?? 0
+          if (data.active) {
+            setActive(true)
+            intervalRef.current = setInterval(tick, bot.interval)
+          }
+        }
+        setLoaded(true)
+      })
+    return () => clearInterval(intervalRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
 
   function addLog(msg, color='#aaa') {
     setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) }, ...prev].slice(0,8))
   }
 
-  async function applyDelta(delta) {
-    const { data } = await supabase.from('balances').select('amount').eq('user_id', userId).maybeSingle()
-    const current  = data?.amount ?? 0
-    const next     = Math.max(0, parseFloat((current + delta).toFixed(2)))
-    await supabase.from('balances').update({ amount:next, updated_at:new Date().toISOString() }).eq('user_id', userId)
+  // Persist simulated state. Touches bot_simulated_pnl ONLY — never balances.
+  async function persist(patch) {
+    await supabase.from('bot_simulated_pnl').upsert({
+      user_id: userId,
+      bot_id: bot.id,
+      pnl, wins, losses,
+      allocation: allocatedRef.current,
+      configured,
+      active,
+      updated_at: new Date().toISOString(),
+      ...patch,
+    }, { onConflict: 'user_id,bot_id' })
   }
 
   function tick() {
@@ -235,23 +275,44 @@ function BotCard({ bot, balance, userId }) {
     const r         = isLoss ? -(bot.drift * bot.lossMult + noise) : (bot.drift + noise)
     const stake     = allocatedRef.current * 0.1
     const gained    = parseFloat((stake * r).toFixed(2))
-    applyDelta(gained).then(() => {
-      setPnl(prev => parseFloat((prev + gained).toFixed(2)))
-      if (gained >= 0) { setWins(w => w+1); winsRef.current++ } else { setLosses(l => l+1); lossesRef.current++ }
-      const up = gained >= 0
-      addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%)`, up?'#00c853':'#ff3b5c')
+
+    setPnl(prev => {
+      const next = parseFloat((prev + gained).toFixed(2))
+      const newWins   = gained >= 0 ? winsRef.current + 1 : winsRef.current
+      const newLosses = gained < 0  ? lossesRef.current + 1 : lossesRef.current
+      winsRef.current = newWins
+      lossesRef.current = newLosses
+      setWins(newWins)
+      setLosses(newLosses)
+      supabase.from('bot_simulated_pnl').upsert({
+        user_id: userId, bot_id: bot.id,
+        pnl: next, wins: newWins, losses: newLosses,
+        allocation: allocatedRef.current, configured: true, active: true,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,bot_id' })
+      return next
     })
+
+    const up = gained >= 0
+    addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%) — simulated`, up?'#00c853':'#ff3b5c')
   }
 
-  async function handleStart() {
+  function handleStart() {
     if (!canRun || !configured) return
-    if (active) { clearInterval(intervalRef.current); setActive(false); addLog('🛑 Bot stopped','#ffaa00'); return }
+    if (active) {
+      clearInterval(intervalRef.current)
+      setActive(false)
+      addLog('🛑 Bot stopped', '#ffaa00')
+      persist({ active: false })
+      return
+    }
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < 10) { addLog('⚠️ Set allocation ≥ $10 first','#ff3b5c'); return }
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
     allocatedRef.current = alloc
     setActive(true)
-    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation`, '#00c853')
+    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (simulated)`, '#00c853')
+    persist({ active: true, allocation: alloc, configured: true })
     intervalRef.current = setInterval(tick, bot.interval)
   }
 
@@ -259,8 +320,11 @@ function BotCard({ bot, balance, userId }) {
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < 10) { addLog('⚠️ Enter allocation ≥ $10','#ff3b5c'); return }
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
-    setConfigured(true); setShowConfig(false)
-    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated`, '#00c853')
+    allocatedRef.current = alloc
+    setConfigured(true)
+    setShowConfig(false)
+    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (simulated)`, '#00c853')
+    persist({ allocation: alloc, configured: true })
   }
 
   const totalTrades    = wins + losses
@@ -269,6 +333,10 @@ function BotCard({ bot, balance, userId }) {
   const configureIsNext = canRun && !configured && !showConfig
   const saveIsNext      = showConfig
   const startIsNext     = canRun && configured && !active
+
+  if (!loaded) {
+    return <div className="bot-card" style={{ opacity: 0.5 }}>Loading…</div>
+  }
 
   return (
     <div className="bot-card" style={{ opacity: canRun ? 1 : 0.55 }}>
@@ -284,11 +352,14 @@ function BotCard({ bot, balance, userId }) {
       <p className="bot-desc">{bot.description}</p>
       <div className="bot-meta">
         <div className="bot-meta-item"><span className="bot-meta-label">Risk</span><span className={`bot-meta-value risk-${bot.risk.toLowerCase()}`}>{bot.risk}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">P&L</span><span className="bot-meta-value" style={{color:pnl>=0?'#00c853':'#ff3b5c',fontWeight:700}}>{pnl>=0?'+':''}${pnl.toFixed(2)}</span></div>
+        <div className="bot-meta-item"><span className="bot-meta-label">Simulated P&L</span><span className="bot-meta-value" style={{color:pnl>=0?'#00c853':'#ff3b5c',fontWeight:700}}>{pnl>=0?'+':''}${pnl.toFixed(2)}</span></div>
         <div className="bot-meta-item"><span className="bot-meta-label">Wins</span><span className="bot-meta-value" style={{color:'#00c853'}}>{wins}</span></div>
         <div className="bot-meta-item"><span className="bot-meta-label">Losses</span><span className="bot-meta-value" style={{color:'#ff3b5c'}}>{losses}</span></div>
         {totalTrades > 0 && <div className="bot-meta-item"><span className="bot-meta-label">Win Rate</span><span className="bot-meta-value">{((wins/totalTrades)*100).toFixed(0)}%</span></div>}
         {configured && <div className="bot-meta-item"><span className="bot-meta-label">Allocation</span><span className="bot-meta-value">${parseFloat(allocation||0).toFixed(2)}</span></div>}
+      </div>
+      <div style={{ fontSize: 11, opacity: 0.5, marginTop: -4, marginBottom: 8 }}>
+        Simulated performance only — does not affect your real Available Balance.
       </div>
       {canRun && !active && (
         <div className="bot-steps">
@@ -742,7 +813,7 @@ export function BotsPage() {
           <div className="bots-section-header">
             <div>
               <h2 className="bots-section-title">Dollar-Cost Averaging Bots</h2>
-              <p className="bots-section-sub">Regular purchases of assets regardless of price</p>
+              <p className="bots-section-sub">Regular purchases of assets regardless of price · simulated performance only</p>
             </div>
             <button className="bots-create-btn" disabled={!canRun}>Create DCA Bot</button>
           </div>
