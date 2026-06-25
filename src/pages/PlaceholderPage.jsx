@@ -202,7 +202,7 @@ function InsufficientBanner() {
 // NOTE: This bot is a simulation only. It writes exclusively to the
 // `bot_simulated_pnl` table — never to `balances`. The user's real
 // Available Balance (used for the canRun gate below) is read-only here.
-function BotCard({ bot, balance, userId, onConfigChange }) {
+function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
   const [active,setActive]         = useState(false)
   const [configured,setConfigured] = useState(false)
@@ -217,8 +217,6 @@ function BotCard({ bot, balance, userId, onConfigChange }) {
   const allocatedRef = useRef(0)
   const winsRef      = useRef(0)
   const lossesRef    = useRef(0)
-  const activeRef    = useRef(false)
-  const configuredRef = useRef(false)
 
   // Load persisted simulated state for this user + bot on mount
   useEffect(() => {
@@ -236,13 +234,11 @@ function BotCard({ bot, balance, userId, onConfigChange }) {
           setLosses(data.losses ?? 0)
           setAllocation(data.allocation ? String(data.allocation) : '')
           setConfigured(!!data.configured)
-          configuredRef.current = !!data.configured
           winsRef.current = data.wins ?? 0
           lossesRef.current = data.losses ?? 0
           allocatedRef.current = data.allocation ?? 0
           if (data.active) {
             setActive(true)
-            activeRef.current = true
             intervalRef.current = setInterval(tick, bot.interval)
           }
         }
@@ -251,13 +247,6 @@ function BotCard({ bot, balance, userId, onConfigChange }) {
     return () => clearInterval(intervalRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId])
-
-  // Notify parent when configured state changes
-  useEffect(() => {
-    if (onConfigChange && loaded) {
-      onConfigChange(bot.id, configured, allocatedRef.current)
-    }
-  }, [configured, loaded, onConfigChange, bot.id])
 
   function addLog(msg, color='#aaa') {
     setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) }, ...prev].slice(0,8))
@@ -313,10 +302,8 @@ function BotCard({ bot, balance, userId, onConfigChange }) {
     if (active) {
       clearInterval(intervalRef.current)
       setActive(false)
-      activeRef.current = false
       addLog('🛑 Bot stopped', '#ffaa00')
       persist({ active: false })
-      if (onConfigChange) onConfigChange(bot.id, true, 0)
       return
     }
     const alloc = parseFloat(allocation)
@@ -324,7 +311,6 @@ function BotCard({ bot, balance, userId, onConfigChange }) {
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
     allocatedRef.current = alloc
     setActive(true)
-    activeRef.current = true
     addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (simulated)`, '#00c853')
     persist({ active: true, allocation: alloc, configured: true })
     intervalRef.current = setInterval(tick, bot.interval)
@@ -336,11 +322,9 @@ function BotCard({ bot, balance, userId, onConfigChange }) {
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
     allocatedRef.current = alloc
     setConfigured(true)
-    configuredRef.current = true
     setShowConfig(false)
     addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (simulated)`, '#00c853')
     persist({ allocation: alloc, configured: true })
-    if (onConfigChange) onConfigChange(bot.id, true, alloc)
   }
 
   const totalTrades    = wins + losses
@@ -793,26 +777,45 @@ export function FuturesPage() {
 export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
-  const [configuredAllocations, setConfiguredAllocations] = useState({})
+  const [lockedInBots, setLockedInBots] = useState(0)
 
-  // Track when bots are configured and their allocations
-  const handleConfigChange = (botId, configured, allocation) => {
-    setConfiguredAllocations(prev => {
-      if (configured && allocation > 0) {
-        return { ...prev, [botId]: allocation }
-      } else {
-        const newState = { ...prev }
-        delete newState[botId]
-        return newState
-      }
-    })
-  }
+  // Sum of allocations for currently-active simulated bots.
+  // This never touches `balances` in the database — it's purely used
+  // below to compute a *displayed* available figure.
+  useEffect(() => {
+    if (!user?.id) return
 
-  // Calculate total allocated amount across all configured bots
-  const totalAllocated = Object.values(configuredAllocations).reduce((sum, val) => sum + val, 0)
-  
-  // Displayed Available Balance = real balance minus total configured allocations
-  const displayedAvailable = Math.max(0, (balance ?? 0) - totalAllocated)
+    function fetchLocked() {
+      supabase
+        .from('bot_simulated_pnl')
+        .select('allocation, active')
+        .eq('user_id', user.id)
+        .eq('active', true)
+        .then(({ data }) => {
+          const total = (data || []).reduce((sum, row) => sum + Number(row.allocation || 0), 0)
+          setLockedInBots(total)
+        })
+    }
+
+    fetchLocked()
+
+    const channel = supabase
+      .channel(`bot-pnl-${user.id}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'bot_simulated_pnl',
+        filter: `user_id=eq.${user.id}`,
+      }, fetchLocked)
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [user?.id])
+
+  // Displayed Available Balance = real balance minus whatever is currently
+  // allocated to running bots. This makes starting a bot visually draw
+  // down the number the user sees here, without writing anything to the
+  // real `balances` row — deposits/withdrawals are computed from the
+  // real balance only, never from this adjusted figure.
+  const displayedAvailable = Math.max(0, (balance ?? 0) - lockedInBots)
   const canRun = displayedAvailable >= MIN_BALANCE
 
   return (
@@ -832,8 +835,8 @@ export function BotsPage() {
                 <span className="bots-stat-label">Available Balance</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value" style={{color:'#3b82f6'}}>${totalAllocated.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
-                <span className="bots-stat-label">Allocated to Bots</span>
+                <span className="bots-stat-value" style={{color:'#3b82f6'}}>${lockedInBots.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                <span className="bots-stat-label">Locked in Bots</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value" style={{color:canRun?'#00c853':'#ff3b5c'}}>{canRun?'Ready':'Locked'}</span>
@@ -856,13 +859,7 @@ export function BotsPage() {
           </div>
           <div className="bots-grid">
             {BOT_CONFIGS.map(bot => (
-              <BotCard 
-                key={bot.id} 
-                bot={bot} 
-                balance={displayedAvailable} 
-                userId={user?.id}
-                onConfigChange={handleConfigChange}
-              />
+              <BotCard key={bot.id} bot={bot} balance={displayedAvailable} userId={user?.id}/>
             ))}
           </div>
         </div>
