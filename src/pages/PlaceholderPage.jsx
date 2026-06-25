@@ -781,6 +781,37 @@ export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
   const canRun               = (balance ?? 0) >= MIN_BALANCE
+  const [lockedInBots, setLockedInBots] = useState(0)
+
+  // Sum of allocations for currently-active simulated bots.
+  // Display only — never written back to `balances`.
+  useEffect(() => {
+    if (!user?.id) return
+
+    function fetchLocked() {
+      supabase
+        .from('bot_simulated_pnl')
+        .select('allocation, active')
+        .eq('user_id', user.id)
+        .eq('active', true)
+        .then(({ data }) => {
+          const total = (data || []).reduce((sum, row) => sum + Number(row.allocation || 0), 0)
+          setLockedInBots(total)
+        })
+    }
+
+    fetchLocked()
+
+    const channel = supabase
+      .channel(`bot-pnl-${user.id}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'bot_simulated_pnl',
+        filter: `user_id=eq.${user.id}`,
+      }, fetchLocked)
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [user?.id])
 
   return (
     <div className="dash-main">
@@ -797,6 +828,10 @@ export function BotsPage() {
               <div className="bots-stat">
                 <span className="bots-stat-value">{loading?'...':'$'+Number(balance??0).toLocaleString(undefined,{minimumFractionDigits:2})}</span>
                 <span className="bots-stat-label">Available Balance</span>
+              </div>
+              <div className="bots-stat">
+                <span className="bots-stat-value" style={{color:'#3b82f6'}}>${lockedInBots.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                <span className="bots-stat-label">Locked in Bots (simulated)</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value" style={{color:canRun?'#00c853':'#ff3b5c'}}>{canRun?'Ready':'Locked'}</span>
