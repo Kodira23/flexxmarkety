@@ -118,7 +118,7 @@ export default function Home() {
           </div>
           <h1 className="hero-headline animate-fade-up delay-1">
             <span className="headline-primary">Grow Your Wealth</span>{' '}
-            <span className="headline-accent">Faster</span>
+            <span className="headline-accent-yellow">Faster</span>
           </h1>
           <p className="hero-sub animate-fade-up delay-2">
             Our platform uses AI-driven trading tech to maximize your return on
@@ -186,7 +186,7 @@ export default function Home() {
       {/* ── LIVE CHART ── */}
       <section className="chart-section" id="markets">
         <div className="section-inner" style={{ textAlign: 'center' }}>
-          <div className="section-tag" style={{ display: 'inline-block' }}>Live Market Data</div>
+          <div className="section-tag yellow" style={{ display: 'inline-block' }}>Live Market Data</div>
           <h2 className="section-title" style={{ textAlign: 'center', maxWidth: '100%' }}>
             Real-Time Trading Charts
           </h2>
@@ -250,8 +250,9 @@ export default function Home() {
       {/* ── WHY CHOOSE ── */}
       <section className="why-section">
         <div className="section-inner" style={{ textAlign: 'center' }}>
+          <div className="section-tag yellow" style={{ display: 'inline-block' }}>Why Flexxmarket</div>
           <h2 className="section-title" style={{ textAlign: 'center', maxWidth: '100%', fontSize: 'clamp(32px,5vw,52px)' }}>
-            Why Choose Flexxmarket?
+            Why Choose <span className="headline-accent-yellow">Flexxmarket</span>?
           </h2>
           <p className="section-sub" style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 56px' }}>
             Experience the ultimate trading platform with cutting-edge features designed for your success.
