@@ -1,13 +1,6 @@
 /* ── FONT IMPORT — Inter (matches Horizon Markets) + JetBrains Mono for numbers ── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
-/* ── THEME ACCENTS: green / yellow / black ── */
-:root {
-  --yellow: #facc15;
-  --yellow-dim: #facc1518;
-  --yellow-border: #facc1533;
-}
-
 .home {
   min-height: 100vh;
   overflow-x: hidden;
@@ -88,11 +81,6 @@
   text-shadow: 0 0 60px #16a34a44;
 }
 
-.headline-accent-yellow {
-  color: var(--yellow);
-  text-shadow: 0 0 60px #facc1544;
-}
-
 .hero-sub {
   font-size: 17px;
   color: var(--text-secondary);
@@ -141,12 +129,6 @@
   font-family: 'Inter', sans-serif;
 }
 
-.section-tag.yellow {
-  color: var(--yellow);
-  background: var(--yellow-dim);
-  border: 1px solid var(--yellow-border);
-}
-
 .section-title {
   font-family: 'Inter', sans-serif;
   font-size: clamp(28px, 4vw, 46px);
@@ -155,7 +137,6 @@
   margin-bottom: 12px;
   max-width: 620px;
   line-height: 1.1;
-  color: var(--text-primary);
 }
 
 .section-sub {
@@ -215,7 +196,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 22px;
   font-weight: 700;
-  color: var(--yellow);
+  color: var(--green);
   line-height: 1;
 }
 
@@ -337,7 +318,7 @@
   left: 16px;
   width: 40px;
   height: 40px;
-  background: var(--yellow);
+  background: var(--green);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -372,7 +353,7 @@
   padding: 56px 0;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  background: #000000;
+  background: #0d0f12;
   width: 100%;
   overflow: hidden;
 }
@@ -397,7 +378,7 @@
 .stats-bar-value {
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 700;
-  color: var(--yellow);
+  color: var(--green);
   line-height: 1;
   letter-spacing: -1px;
   font-family: 'JetBrains Mono', monospace;
@@ -450,12 +431,12 @@
 .why-icon {
   width: 48px;
   height: 48px;
-  background: var(--yellow-dim);
+  background: var(--green-dim);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--yellow);
+  color: var(--green);
   margin-bottom: 20px;
 }
 
@@ -484,7 +465,6 @@
   position: relative;
   overflow: hidden;
   border-top: 1px solid var(--border);
-  background: #000000;
 }
 
 .cta-inner {
@@ -504,7 +484,7 @@
   transform: translate(-50%, -50%);
   width: 500px;
   height: 250px;
-  background: radial-gradient(ellipse, #facc1512 0%, #16a34a0d 60%, transparent 80%);
+  background: radial-gradient(ellipse, #16a34a0d 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -514,7 +494,6 @@
   font-weight: 800;
   letter-spacing: -1.5px;
   margin-bottom: 12px;
-  color: var(--text-primary);
 }
 
 .cta-sub {
@@ -539,7 +518,6 @@
 .footer {
   border-top: 1px solid var(--border);
   padding: 32px 24px;
-  background: #000000;
 }
 
 .footer-inner {
@@ -559,7 +537,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary);
 }
 
 .footer-copy {
