@@ -114,15 +114,15 @@ export default function Home() {
         <div className="hero-content">
           <div className="hero-badge animate-fade-up">
             <span className="badge-dot" />
-            Welcome to Flexxmarket
+            Powering Smarter Trades
           </div>
           <h1 className="hero-headline animate-fade-up delay-1">
-            <span className="headline-primary">Grow Your Wealth</span>{' '}
-            <span className="headline-accent">Faster</span>
+            <span className="headline-primary">Build Your Portfolio</span>{' '}
+            <span className="headline-accent">Smarter</span>
           </h1>
           <p className="hero-sub animate-fade-up delay-2">
-            Our platform uses AI-driven trading tech to maximize your return on
-            investment (ROI) — trusted by investors worldwide.
+            Combine real-time market intelligence with automated strategies to help
+            your investments work harder — built for traders who want an edge.
           </p>
           <div className="hero-cta animate-fade-up delay-3">
             <button className="btn-primary cta-main" onClick={() => setModal('signup')}>
