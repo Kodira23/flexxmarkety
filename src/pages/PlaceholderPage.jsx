@@ -199,9 +199,8 @@ function InsufficientBanner() {
 }
 
 // ── BOT CARD ─────────────────────────────────────────────────────────
-// NOTE: This bot is a simulation only. It writes exclusively to the
-// `bot_simulated_pnl` table — never to `balances`. The user's real
-// Available Balance (used for the canRun gate below) is read-only here.
+// 🔥 EDITED: Now deducts allocation from real balance on start,
+//            and updates real balance on each simulated trade.
 function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
   const [active,setActive]         = useState(false)
@@ -218,7 +217,6 @@ function BotCard({ bot, balance, userId }) {
   const winsRef      = useRef(0)
   const lossesRef    = useRef(0)
 
-  // Load persisted simulated state for this user + bot on mount
   useEffect(() => {
     if (!userId) return
     supabase
@@ -252,7 +250,6 @@ function BotCard({ bot, balance, userId }) {
     setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) }, ...prev].slice(0,8))
   }
 
-  // Persist simulated state. Touches bot_simulated_pnl ONLY — never balances.
   async function persist(patch) {
     const { error } = await supabase.from('bot_simulated_pnl').upsert({
       user_id: userId,
@@ -267,6 +264,7 @@ function BotCard({ bot, balance, userId }) {
     if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
   }
 
+  // 🔥 Tick: updates P&L AND real balance
   function tick() {
     const total     = winsRef.current + lossesRef.current
     const currentWR = total > 0 ? winsRef.current / total : 1
@@ -285,6 +283,8 @@ function BotCard({ bot, balance, userId }) {
       lossesRef.current = newLosses
       setWins(newWins)
       setLosses(newLosses)
+
+      // Persist bot P&L
       supabase.from('bot_simulated_pnl').upsert({
         user_id: userId, bot_id: bot.id,
         pnl: next, wins: newWins, losses: newLosses,
@@ -293,6 +293,13 @@ function BotCard({ bot, balance, userId }) {
       }, { onConflict: 'user_id,bot_id' }).then(({ error }) => {
         if (error) console.error('bot_simulated_pnl tick upsert failed:', error.message)
       })
+
+      // 🔥 Update REAL balance by the gained amount
+      supabase.rpc('increment_balance', { p_user_id: userId, p_delta: gained })
+        .then(({ error }) => {
+          if (error) console.error('Balance update failed:', error.message)
+        })
+
       return next
     })
 
@@ -300,23 +307,41 @@ function BotCard({ bot, balance, userId }) {
     addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%) — simulated`, up?'#00c853':'#ff3b5c')
   }
 
+  // Handle Start / Stop
   function handleStart() {
     if (!canRun || !configured) return
+
     if (active) {
+      // STOP bot – clear interval, reset allocation, mark inactive (no balance change)
       clearInterval(intervalRef.current)
       setActive(false)
+      allocatedRef.current = 0
+      setAllocation('')
+      setConfigured(false)
       addLog('🛑 Bot stopped', '#ffaa00')
-      persist({ active: false })
+      persist({ active: false, allocation: 0, configured: false })
       return
     }
+
+    // START bot – deduct allocation from real balance
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < 10) { addLog('⚠️ Set allocation ≥ $10 first','#ff3b5c'); return }
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
-    allocatedRef.current = alloc
-    setActive(true)
-    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (simulated)`, '#00c853')
-    persist({ active: true, allocation: alloc, configured: true })
-    intervalRef.current = setInterval(tick, bot.interval)
+
+    // Deduct from balance
+    supabase.rpc('increment_balance', { p_user_id: userId, p_delta: -alloc })
+      .then(({ error }) => {
+        if (error) {
+          addLog('❌ Failed to deduct funds: ' + error.message, '#ff3b5c')
+          return
+        }
+        // Success – start the bot
+        allocatedRef.current = alloc
+        setActive(true)
+        addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds deducted)`, '#00c853')
+        persist({ active: true, allocation: alloc, configured: true })
+        intervalRef.current = setInterval(tick, bot.interval)
+      })
   }
 
   function handleSaveConfig() {
@@ -326,7 +351,7 @@ function BotCard({ bot, balance, userId }) {
     allocatedRef.current = alloc
     setConfigured(true)
     setShowConfig(false)
-    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (simulated)`, '#00c853')
+    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (funds not yet deducted)`, '#00c853')
     persist({ allocation: alloc, configured: true })
   }
 
@@ -777,53 +802,12 @@ export function FuturesPage() {
 }
 
 // ── BOTS PAGE ──────────────────────────────────────────────────────────
+// 🔥 EDITED: Now uses real balance directly – no more lockedInBots subtraction.
 export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
-  const [lockedInBots, setLockedInBots] = useState(0)
 
-  // Sum of allocations for currently-active simulated bots.
-  // This never touches `balances` in the database — it's purely used
-  // below to compute a *displayed* available figure.
-  useEffect(() => {
-    if (!user?.id) return
-
-    function fetchLocked() {
-      supabase
-        .from('bot_simulated_pnl')
-        .select('allocation, active')
-        .eq('user_id', user.id)
-        .eq('active', true)
-        .then(({ data, error }) => {
-          if (error) {
-            console.error('bot_simulated_pnl fetch failed:', error.message)
-            return
-          }
-          const total = (data || []).reduce((sum, row) => sum + Number(row.allocation || 0), 0)
-          setLockedInBots(total)
-        })
-    }
-
-    fetchLocked()
-
-    const channel = supabase
-      .channel(`bot-pnl-${user.id}`)
-      .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'bot_simulated_pnl',
-        filter: `user_id=eq.${user.id}`,
-      }, fetchLocked)
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
-  }, [user?.id])
-
-  // Displayed Available Balance = real balance minus whatever is currently
-  // allocated to running bots. This makes starting a bot visually draw
-  // down the number the user sees here, without writing anything to the
-  // real `balances` row — deposits/withdrawals are computed from the
-  // real balance only, never from this adjusted figure.
-  const displayedAvailable = Math.max(0, (balance ?? 0) - lockedInBots)
-  const canRun = displayedAvailable >= MIN_BALANCE
+  const canRun = (balance ?? 0) >= MIN_BALANCE
 
   return (
     <div className="dash-main">
@@ -838,11 +822,15 @@ export function BotsPage() {
                 <span className="bots-stat-label">Total Bots</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value">{loading?'...':'$'+displayedAvailable.toLocaleString(undefined,{minimumFractionDigits:2})}</span>
+                <span className="bots-stat-value">
+                  {loading ? '...' : '$' + (balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </span>
                 <span className="bots-stat-label">Available Balance</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value" style={{color:canRun?'#00c853':'#ff3b5c'}}>{canRun?'Ready':'Locked'}</span>
+                <span className="bots-stat-value" style={{ color: canRun ? '#00c853' : '#ff3b5c' }}>
+                  {canRun ? 'Ready' : 'Locked'}
+                </span>
                 <span className="bots-stat-label">Bot Status</span>
               </div>
             </div>
@@ -862,7 +850,7 @@ export function BotsPage() {
           </div>
           <div className="bots-grid">
             {BOT_CONFIGS.map(bot => (
-              <BotCard key={bot.id} bot={bot} balance={displayedAvailable} userId={user?.id}/>
+              <BotCard key={bot.id} bot={bot} balance={balance ?? 0} userId={user?.id}/>
             ))}
           </div>
         </div>
