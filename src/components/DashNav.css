@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
 /* ════════════════════════════════════════
-   DESKTOP HEADER (≥ 768px)
+   DESKTOP HEADER (≥ 768px) – FIXED
 ════════════════════════════════════════ */
 
 .dashnav-header {
@@ -15,9 +15,11 @@
   padding: 0 24px;
   align-items: center;
   gap: 8px;
-  position: sticky;
+  position: fixed;          /* changed from sticky to fixed */
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;            /* ensure it's above everything */
 }
 
 @media (min-width: 768px) {
@@ -171,9 +173,9 @@
   max-width: 120px;
 }
 
-/* ── Sign Out button – dark bg, white text, strong contrast ── */
+/* ── Sign Out button – dark bg, white text ── */
 .logout-btn {
-  background: #1a1a1a;               /* dark contrasting black */
+  background: #1a1a1a;
   border: 1.5px solid #444444;
   color: #ffffff;
   padding: 8px 18px;
@@ -194,14 +196,16 @@
 }
 
 /* ════════════════════════════════════════
-   MOBILE HEADER (< 768px)
+   MOBILE HEADER (< 768px) – FIXED
 ════════════════════════════════════════ */
 
 .mobile-header {
   display: flex;
-  position: sticky;
+  position: fixed;           /* changed from sticky to fixed */
   top: 0;
-  z-index: 200;
+  left: 0;
+  right: 0;
+  z-index: 1000;             /* same high z-index as desktop */
   width: 100%;
   height: 60px;
   background: rgba(10, 12, 15, 0.95);
@@ -324,8 +328,8 @@
   display: none;
   position: fixed;
   inset: 0;
-  top: 60px;
-  z-index: 190;
+  top: 60px;                 /* align with mobile header height */
+  z-index: 999;              /* below header but above content */
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(2px);
 }
@@ -335,12 +339,12 @@
 .mobile-dropdown {
   display: none;
   position: fixed;
-  top: 60px;
+  top: 60px;                 /* start below the fixed header */
   right: 0;
   bottom: 0;
   width: 280px;
   max-width: 85vw;
-  z-index: 195;
+  z-index: 999;              /* same as backdrop, above content */
   background: rgba(10, 12, 15, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -433,7 +437,7 @@
   white-space: nowrap;
 }
 
-/* ── Dropdown Sign Out – dark bg, white text, strong contrast ── */
+/* ── Dropdown Sign Out – dark bg, white text ── */
 .mobile-dropdown-logout {
   display: flex;
   align-items: center;
