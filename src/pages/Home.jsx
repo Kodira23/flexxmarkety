@@ -290,10 +290,14 @@ export default function Home() {
       {/* ── FOOTER ── */}
       <footer className="footer">
         <div className="footer-inner">
-          <div className="footer-logo">
-            <span style={{ color: 'var(--green)' }}>◈</span> Flexxmarket
+          <div className="footer-left">
+            <img src="/logoz.jpeg" alt="Flexxmarket" className="footer-logo-img" />
+            <div className="footer-brand-wrapper">
+              <span className="footer-brand-text">Flexxmarket</span>
+              <span className="footer-brand-sub">pro trading</span>
+            </div>
           </div>
-          <p className="footer-copy">© 2026 Flexxmarket. All rights reserved. Trading involves risk.</p>
+          <div className="footer-copy">© 2026 Flexxmarket. All rights reserved. Trading involves risk.</div>
         </div>
       </footer>
 
