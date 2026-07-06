@@ -42,7 +42,7 @@
   object-fit: contain;
 }
 
-/* ── Brand text + subline wrapper (vertical stack) ── */
+/* ── Brand text + subline wrapper ── */
 .navbar-brand-wrapper {
   display: flex;
   flex-direction: column;
@@ -66,7 +66,7 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   white-space: nowrap;
-  margin-top: -2px; /* optional tighten */
+  margin-top: -2px;
 }
 
 .navbar-links {
@@ -121,9 +121,18 @@
   .navbar-logo-img,
   .navbar-logo img { height: 48px; max-width: 120px; }
 
-  /* HIDE the whole brand text + subline on mobile */
+  /* Show brand on mobile – responsive sizes */
   .navbar-brand-wrapper {
-    display: none;
+    display: flex; /* overrides any hidden state – now visible on mobile */
+  }
+
+  .navbar-brand-text {
+    font-size: 16px; /* smaller on mobile */
+  }
+
+  .navbar-brand-sub {
+    font-size: 10px; /* smaller on mobile */
+    margin-top: -1px;
   }
 
   .navbar-actions { gap: 6px; }
