@@ -27,7 +27,7 @@
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   flex-shrink: 0;
 }
@@ -42,7 +42,13 @@
   object-fit: contain;
 }
 
-/* ── NEW: brand text next to logo (desktop only) ── */
+/* ── Brand text + subline wrapper (vertical stack) ── */
+.navbar-brand-wrapper {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
 .navbar-brand-text {
   font-family: 'Inter', sans-serif;
   font-weight: 700;
@@ -50,6 +56,17 @@
   color: var(--text-primary, #ffffff);
   letter-spacing: -0.02em;
   white-space: nowrap;
+}
+
+.navbar-brand-sub {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-secondary, #a0a0a0);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin-top: -2px; /* optional tighten */
 }
 
 .navbar-links {
@@ -104,8 +121,8 @@
   .navbar-logo-img,
   .navbar-logo img { height: 48px; max-width: 120px; }
 
-  /* HIDE the brand text on mobile */
-  .navbar-brand-text {
+  /* HIDE the whole brand text + subline on mobile */
+  .navbar-brand-wrapper {
     display: none;
   }
 
