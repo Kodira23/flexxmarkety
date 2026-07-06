@@ -171,10 +171,10 @@
   max-width: 120px;
 }
 
-/* ── Sign Out button (white bg, black text) ── */
+/* ── Sign Out button – white bg, black text, strong contrast ── */
 .logout-btn {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #333333;        /* dark border for contrast */
   color: #000000;
   padding: 8px 18px;
   border-radius: 8px;
@@ -184,13 +184,14 @@
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); /* deeper shadow */
 }
 
 .logout-btn:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: #f0f0f0;
+  border-color: #111111;
   transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.30);
 }
 
 /* ════════════════════════════════════════
@@ -433,7 +434,7 @@
   white-space: nowrap;
 }
 
-/* ── Dropdown Sign Out (white bg, black text) ── */
+/* ── Dropdown Sign Out – white bg, black text, strong contrast ── */
 .mobile-dropdown-logout {
   display: flex;
   align-items: center;
@@ -445,17 +446,19 @@
   font-weight: 600;
   color: #000000;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #333333;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s;
   width: auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
+
 .mobile-dropdown-logout:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: #f0f0f0;
+  border-color: #111111;
   transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.30);
 }
 
 /* ════════════════════════════════════════
@@ -549,51 +552,3 @@
 .footer-avatar {
   display: none !important;
 }
-/* ── Sign Out button (desktop) – enhanced contrast ── */
-.logout-btn {
-  background: #ffffff;
-  border: 1.5px solid #555555;          /* darker border for contrast */
-  color: #000000;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); /* subtle depth */
-}
-
-.logout-btn:hover {
-  background: #f0f0f0;                  /* slightly darker on hover */
-  border-color: #333333;
-  transform: scale(1.02);
-}
-
-/* ── Mobile dropdown Sign Out – enhanced contrast ── */
-.mobile-dropdown-logout {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 24px;
-  margin: 6px 16px 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: #000000;
-  background: #ffffff;
-  border: 1.5px solid #555555;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-  width: auto;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-}
-
-.mobile-dropdown-logout:hover {
-  background: #f0f0f0;
-  border-color: #333333;
-  transform: scale(1.02);
-}
-
