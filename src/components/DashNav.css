@@ -7,11 +7,11 @@
 .dashnav-header {
   display: none;
   width: 100%;
-  height: 72px;                    /* increased to match logo height */
+  height: 72px;
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border, #2a2a2a);
   padding: 0 24px;
   align-items: center;
   gap: 8px;
@@ -40,7 +40,7 @@
 }
 
 .dashnav-logo-img {
-  height: 48px;                    /* adjusted for header height */
+  height: 48px;
   width: auto;
   display: block;
   border-radius: 6px;
@@ -78,7 +78,7 @@
   align-items: center;
   gap: 4px;
   flex: 1;
-  justify-content: center;        /* centered */
+  justify-content: center;
 }
 
 .dashnav-link {
@@ -105,13 +105,21 @@
 }
 
 .dashnav-link.active {
-  background: var(--green-dim, rgba(22, 163, 74, 0.15));
   color: var(--green, #16a34a);
+  background: var(--green-dim, rgba(22, 163, 74, 0.10));
   font-weight: 600;
   border: 1px solid rgba(22, 163, 74, 0.25);
 }
 
-.nav-icon { font-size: 14px; }
+.dashnav-link.active .nav-icon svg {
+  stroke: var(--green, #16a34a);
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ── Right side (user + sign out) ── */
 .dashnav-right {
@@ -136,14 +144,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 800;
   color: #000;
   flex-shrink: 0;
 }
 
-.user-info { display: flex; flex-direction: column; gap: 1px; }
+.user-avatar svg {
+  stroke: #000;
+  width: 18px;
+  height: 18px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
 
 .user-email {
   font-family: 'Inter', sans-serif;
@@ -156,11 +171,11 @@
   max-width: 120px;
 }
 
-/* ── Green Sign Out button ── */
+/* ── Sign Out button (white bg, black text) ── */
 .logout-btn {
-  background: var(--green, #16a34a);
-  border: none;
-  color: #ffffff;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #000000;
   padding: 8px 18px;
   border-radius: 8px;
   font-family: 'Inter', sans-serif;
@@ -169,13 +184,13 @@
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .logout-btn:hover {
-  background: #15803d;            /* darker green */
+  background: #f8fafc;
+  border-color: #cbd5e1;
   transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
 }
 
 /* ════════════════════════════════════════
@@ -192,7 +207,7 @@
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border, #2a2a2a);
   padding: 0 16px;
   align-items: center;
   justify-content: space-between;
@@ -250,11 +265,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 800;
   color: #000;
-  text-transform: uppercase;
+}
+
+.mobile-avatar-small svg {
+  stroke: #000;
+  width: 16px;
+  height: 16px;
 }
 
 /* ── Hamburger ── */
@@ -367,11 +384,15 @@
   background: var(--green-dim, rgba(22, 163, 74, 0.12));
   font-weight: 600;
 }
+.mobile-dropdown-link.active .mobile-dropdown-icon svg {
+  stroke: var(--green, #16a34a);
+}
 
 .mobile-dropdown-icon {
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 26px;
-  text-align: center;
   flex-shrink: 0;
 }
 
@@ -395,11 +416,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  font-weight: 800;
   color: #000;
   flex-shrink: 0;
+}
+.mobile-dropdown-avatar svg {
+  stroke: #000;
+  width: 16px;
+  height: 16px;
 }
 .mobile-dropdown-email {
   font-family: 'Inter', sans-serif;
@@ -410,7 +433,7 @@
   white-space: nowrap;
 }
 
-/* ── Dropdown Sign Out (green) ── */
+/* ── Dropdown Sign Out (white bg, black text) ── */
 .mobile-dropdown-logout {
   display: flex;
   align-items: center;
@@ -420,18 +443,18 @@
   font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 600;
-  color: #ffffff;
-  background: var(--green, #16a34a);
-  border: none;
+  color: #000000;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: all 0.15s;
   width: auto;
-  text-align: left;
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .mobile-dropdown-logout:hover {
-  background: #15803d;
+  background: #f8fafc;
+  border-color: #cbd5e1;
   transform: scale(1.02);
 }
 
