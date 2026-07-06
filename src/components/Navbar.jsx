@@ -1,7 +1,6 @@
 import './Navbar.css';
 
 export default function Navbar({ onSignIn, onGetStarted }) {
-  // Sign In is fully functional – you can pass a real auth function
   const handleSignIn = () => {
     console.log('Sign In clicked – implement your auth logic');
     if (onSignIn) onSignIn();
@@ -10,14 +9,16 @@ export default function Navbar({ onSignIn, onGetStarted }) {
     console.log('Get Started clicked');
     if (onGetStarted) onGetStarted();
   };
+
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        {/* Logo only – no links */}
+        {/* Logo + brand name (desktop only) */}
         <div className="navbar-logo">
           <img src="/logoz.jpeg" alt="Flexxmarket" className="navbar-logo-img" />
+          <span className="navbar-brand-text">FlexxMarket</span>
         </div>
-        {/* No navigation links – removed */}
+        {/* Actions – no navigation links */}
         <div className="navbar-actions">
           <button className="btn-ghost" onClick={handleSignIn}>
             Sign In
