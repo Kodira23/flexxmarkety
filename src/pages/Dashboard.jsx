@@ -125,9 +125,20 @@ function CryptoCard({ coin }) {
 
 // ── DEPOSIT PAGE ───────────────────────────────────────────────────────
 function DepositPage({ onBack }) {
-  const [coin,   setCoin]   = useState('BTC')
-  const [amount, setAmount] = useState('')
+  const [coin, setCoin] = useState('BTC')
   const [copied, setCopied] = useState(false)
+  const [generatedFor, setGeneratedFor] = useState({})   // tracks which coins have had an address generated
+  const [generating, setGenerating] = useState(false)
+
+  const isGenerated = !!generatedFor[coin]
+
+  function handleGenerate() {
+    setGenerating(true)
+    setTimeout(() => {
+      setGeneratedFor(prev => ({ ...prev, [coin]: true }))
+      setGenerating(false)
+    }, 1200)
+  }
 
   function copy() {
     navigator.clipboard.writeText(WALLET_ADDRESSES[coin])
@@ -157,16 +168,23 @@ function DepositPage({ onBack }) {
             </button>
           ))}
         </div>
-        <div className="fund-field">
-          <label>Amount (USD)</label>
-          <input className="fund-input" type="number" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} />
-        </div>
-        <div className="wallet-box">
-          <h3>{coin === 'BTC' ? 'Bitcoin' : 'USDT (TRC20)'} Wallet Address</h3>
-          <div className="wallet-addr font-mono">{WALLET_ADDRESSES[coin]}</div>
-          <button className="copy-btn" onClick={copy}>{copied ? '✓ Copied!' : 'Copy Address'}</button>
-          <p className="wallet-note">Send the exact amount to this address and your account will be credited automatically.</p>
-        </div>
+
+        {!isGenerated ? (
+          <div className="wallet-box">
+            <h3>{coin === 'BTC' ? 'Bitcoin' : 'USDT (TRC20)'} Deposit Address</h3>
+            <p className="wallet-note">Generate a deposit address for {coin === 'BTC' ? 'Bitcoin' : 'USDT'} to continue.</p>
+            <button className="copy-btn" onClick={handleGenerate} disabled={generating}>
+              {generating ? 'Generating…' : 'Generate Address'}
+            </button>
+          </div>
+        ) : (
+          <div className="wallet-box">
+            <h3>{coin === 'BTC' ? 'Bitcoin' : 'USDT (TRC20)'} Wallet Address</h3>
+            <div className="wallet-addr font-mono">{WALLET_ADDRESSES[coin]}</div>
+            <button className="copy-btn" onClick={copy}>{copied ? '✓ Copied!' : 'Copy Address'}</button>
+            <p className="wallet-note">Deposit money into this address for your account to be credited.</p>
+          </div>
+        )}
       </div>
     </div>
   )
