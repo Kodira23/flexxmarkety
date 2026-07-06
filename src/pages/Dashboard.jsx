@@ -125,19 +125,48 @@ function CryptoCard({ coin }) {
 
 // ── DEPOSIT PAGE ───────────────────────────────────────────────────────
 function DepositPage({ onBack }) {
+  const { user } = useAuth()
   const [coin, setCoin] = useState('BTC')
   const [copied, setCopied] = useState(false)
-  const [generatedFor, setGeneratedFor] = useState({})   // tracks which coins have had an address generated
+  const [generatedAddresses, setGeneratedAddresses] = useState({}) // { BTC: true, USDT: true } — coins the user has generated
+  const [loadingExisting, setLoadingExisting] = useState(true)
   const [generating, setGenerating] = useState(false)
 
-  const isGenerated = !!generatedFor[coin]
+  // Load which coins this user has already generated addresses for
+  useEffect(() => {
+    if (!user) { setLoadingExisting(false); return }
 
-  function handleGenerate() {
+    supabase
+      .from('deposit_addresses')
+      .select('coin')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        const map = {}
+        ;(data || []).forEach(row => { map[row.coin] = true })
+        setGeneratedAddresses(map)
+        setLoadingExisting(false)
+      })
+  }, [user])
+
+  const isGenerated = !!generatedAddresses[coin]
+
+  async function handleGenerate() {
+    if (!user) return
     setGenerating(true)
-    setTimeout(() => {
-      setGeneratedFor(prev => ({ ...prev, [coin]: true }))
-      setGenerating(false)
-    }, 1200)
+    const { error } = await supabase.from('deposit_addresses').insert({
+      user_id: user.id,
+      coin,
+      address: WALLET_ADDRESSES[coin],
+    })
+    setGenerating(false)
+    if (error) {
+      // If it already exists (e.g. race condition or already generated elsewhere), just reveal it
+      if (error.code === '23505') {
+        setGeneratedAddresses(prev => ({ ...prev, [coin]: true }))
+      }
+      return
+    }
+    setGeneratedAddresses(prev => ({ ...prev, [coin]: true }))
   }
 
   function copy() {
@@ -169,10 +198,14 @@ function DepositPage({ onBack }) {
           ))}
         </div>
 
-        {!isGenerated ? (
+        {loadingExisting ? (
+          <div className="wallet-box">
+            <p className="wallet-note">Loading…</p>
+          </div>
+        ) : !isGenerated ? (
           <div className="wallet-box">
             <h3>{coin === 'BTC' ? 'Bitcoin' : 'USDT (TRC20)'} Deposit Address</h3>
-            <p className="wallet-note">Generate a deposit address for {coin === 'BTC' ? 'Bitcoin' : 'USDT'} to continue.</p>
+            <p className="wallet-note">Generate a deposit address for {coin === 'BTC' ? 'Bitcoin' : 'USDT'} to continue. Once generated, it will stay visible on your account permanently.</p>
             <button className="copy-btn" onClick={handleGenerate} disabled={generating}>
               {generating ? 'Generating…' : 'Generate Address'}
             </button>
