@@ -1,17 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
-
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
   width: 100%;
-  height: 64px;
+  height: 80px;
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-
 .navbar-inner {
   max-width: 1280px;
   margin: 0 auto;
@@ -22,7 +20,6 @@
   justify-content: space-between;
   gap: 24px;
 }
-
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -30,43 +27,17 @@
   text-decoration: none;
   flex-shrink: 0;
 }
-
-.logo-icon {
-  font-size: 20px;
-  color: var(--green);
-  animation: float 3s ease-in-out infinite;
+.navbar-logo-img {
+  height: 52px;
+  width: auto;
+  display: block;
+  border-radius: 8px;
 }
-
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-  gap: 2px;
-}
-
-.logo-main {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.5px;
-}
-
-.logo-sub {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
 .navbar-links {
   display: flex;
   align-items: center;
   gap: 28px;
 }
-
 .navbar-links a {
   color: var(--text-secondary);
   text-decoration: none;
@@ -75,15 +46,12 @@
   font-weight: 500;
   transition: color 0.2s;
 }
-
 .navbar-links a:hover { color: var(--text-primary); }
-
 .navbar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .btn-ghost {
   background: transparent;
   border: none;
@@ -96,22 +64,17 @@
   border-radius: 10px;
   transition: color 0.2s;
 }
-
 .btn-ghost:hover { color: var(--text-primary); }
-
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-3px); }
 }
-
 /* ── MOBILE ── */
 @media (max-width: 768px) {
-  .navbar        { height: 56px; }
+  .navbar        { height: 64px; }
   .navbar-inner  { padding: 0 16px; gap: 12px; }
   .navbar-links  { display: none; }
-  .logo-main     { font-size: 16px; }
-  .logo-sub      { display: none; }
-
+  .navbar-logo-img { height: 40px; }
   .navbar-actions { gap: 6px; }
   .navbar-actions .btn-ghost,
   .navbar-actions .btn-outline,
