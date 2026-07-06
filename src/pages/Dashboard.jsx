@@ -399,6 +399,23 @@ export default function Dashboard() {
         </>}
 
       </div>
+
+      {/* ── FOOTER ── */}
+      <footer className="dash-footer">
+        <div className="dash-footer-inner">
+          <div className="dash-footer-left">
+            <img src="/logoz.jpeg" alt="Flexxmarket" className="dash-footer-logo-img" />
+            <div className="dash-footer-brand-wrapper">
+              <span className="dash-footer-brand-text">Flexxmarket</span>
+              <span className="dash-footer-brand-sub">pro trading</span>
+            </div>
+          </div>
+          <div className="dash-footer-copy">
+            © 2026 Flexxmarket. All rights reserved. Trading involves risk.
+          </div>
+        </div>
+      </footer>
+
     </div>
   )
 }
