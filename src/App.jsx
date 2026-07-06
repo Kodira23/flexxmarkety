@@ -19,29 +19,46 @@ function DashLayout({ children, activePage, onNavigate }) {
         {children}
       </main>
 
-      {/* DESKTOP FOOTER */}
-      <footer className="dashnav-desktop-footer">
-        <div className="desktop-footer-inner">
-          <div className="desktop-footer-logo">
-            <span className="logo-icon-nav">◈</span>
-            <div className="logo-text-stack">
-              <span className="logo-top">Flexx</span>
-              <span className="logo-bottom">MARKET</span>
+      {/* ── FOOTER (matches Home.jsx style) ── */}
+      <footer className="footer">
+        <div className="footer-inner">
+          <div className="footer-left">
+            <img src="/logoz.jpeg" alt="Flexxmarket" className="footer-logo-img" />
+            <div className="footer-brand-wrapper">
+              <span className="footer-brand-text">Flexxmarket</span>
+              <span className="footer-brand-sub">pro trading</span>
             </div>
           </div>
-          <div className="desktop-footer-copy">
-            © 2026 Flexxmarket. All rights reserved. Trading involves risk.
-          </div>
+          <div className="footer-copy">© 2026 Flexxmarket. All rights reserved. Trading involves risk.</div>
         </div>
       </footer>
 
-      {/* MOBILE FOOTER */}
-      <footer className="mobile-footer">
-        <div className="mobile-footer-inner">
-          <span className="mobile-footer-logo">◈ Flexxmarket</span>
-          <span className="mobile-footer-copy">© 2026 · Pro Trading</span>
-        </div>
-      </footer>
+      {/* ── OLD DASHBOARD FOOTER (disabled, kept for reference — flip to true to restore) ── */}
+      {false && (
+        <>
+          <footer className="dashnav-desktop-footer">
+            <div className="desktop-footer-inner">
+              <div className="desktop-footer-logo">
+                <span className="logo-icon-nav">◈</span>
+                <div className="logo-text-stack">
+                  <span className="logo-top">Flexx</span>
+                  <span className="logo-bottom">MARKET</span>
+                </div>
+              </div>
+              <div className="desktop-footer-copy">
+                © 2026 Flexxmarket. All rights reserved. Trading involves risk.
+              </div>
+            </div>
+          </footer>
+
+          <footer className="mobile-footer">
+            <div className="mobile-footer-inner">
+              <span className="mobile-footer-logo">◈ Flexxmarket</span>
+              <span className="mobile-footer-copy">© 2026 · Pro Trading</span>
+            </div>
+          </footer>
+        </>
+      )}
     </div>
   )
 }
@@ -50,8 +67,7 @@ function DashLayout({ children, activePage, onNavigate }) {
 function ProtectedPages() {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Determine active page based on current path
+
   const getActivePage = () => {
     const path = location.pathname;
     if (path === '/dashboard') return 'home';
@@ -84,7 +100,6 @@ function ProtectedPages() {
     }
   };
 
-  // Render the appropriate page component based on route
   const renderPage = () => {
     const path = location.pathname;
     switch (path) {
