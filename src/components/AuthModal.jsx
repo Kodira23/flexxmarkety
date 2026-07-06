@@ -9,11 +9,18 @@ export default function AuthModal({ mode: initialMode, onClose }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const { signIn } = useAuth()
   const navigate = useNavigate()
+
+  const switchMode = (next) => {
+    setMode(next)
+    setError('')
+    setSuccess('')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -63,70 +70,100 @@ export default function AuthModal({ mode: initialMode, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
-        <div className="modal-logo">
-          <span className="logo-icon-sm">◈</span>
-          <span className="modal-brand">FlexMarket</span>
+    <div className="auth-overlay">
+      <div className="auth-page">
+        <button className="auth-close" onClick={onClose} aria-label="Close">✕</button>
+
+        <div className="auth-image-panel">
+          <img src="/logoz.jpeg" alt="FlexMarket" className="auth-image" />
+          <div className="auth-image-overlay" />
         </div>
-        <div className="modal-tabs">
-          <button
-            className={mode === 'signin' ? 'tab active' : 'tab'}
-            onClick={() => { setMode('signin'); setError(''); setSuccess('') }}
-          >
-            Sign In
-          </button>
-          <button
-            className={mode === 'signup' ? 'tab active' : 'tab'}
-            onClick={() => { setMode('signup'); setError(''); setSuccess('') }}
-          >
-            Create Account
-          </button>
+
+        <div className="auth-form-panel">
+          <div className="auth-form-inner">
+            <h1 className="auth-title">
+              {mode === 'signin' ? 'Welcome back' : 'Welcome'}
+            </h1>
+            <p className="auth-subtitle">Please enter your details.</p>
+
+            <form onSubmit={handleSubmit} className="auth-form">
+              {mode === 'signup' && (
+                <div className="form-group">
+                  <label>Username</label>
+                  <input
+                    type="text"
+                    placeholder="yourname"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>E-mail</label>
+                <input
+                  type="email"
+                  placeholder="Enter your e-mail"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {mode === 'signin' && (
+                <div className="auth-row">
+                  <label className="remember-me">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={e => setRememberMe(e.target.checked)}
+                    />
+                    Remember me
+                  </label>
+                  <a href="#" className="forgot-link">Forgot your password?</a>
+                </div>
+              )}
+
+              {error && <div className="modal-error">{error}</div>}
+              {success && <div className="modal-success">{success}</div>}
+
+              <button type="submit" className="auth-submit" disabled={loading}>
+                {loading ? 'Please wait...' : mode === 'signin' ? 'Log in' : 'Register'}
+              </button>
+            </form>
+
+            <p className="auth-switch">
+              {mode === 'signin' ? (
+                <>
+                  Don't have an account?{' '}
+                  <button type="button" className="auth-switch-btn" onClick={() => switchMode('signup')}>
+                    Register here
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{' '}
+                  <button type="button" className="auth-switch-btn" onClick={() => switchMode('signin')}>
+                    Sign in
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="modal-form">
-          {mode === 'signup' && (
-            <div className="form-group">
-              <label>Username</label>
-              <input
-                type="text"
-                placeholder="yourname"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-              />
-            </div>
-          )}
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-          {error && <div className="modal-error">{error}</div>}
-          {success && <div className="modal-success">{success}</div>}
-          <button type="submit" className="btn-primary modal-submit" disabled={loading}>
-            {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In →' : 'Create Account →'}
-          </button>
-        </form>
-        <p className="modal-disclaimer">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
-        </p>
       </div>
     </div>
   )
