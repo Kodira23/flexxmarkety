@@ -517,7 +517,7 @@
 /* ── FOOTER ── */
 .footer {
   padding: 24px 24px;
-  border-top: none;                      /* border removed */
+  border-top: 1px solid var(--border);
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
