@@ -10,6 +10,7 @@ export default function AuthModal({ mode: initialMode, onClose }) {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -25,6 +26,15 @@ export default function AuthModal({ mode: initialMode, onClose }) {
   useEffect(() => {
     document.body.classList.add('auth-open')
     return () => document.body.classList.remove('auth-open')
+  }, [])
+
+  // Prefill remembered email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('flexx_remembered_email')
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setRememberMe(true)
+    }
   }, [])
 
   const handleSubmit = async (e) => {
