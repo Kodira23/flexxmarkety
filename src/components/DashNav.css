@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
 /* ── GLOBAL PADDING TO PREVENT CONTENT FROM BEING COVERED ── */
-/* This adds top padding to the main content area so the fixed navbar never overlaps it */
+/* Reduced to match navbar height exactly – no extra spacing */
 main,
 .main-content,
 #root > *:not(.dashnav-header):not(.mobile-header) {
-  padding-top: 72px; /* desktop header height */
+  padding-top: 72px; /* exactly desktop header height */
 }
 
 @media (max-width: 768px) {
   main,
   .main-content,
   #root > *:not(.dashnav-header):not(.mobile-header) {
-    padding-top: 60px; /* mobile header height */
+    padding-top: 60px; /* exactly mobile header height */
   }
 }
 
@@ -27,7 +27,7 @@ main,
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: none;        /* ─── BORDER REMOVED ─── */
+  border-bottom: none;
   padding: 0 24px;
   align-items: center;
   gap: 8px;
@@ -227,7 +227,7 @@ main,
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: none;        /* ─── BORDER REMOVED ─── */
+  border-bottom: none;
   padding: 0 16px;
   align-items: center;
   justify-content: space-between;
