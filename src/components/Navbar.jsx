@@ -13,10 +13,13 @@ export default function Navbar({ onSignIn, onGetStarted }) {
   return (
     <nav className="navbar">
       <div className="navbar-inner">
-        {/* Logo + brand name (desktop only) */}
+        {/* Logo + brand text + subline (desktop only) */}
         <div className="navbar-logo">
           <img src="/logoz.jpeg" alt="Flexxmarket" className="navbar-logo-img" />
-          <span className="navbar-brand-text">FlexxMarket</span>
+          <div className="navbar-brand-wrapper">
+            <span className="navbar-brand-text">FlexxMarket</span>
+            <span className="navbar-brand-sub">pro trading</span>
+          </div>
         </div>
         {/* Actions – no navigation links */}
         <div className="navbar-actions">
