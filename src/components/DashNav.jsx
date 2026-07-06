@@ -13,7 +13,10 @@ export default function DashNav({ activePage, onNavigate }) {
   const { user, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const initials = user?.email?.slice(0, 2).toUpperCase() || 'FL';
+  // Extract username (part before '@') and initials
+  const email = user?.email || 'trader@flexx.com';
+  const username = email.split('@')[0];
+  const initials = username.slice(0, 2).toUpperCase();
 
   const handleNav = (id) => {
     if (onNavigate) onNavigate(id);
@@ -27,13 +30,13 @@ export default function DashNav({ activePage, onNavigate }) {
 
   return (
     <>
-      {/* DESKTOP HEADER */}
+      {/* ─── DESKTOP HEADER ─── */}
       <header className="dashnav-header">
         <button className="dashnav-logo" onClick={() => handleNav('home')}>
-          <span className="logo-icon-nav">◈</span>
+          <img src="/logoz.jpeg" alt="Flexxmarket" className="dashnav-logo-img" />
           <div className="logo-text-stack">
             <span className="logo-top">Flexxmarket</span>
-            <span className="logo-bottom">Pro Trading</span>
+            <span className="logo-bottom">pro trading</span>
           </div>
         </button>
 
@@ -54,17 +57,17 @@ export default function DashNav({ activePage, onNavigate }) {
           <div className="dashnav-user">
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
-              <span className="user-email">{user?.email || 'trader@flexx.com'}</span>
+              <span className="user-email">{username}</span>
             </div>
           </div>
           <button className="logout-btn" onClick={handleSignOut}>Sign Out</button>
         </div>
       </header>
 
-      {/* MOBILE HEADER */}
+      {/* ─── MOBILE HEADER ─── */}
       <header className="mobile-header">
         <button className="mobile-logo" onClick={() => handleNav('home')}>
-          <span className="mobile-logo-icon">◈</span>
+          <img src="/logoz.jpeg" alt="Flexxmarket" className="mobile-logo-img" />
           <span className="mobile-logo-text">Flexxmarket</span>
         </button>
         <div className="mobile-header-right">
@@ -83,7 +86,7 @@ export default function DashNav({ activePage, onNavigate }) {
         </div>
       </header>
 
-      {/* BACKDROP & DROPDOWN */}
+      {/* ─── BACKDROP & DROPDOWN ─── */}
       <div
         className={`mobile-dropdown-backdrop ${menuOpen ? 'open' : ''}`}
         onClick={() => setMenuOpen(false)}
@@ -102,7 +105,7 @@ export default function DashNav({ activePage, onNavigate }) {
         <div className="mobile-dropdown-divider" />
         <div className="mobile-dropdown-user">
           <div className="mobile-dropdown-avatar">{initials}</div>
-          <span className="mobile-dropdown-email">{user?.email || 'trader@flexx.com'}</span>
+          <span className="mobile-dropdown-email">{username}</span>
         </div>
         <button className="mobile-dropdown-logout" onClick={handleSignOut}>
           <span className="mobile-dropdown-icon">🚪</span> Sign Out
