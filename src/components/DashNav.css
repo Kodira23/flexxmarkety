@@ -1,23 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
-/* ── GLOBAL PADDING TO PREVENT CONTENT FROM BEING COVERED ── */
-/* Reduced to match navbar height exactly – no extra spacing */
-main,
-.main-content,
-#root > *:not(.dashnav-header):not(.mobile-header) {
-  padding-top: 72px; /* exactly desktop header height */
-}
-
-@media (max-width: 768px) {
-  main,
-  .main-content,
-  #root > *:not(.dashnav-header):not(.mobile-header) {
-    padding-top: 60px; /* exactly mobile header height */
-  }
-}
-
 /* ════════════════════════════════════════
-   DESKTOP HEADER (≥ 768px) – FIXED
+   DESKTOP HEADER (≥ 768px) – STICKY
 ════════════════════════════════════════ */
 
 .dashnav-header {
@@ -27,14 +11,12 @@ main,
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: none;
+  border-bottom: none;              /* border removed */
   padding: 0 24px;
   align-items: center;
   gap: 8px;
-  position: fixed;
+  position: sticky;                 /* changed from fixed */
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 1000;
 }
 
@@ -212,22 +194,20 @@ main,
 }
 
 /* ════════════════════════════════════════
-   MOBILE HEADER (< 768px) – FIXED
+   MOBILE HEADER (< 768px) – STICKY
 ════════════════════════════════════════ */
 
 .mobile-header {
   display: flex;
-  position: fixed;
+  position: sticky;                 /* changed from fixed */
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 1000;
   width: 100%;
   height: 60px;
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: none;
+  border-bottom: none;              /* border removed */
   padding: 0 16px;
   align-items: center;
   justify-content: space-between;
