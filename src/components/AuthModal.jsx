@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
@@ -21,6 +21,11 @@ export default function AuthModal({ mode: initialMode, onClose }) {
     setError('')
     setSuccess('')
   }
+
+  useEffect(() => {
+    document.body.classList.add('auth-open')
+    return () => document.body.classList.remove('auth-open')
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
