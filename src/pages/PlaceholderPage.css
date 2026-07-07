@@ -190,14 +190,8 @@ const BOT_CONFIGS = [
   { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.26, lossMult:0.38 },
 ]
 
-// ── BOT CARD (Detailed View) ─────────────────────────────────────────
-// (This is the full detailed BotCard from earlier, with tick, persist, start/stop)
-// For brevity, I'll include it fully – but since it's long, I'll assume you have it.
-// However, for this file to be complete, I'll paste the entire BotCard again.
-// In practice, you could keep it as is.
-
-function BotCard({ bot, balance, userId }) {
-  const canRun = balance >= MIN_BALANCE
+// ── BOT DETAIL VIEW (split layout) ──────────────────────────────────
+function BotDetail({ bot, balance, userId, onBack }) {
   const [active, setActive] = useState(false)
   const [configured, setConfigured] = useState(false)
   const [showConfig, setShowConfig] = useState(false)
@@ -212,6 +206,7 @@ function BotCard({ bot, balance, userId }) {
   const lossesRef = useRef(0)
   const intervalKey = `${userId}-${bot.id}`
 
+  // ── Helpers ──────────────────────────────────────────────────────
   function addLog(msg, color = '#aaa') {
     setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }, ...prev].slice(0, 8))
   }
@@ -233,9 +228,7 @@ function BotCard({ bot, balance, userId }) {
           ...patch,
         }, { onConflict: 'user_id,bot_id' })
       if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
-    } catch (err) {
-      console.error('Persist error:', err)
-    }
+    } catch (err) { console.error('Persist error:', err) }
   }
 
   const tick = useCallback(async () => {
@@ -244,7 +237,6 @@ function BotCard({ bot, balance, userId }) {
 
       const total = winsRef.current + lossesRef.current
       let isLoss = false
-
       if (total > 0) {
         const wr = winsRef.current / total
         if (wr < 0.62) isLoss = false
@@ -299,6 +291,7 @@ function BotCard({ bot, balance, userId }) {
     }
   }, [bot, userId])
 
+  // ── Load saved state ──────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return
     const loadState = async () => {
@@ -338,7 +331,9 @@ function BotCard({ bot, balance, userId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, bot.id])
 
+  // ── Start / Stop ──────────────────────────────────────────────────
   async function handleStart() {
+    const canRun = balance >= MIN_BALANCE
     if (!canRun || !configured) return
 
     if (active) {
@@ -393,103 +388,210 @@ function BotCard({ bot, balance, userId }) {
   const totalTrades = wins + losses
   const statusLabel = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
   const statusColor = active ? '#00c853' : configured ? '#ffaa00' : '#555'
-  const configureIsNext = canRun && !configured && !showConfig
-  const saveIsNext = showConfig
-  const startIsNext = canRun && configured && !active
-
-  const allocNum = parseFloat(allocation)
-  const isSaveDisabled = !canRun || !allocation || allocNum < MIN_ALLOCATION || allocNum > balance
+  const canRun = balance >= MIN_BALANCE
 
   if (!loaded) {
-    return <div className="bot-card" style={{ opacity: 0.5 }}>Loading…</div>
+    return <div className="bot-detail-loading" style={{ padding: '40px', textAlign: 'center' }}>Loading bot details…</div>
   }
 
   return (
-    <div className="bot-card" style={{ opacity: canRun ? 1 : 0.55 }}>
+    <div className="bot-detail-container" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '24px', padding: '0 0 20px 0' }}>
+      {/* ─── Left Column – Controls ─── */}
+      <div className="bot-controls">
+        <div className="bot-card" style={{ marginBottom: '0' }}>
+          <div className="bot-card-top">
+            <div>
+              <div className="bot-name">{bot.name}</div>
+              <div className="bot-subtitle">{bot.subtitle}</div>
+            </div>
+            <div className="bot-status-badge" style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}55` }}>
+              {active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
+            </div>
+          </div>
+          <p className="bot-desc">{bot.description}</p>
+
+          {showConfig && (
+            <div className="bot-config-box">
+              <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 8 }}>Available balance: <strong>${Number(balance).toFixed(2)}</strong></div>
+              {!canRun && (
+                <div style={{ fontSize: 13, color: '#ff3b5c', marginBottom: 10, padding: '6px 10px', background: '#ff3b5c22', borderRadius: 6 }}>
+                  ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
+                </div>
+              )}
+              <label className="bot-config-label">Allocation amount (USD)</label>
+              <input
+                type="number"
+                min={MIN_ALLOCATION}
+                max={balance}
+                placeholder=""
+                value={allocation}
+                onChange={e => setAllocation(e.target.value)}
+                className="bot-config-input"
+                disabled={!canRun}
+              />
+              <div style={{ fontSize: 12, color: '#ffaa00', marginTop: 4 }}>⚠️ Allocation must be ${MIN_ALLOCATION} or above</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <button
+                  className="bot-btn-start"
+                  onClick={handleSaveConfig}
+                  style={{ flex: 1 }}
+                  disabled={!canRun || !allocation || parseFloat(allocation) < MIN_ALLOCATION || parseFloat(allocation) > balance}
+                >
+                  💾 Save Config
+                </button>
+                <button className="bot-btn-configure" onClick={() => setShowConfig(false)} style={{ flex: 1 }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div className="bot-actions" style={{ marginTop: '12px' }}>
+            <button
+              className="bot-btn-configure"
+              onClick={() => { if (canRun) setShowConfig(v => !v) }}
+              disabled={!canRun || active}
+            >
+              {showConfig ? '✕ Close Config' : '⚙️ Configure'}
+            </button>
+            <button
+              className="bot-btn-start"
+              onClick={handleStart}
+              disabled={!canRun || !configured}
+              style={active ? { background: '#ff3b5c22', color: '#ff3b5c', border: '1px solid #ff3b5c55' } : {}}
+            >
+              {active ? '⏹ Stop Bot' : '▶ Start Bot'}
+            </button>
+          </div>
+
+          {log.length > 0 && (
+            <div className="bot-log" style={{ marginTop: '12px' }}>
+              {log.map((l, i) => (
+                <div key={i} style={{ color: l.color, marginBottom: 2 }}>
+                  <span style={{ opacity: 0.45, marginRight: 6 }}>{l.ts}</span>{l.msg}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ─── Right Column – Stats ─── */}
+      <div className="bot-stats-panel">
+        <div className="bot-card" style={{ height: '100%' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px', fontFamily: 'var(--font-primary)' }}>Performance</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="stat-row">
+              <span className="stat-label">Available Balance</span>
+              <span className="stat-value" style={{ color: '#00c853' }}>${Number(balance).toFixed(2)}</span>
+            </div>
+            <div className="stat-row">
+              <span className="stat-label">P&L</span>
+              <span className="stat-value" style={{ color: pnl >= 0 ? '#00c853' : '#ff3b5c', fontWeight: 700 }}>
+                {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
+              </span>
+            </div>
+            <div className="stat-row">
+              <span className="stat-label">Wins</span>
+              <span className="stat-value" style={{ color: '#00c853' }}>{wins}</span>
+            </div>
+            <div className="stat-row">
+              <span className="stat-label">Losses</span>
+              <span className="stat-value" style={{ color: '#ff3b5c' }}>{losses}</span>
+            </div>
+            {totalTrades > 0 && (
+              <div className="stat-row">
+                <span className="stat-label">Win Rate</span>
+                <span className="stat-value">{((wins / totalTrades) * 100).toFixed(0)}%</span>
+              </div>
+            )}
+            {configured && (
+              <div className="stat-row">
+                <span className="stat-label">Allocation</span>
+                <span className="stat-value">${parseFloat(allocation || 0).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="stat-row">
+              <span className="stat-label">Status</span>
+              <span className="stat-value" style={{ color: statusColor }}>{statusLabel}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── BOT SUMMARY CARD (first page) ─────────────────────────────────────
+function BotSummaryCard({ bot, balance, userId, onConfigure }) {
+  const [state, setState] = useState({ active: false, configured: false, pnl: 0, wins: 0, losses: 0 })
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    if (!userId) return
+    supabase
+      .from('bot_simulated_pnl')
+      .select('active, configured, pnl, wins, losses')
+      .eq('user_id', userId)
+      .eq('bot_id', bot.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setState(data)
+        setLoaded(true)
+      })
+      .catch(() => setLoaded(true))
+  }, [userId, bot.id])
+
+  const statusLabel = state.active ? 'Running' : state.configured ? 'Ready' : 'Not Configured'
+  const statusColor = state.active ? '#00c853' : state.configured ? '#ffaa00' : '#555'
+  const canRun = balance >= MIN_BALANCE
+
+  return (
+    <div className="bot-card" style={{ opacity: loaded ? 1 : 0.6 }}>
       <div className="bot-card-top">
         <div>
           <div className="bot-name">{bot.name}</div>
           <div className="bot-subtitle">{bot.subtitle}</div>
         </div>
         <div className="bot-status-badge" style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}55` }}>
-          {active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
+          {state.active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
         </div>
       </div>
       <p className="bot-desc">{bot.description}</p>
       <div className="bot-meta">
-        <div className="bot-meta-item"><span className="bot-meta-label">Risk</span><span className={`bot-meta-value risk-${bot.risk.toLowerCase()}`}>{bot.risk}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">P&L</span><span className="bot-meta-value" style={{ color: pnl >= 0 ? '#00c853' : '#ff3b5c', fontWeight: 700 }}>{pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">Wins</span><span className="bot-meta-value" style={{ color: '#00c853' }}>{wins}</span></div>
-        <div className="bot-meta-item"><span className="bot-meta-label">Losses</span><span className="bot-meta-value" style={{ color: '#ff3b5c' }}>{losses}</span></div>
-        {totalTrades > 0 && <div className="bot-meta-item"><span className="bot-meta-label">Win Rate</span><span className="bot-meta-value">{((wins / totalTrades) * 100).toFixed(0)}%</span></div>}
-        {configured && <div className="bot-meta-item"><span className="bot-meta-label">Allocation</span><span className="bot-meta-value">${parseFloat(allocation || 0).toFixed(2)}</span></div>}
+        <div className="bot-meta-item">
+          <span className="bot-meta-label">Risk</span>
+          <span className={`bot-meta-value risk-${bot.risk.toLowerCase()}`}>{bot.risk}</span>
+        </div>
+        {state.configured && (
+          <>
+            <div className="bot-meta-item">
+              <span className="bot-meta-label">P&L</span>
+              <span className="bot-meta-value" style={{ color: state.pnl >= 0 ? '#00c853' : '#ff3b5c', fontWeight: 700 }}>
+                {state.pnl >= 0 ? '+' : ''}${state.pnl.toFixed(2)}
+              </span>
+            </div>
+            <div className="bot-meta-item">
+              <span className="bot-meta-label">Wins</span>
+              <span className="bot-meta-value" style={{ color: '#00c853' }}>{state.wins}</span>
+            </div>
+            <div className="bot-meta-item">
+              <span className="bot-meta-label">Losses</span>
+              <span className="bot-meta-value" style={{ color: '#ff3b5c' }}>{state.losses}</span>
+            </div>
+            {state.wins + state.losses > 0 && (
+              <div className="bot-meta-item">
+                <span className="bot-meta-label">Win Rate</span>
+                <span className="bot-meta-value">{((state.wins / (state.wins + state.losses)) * 100).toFixed(0)}%</span>
+              </div>
+            )}
+          </>
+        )}
       </div>
-      {canRun && !active && (
-        <div className="bot-steps">
-          <div className={`bot-step ${!configured ? 'active-step' : 'done-step'}`}><span className="step-num">{!configured ? '1' : '✓'}</span><span>Configure</span></div>
-          <div className="step-line" />
-          <div className={`bot-step ${configured && !active ? 'active-step' : configured ? 'done-step' : 'inactive-step'}`}><span className="step-num">2</span><span>Start Bot</span></div>
-        </div>
-      )}
-      {showConfig && (
-        <div className="bot-config-box">
-          <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 8 }}>Available balance: <strong>${Number(balance).toFixed(2)}</strong></div>
-          {!canRun && (
-            <div style={{ fontSize: 13, color: '#ff3b5c', marginBottom: 10, padding: '6px 10px', background: '#ff3b5c22', borderRadius: 6 }}>
-              ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
-            </div>
-          )}
-          <label className="bot-config-label">Allocation amount (USD)</label>
-          <input
-            type="number"
-            min={MIN_ALLOCATION}
-            max={balance}
-            placeholder=""
-            value={allocation}
-            onChange={e => setAllocation(e.target.value)}
-            className="bot-config-input"
-            disabled={!canRun}
-          />
-          <div style={{ fontSize: 12, color: '#ffaa00', marginTop: 4 }}>
-            ⚠️ Allocation must be ${MIN_ALLOCATION} or above
-          </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button
-              className={`bot-btn-start ${saveIsNext ? 'btn-next' : ''}`}
-              onClick={handleSaveConfig}
-              style={{ flex: 1 }}
-              disabled={isSaveDisabled}
-            >
-              💾 Save Config
-            </button>
-            <button className="bot-btn-configure" onClick={() => setShowConfig(false)} style={{ flex: 1 }}>Cancel</button>
-          </div>
-        </div>
-      )}
-      {log.length > 0 && (
-        <div className="bot-log">
-          {log.map((l, i) => (
-            <div key={i} style={{ color: l.color, marginBottom: 2 }}>
-              <span style={{ opacity: 0.45, marginRight: 6 }}>{l.ts}</span>{l.msg}
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="bot-actions">
-        <button
-          className={`bot-btn-configure ${configureIsNext ? 'btn-next' : ''}`}
-          onClick={() => { if (canRun) setShowConfig(v => !v) }}
-          disabled={!canRun || active}
-        >
-          {showConfig ? '✕ Close Config' : '⚙️ Configure'}
+      <div className="bot-actions" style={{ marginTop: '8px' }}>
+        <button className="bot-btn-configure" onClick={onConfigure} disabled={!canRun}>
+          ⚙️ Configure
         </button>
-        <button
-          className={`bot-btn-start ${startIsNext ? 'btn-next' : ''}`}
-          onClick={handleStart}
-          disabled={!canRun || !configured}
-          style={active ? { background: '#ff3b5c22', color: '#ff3b5c', border: '1px solid #ff3b5c55' } : {}}
-        >
-          {active ? '⏹ Stop Bot' : '▶ Start Bot'}
+        <button className="bot-btn-start" disabled style={{ opacity: 0.3, cursor: 'not-allowed' }}>
+          Start Bot
         </button>
       </div>
     </div>
@@ -857,85 +959,7 @@ export function FuturesPage() {
   return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
 }
 
-// ── BOT SUMMARY CARD (first page) ─────────────────────────────────────
-function BotSummaryCard({ bot, balance, userId, onConfigure }) {
-  const [state, setState] = useState({ active: false, configured: false, pnl: 0, wins: 0, losses: 0 })
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    if (!userId) return
-    supabase
-      .from('bot_simulated_pnl')
-      .select('active, configured, pnl, wins, losses')
-      .eq('user_id', userId)
-      .eq('bot_id', bot.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setState(data)
-        setLoaded(true)
-      })
-      .catch(() => setLoaded(true))
-  }, [userId, bot.id])
-
-  const statusLabel = state.active ? 'Running' : state.configured ? 'Ready' : 'Not Configured'
-  const statusColor = state.active ? '#00c853' : state.configured ? '#ffaa00' : '#555'
-  const canRun = balance >= MIN_BALANCE
-
-  return (
-    <div className="bot-card" style={{ opacity: loaded ? 1 : 0.6 }}>
-      <div className="bot-card-top">
-        <div>
-          <div className="bot-name">{bot.name}</div>
-          <div className="bot-subtitle">{bot.subtitle}</div>
-        </div>
-        <div className="bot-status-badge" style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}55` }}>
-          {state.active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
-        </div>
-      </div>
-      <p className="bot-desc">{bot.description}</p>
-      <div className="bot-meta">
-        <div className="bot-meta-item">
-          <span className="bot-meta-label">Risk</span>
-          <span className={`bot-meta-value risk-${bot.risk.toLowerCase()}`}>{bot.risk}</span>
-        </div>
-        {state.configured && (
-          <>
-            <div className="bot-meta-item">
-              <span className="bot-meta-label">P&L</span>
-              <span className="bot-meta-value" style={{ color: state.pnl >= 0 ? '#00c853' : '#ff3b5c', fontWeight: 700 }}>
-                {state.pnl >= 0 ? '+' : ''}${state.pnl.toFixed(2)}
-              </span>
-            </div>
-            <div className="bot-meta-item">
-              <span className="bot-meta-label">Wins</span>
-              <span className="bot-meta-value" style={{ color: '#00c853' }}>{state.wins}</span>
-            </div>
-            <div className="bot-meta-item">
-              <span className="bot-meta-label">Losses</span>
-              <span className="bot-meta-value" style={{ color: '#ff3b5c' }}>{state.losses}</span>
-            </div>
-            {state.wins + state.losses > 0 && (
-              <div className="bot-meta-item">
-                <span className="bot-meta-label">Win Rate</span>
-                <span className="bot-meta-value">{((state.wins / (state.wins + state.losses)) * 100).toFixed(0)}%</span>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-      <div className="bot-actions" style={{ marginTop: '8px' }}>
-        <button className="bot-btn-configure" onClick={onConfigure} disabled={!canRun}>
-          ⚙️ Configure
-        </button>
-        <button className="bot-btn-start" disabled style={{ opacity: 0.3, cursor: 'not-allowed' }}>
-          Start Bot
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ── UPDATED BOTS PAGE ──────────────────────────────────────────────
+// ── BOTS PAGE ──────────────────────────────────────────────────────────
 export function BotsPage() {
   const { user } = useAuth()
   const { balance, loading } = useBalance()
@@ -966,7 +990,7 @@ export function BotsPage() {
           >
             ← Back to Bots
           </button>
-          <BotCard bot={bot} balance={balance ?? 0} userId={user?.id} />
+          <BotDetail bot={bot} balance={balance ?? 0} userId={user?.id} />
         </div>
       </div>
     )
