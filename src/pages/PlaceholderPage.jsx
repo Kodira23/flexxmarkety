@@ -199,8 +199,7 @@ function InsufficientBanner() {
 }
 
 // ── BOT CARD ─────────────────────────────────────────────────────────
-// 🔥 UPDATED: Now deducts allocation from real balance on start,
-//            and updates real balance on each simulated trade.
+// 🔥 UPDATED: Full tick logic, real balance updates, no "— simulated" in logs.
 function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
   const [active,setActive]         = useState(false)
@@ -264,7 +263,7 @@ function BotCard({ bot, balance, userId }) {
     if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
   }
 
-  // 🔥 Tick: updates P&L AND real balance
+  // 🔥 Tick: updates P&L AND real balance – log now without "— simulated"
   function tick() {
     const total     = winsRef.current + lossesRef.current
     const currentWR = total > 0 ? winsRef.current / total : 1
@@ -294,7 +293,7 @@ function BotCard({ bot, balance, userId }) {
         if (error) console.error('bot_simulated_pnl tick upsert failed:', error.message)
       })
 
-      // 🔥 Update REAL balance by the gained amount
+      // Update REAL balance by the gained amount
       supabase.rpc('increment_balance', { p_user_id: userId, p_delta: gained })
         .then(({ error }) => {
           if (error) console.error('Balance update failed:', error.message)
@@ -304,7 +303,8 @@ function BotCard({ bot, balance, userId }) {
     })
 
     const up = gained >= 0
-    addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%) — simulated`, up?'#00c853':'#ff3b5c')
+    // ✅ Remove "— simulated" from log
+    addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%)`, up?'#00c853':'#ff3b5c')
   }
 
   // Handle Start / Stop
@@ -312,7 +312,6 @@ function BotCard({ bot, balance, userId }) {
     if (!canRun || !configured) return
 
     if (active) {
-      // STOP bot – clear interval, reset allocation, mark inactive (no balance change)
       clearInterval(intervalRef.current)
       setActive(false)
       allocatedRef.current = 0
@@ -323,19 +322,16 @@ function BotCard({ bot, balance, userId }) {
       return
     }
 
-    // START bot – deduct allocation from real balance
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < 10) { addLog('⚠️ Set allocation ≥ $10 first','#ff3b5c'); return }
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
 
-    // Deduct from balance
     supabase.rpc('increment_balance', { p_user_id: userId, p_delta: -alloc })
       .then(({ error }) => {
         if (error) {
           addLog('❌ Failed to deduct funds: ' + error.message, '#ff3b5c')
           return
         }
-        // Success – start the bot
         allocatedRef.current = alloc
         setActive(true)
         addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds deducted)`, '#00c853')
@@ -446,7 +442,6 @@ function PlaceholderPage({ title, icon, description }) {
 }
 
 // ── MARKETS PAGE ───────────────────────────────────────────────────────
-// onNavigate prop: call onNavigate('home') to go to Home.jsx
 export function MarketsPage({ onNavigate }) {
   const allPairs = useTicker()
   const pairs = useMemo(() => allPairs.filter(p => !EXCLUDED.has(p.symbol.split('/')[0])), [allPairs])
@@ -481,7 +476,6 @@ export function MarketsPage({ onNavigate }) {
     </span>
   )
 
-  // ── Navigate to Home.jsx when Trade is clicked ─────────────────────
   const handleTrade = () => {
     if (onNavigate) onNavigate('home')
   }
@@ -490,13 +484,11 @@ export function MarketsPage({ onNavigate }) {
     <div className="dash-main">
       <div className="markets-page-wrapper">
 
-        {/* Header */}
         <div className="markets-page-header">
           <h1 className="markets-page-title">Markets</h1>
           <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
         </div>
 
-        {/* Top Gainers / Losers */}
         <div className="movers-grid">
           {[
             {label:'🔥 Top Gainers', list:topGainers, isGain:true},
@@ -525,7 +517,6 @@ export function MarketsPage({ onNavigate }) {
           ))}
         </div>
 
-        {/* Toolbar */}
         <div className="markets-toolbar">
           <div className="markets-filters">
             {['all','favorites','gainers','losers'].map(f => (
@@ -548,7 +539,6 @@ export function MarketsPage({ onNavigate }) {
           </div>
         </div>
 
-        {/* Table */}
         <div className="markets-table-card">
           <div className="markets-table-scroll">
             <table className="markets-table">
@@ -592,7 +582,6 @@ export function MarketsPage({ onNavigate }) {
                       <td className="td-muted td-vol">{extra.vol}</td>
                       <td className="td-muted td-mcap">{extra.mcap}</td>
                       <td className="td-action">
-                        {/* ✅ Clicking Trade navigates to Home.jsx */}
                         <button className="trade-btn" onClick={handleTrade}>
                           Trade
                         </button>
@@ -802,7 +791,6 @@ export function FuturesPage() {
 }
 
 // ── BOTS PAGE ──────────────────────────────────────────────────────────
-// 🔥 Uses real balance directly – bot now deducts from and adds to real balance.
 export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
