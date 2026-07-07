@@ -25,7 +25,7 @@ const COIN_LOGOS = {
 
 const WALLET_ADDRESSES = {
   BTC:  '1CUiUjKiH6paR13YdHSzWQJ7XjEGRXeEeu',
-  USDT: 'TPuff85NhMAfMoALCuqkVtdgmuJb7McG6D',
+  USDT: 'TKde8uWvB6KMwBL9ep6QfFDvPdz9ViXDMD',
 }
 
 // Per-user custom deposit addresses (overrides WALLET_ADDRESSES above)
