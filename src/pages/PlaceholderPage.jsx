@@ -186,20 +186,8 @@ const BOT_CONFIGS = [
   { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.26, lossMult:0.38 },
 ]
 
-function InsufficientBanner() {
-  return (
-    <div className="insuf-banner">
-      <div className="insuf-icon">⚠️</div>
-      <div>
-        <div className="insuf-title">Insufficient Balance</div>
-        <div className="insuf-msg">You need a minimum of <strong>${MIN_BALANCE}.00</strong> to configure and run trading bots. Please deposit funds to get started.</div>
-      </div>
-    </div>
-  )
-}
-
 // ── BOT CARD ─────────────────────────────────────────────────────────
-// 🔥 UPDATED: Full tick logic, real balance updates, no "— simulated" in logs.
+// 🔥 Updated: removed "— simulated" from logs, added insufficient balance note inside config
 function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
   const [active,setActive]         = useState(false)
@@ -263,7 +251,7 @@ function BotCard({ bot, balance, userId }) {
     if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
   }
 
-  // 🔥 Tick: updates P&L AND real balance – log now without "— simulated"
+  // 🔥 Tick: updates P&L AND real balance – log without "— simulated"
   function tick() {
     const total     = winsRef.current + lossesRef.current
     const currentWR = total > 0 ? winsRef.current / total : 1
@@ -283,7 +271,6 @@ function BotCard({ bot, balance, userId }) {
       setWins(newWins)
       setLosses(newLosses)
 
-      // Persist bot P&L
       supabase.from('bot_simulated_pnl').upsert({
         user_id: userId, bot_id: bot.id,
         pnl: next, wins: newWins, losses: newLosses,
@@ -293,7 +280,6 @@ function BotCard({ bot, balance, userId }) {
         if (error) console.error('bot_simulated_pnl tick upsert failed:', error.message)
       })
 
-      // Update REAL balance by the gained amount
       supabase.rpc('increment_balance', { p_user_id: userId, p_delta: gained })
         .then(({ error }) => {
           if (error) console.error('Balance update failed:', error.message)
@@ -303,7 +289,7 @@ function BotCard({ bot, balance, userId }) {
     })
 
     const up = gained >= 0
-    // ✅ Remove "— simulated" from log
+    // ✅ No "— simulated"
     addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%)`, up?'#00c853':'#ff3b5c')
   }
 
@@ -392,10 +378,32 @@ function BotCard({ bot, balance, userId }) {
       {showConfig && (
         <div className="bot-config-box">
           <div style={{fontSize:12,opacity:0.6,marginBottom:8}}>Available balance: <strong>${Number(balance).toFixed(2)}</strong></div>
+          {/* 🔥 Show a note if balance < 50 */}
+          {!canRun && (
+            <div style={{fontSize:13,color:'#ff3b5c',marginBottom:10,padding:'6px 10px',background:'#ff3b5c22',borderRadius:6}}>
+              ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
+            </div>
+          )}
           <label className="bot-config-label">Allocation amount (USD)</label>
-          <input type="number" min="10" max={balance} placeholder="e.g. 100" value={allocation} onChange={e=>setAllocation(e.target.value)} className="bot-config-input"/>
+          <input
+            type="number"
+            min="10"
+            max={balance}
+            placeholder=""   // ✅ Removed "e.g. 100"
+            value={allocation}
+            onChange={e=>setAllocation(e.target.value)}
+            className="bot-config-input"
+            disabled={!canRun}
+          />
           <div style={{display:'flex',gap:8}}>
-            <button className={`bot-btn-start ${saveIsNext?'btn-next':''}`} onClick={handleSaveConfig} style={{flex:1}}>💾 Save Config</button>
+            <button
+              className={`bot-btn-start ${saveIsNext?'btn-next':''}`}
+              onClick={handleSaveConfig}
+              style={{flex:1}}
+              disabled={!canRun}
+            >
+              💾 Save Config
+            </button>
             <button className="bot-btn-configure" onClick={()=>setShowConfig(false)} style={{flex:1}}>Cancel</button>
           </div>
         </div>
@@ -410,7 +418,11 @@ function BotCard({ bot, balance, userId }) {
         </div>
       )}
       <div className="bot-actions">
-        <button className={`bot-btn-configure ${configureIsNext?'btn-next':''}`} onClick={()=>{if(canRun)setShowConfig(v=>!v)}} disabled={!canRun||active}>
+        <button
+          className={`bot-btn-configure ${configureIsNext?'btn-next':''}`}
+          onClick={()=>{if(canRun)setShowConfig(v=>!v)}}
+          disabled={!canRun||active}
+        >
           {showConfig?'✕ Close Config':'⚙️ Configure'}
         </button>
         <button
@@ -826,7 +838,7 @@ export function BotsPage() {
           <button className="bots-hero-btn">Create New Bot →</button>
         </div>
 
-        {!loading && !canRun && <InsufficientBanner/>}
+        {/* ❌ Removed InsufficientBanner – no longer blocking the page */}
 
         <div className="bots-section">
           <div className="bots-section-header">
