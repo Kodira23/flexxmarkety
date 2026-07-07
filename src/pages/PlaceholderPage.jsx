@@ -959,7 +959,357 @@ export function FuturesPage() {
   return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
 }
 
-// ── BOTS PAGE ──────────────────────────────────────────────────────────
+// ── BOT DETAIL VIEW (centered container, green buttons) ──────────
+function BotDetail({ bot, balance, userId, onBack }) {
+  const [active, setActive] = useState(false)
+  const [configured, setConfigured] = useState(false)
+  const [showConfig, setShowConfig] = useState(false)
+  const [allocation, setAllocation] = useState('')
+  const [log, setLog] = useState([])
+  const [pnl, setPnl] = useState(0)
+  const [wins, setWins] = useState(0)
+  const [losses, setLosses] = useState(0)
+  const [loaded, setLoaded] = useState(false)
+  const allocatedRef = useRef(0)
+  const winsRef = useRef(0)
+  const lossesRef = useRef(0)
+  const intervalKey = `${userId}-${bot.id}`
+
+  // ── Helpers (unchanged) ──────────────────────────────────────────
+  function addLog(msg, color = '#aaa') {
+    setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }, ...prev].slice(0, 8))
+  }
+
+  async function persist(patch) {
+    try {
+      const { error } = await supabase
+        .from('bot_simulated_pnl')
+        .upsert({
+          user_id: userId,
+          bot_id: bot.id,
+          pnl,
+          wins,
+          losses,
+          allocation: allocatedRef.current,
+          configured,
+          active,
+          updated_at: new Date().toISOString(),
+          ...patch,
+        }, { onConflict: 'user_id,bot_id' })
+      if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
+    } catch (err) { console.error('Persist error:', err) }
+  }
+
+  const tick = useCallback(async () => {
+    try {
+      if (allocatedRef.current === 0) return
+
+      const total = winsRef.current + lossesRef.current
+      let isLoss = false
+      if (total > 0) {
+        const wr = winsRef.current / total
+        if (wr < 0.62) isLoss = false
+        else if (wr > 0.65) isLoss = true
+        else isLoss = Math.random() < bot.lossChance
+      } else {
+        isLoss = Math.random() < bot.lossChance
+      }
+
+      const noise = Math.random() * bot.volatility
+      const r = isLoss ? -(bot.drift * bot.lossMult + noise) : (bot.drift + noise)
+      const stake = allocatedRef.current * 0.1
+      const gained = parseFloat((stake * r).toFixed(2))
+
+      setPnl(prev => {
+        const next = parseFloat((prev + gained).toFixed(2))
+        const newWins = gained >= 0 ? winsRef.current + 1 : winsRef.current
+        const newLosses = gained < 0 ? lossesRef.current + 1 : lossesRef.current
+        winsRef.current = newWins
+        lossesRef.current = newLosses
+        setWins(newWins)
+        setLosses(newLosses)
+
+        supabase
+          .from('bot_simulated_pnl')
+          .upsert({
+            user_id: userId,
+            bot_id: bot.id,
+            pnl: next,
+            wins: newWins,
+            losses: newLosses,
+            allocation: allocatedRef.current,
+            configured: true,
+            active: true,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,bot_id' })
+          .then(({ error }) => { if (error) console.error('DB upsert error:', error.message) })
+          .catch(err => console.error('DB upsert catch:', err))
+
+        supabase.rpc('increment_balance', { p_user_id: userId, p_delta: gained })
+          .then(({ error }) => { if (error) console.error('Balance update error:', error.message) })
+          .catch(err => console.error('Balance RPC error:', err))
+
+        return next
+      })
+
+      const up = gained >= 0
+      addLog(`${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`, up ? '#00c853' : '#ff3b5c')
+    } catch (err) {
+      console.error('Error in tick:', err)
+      addLog('⚠️ Bot error – check console', '#ff3b5c')
+    }
+  }, [bot, userId])
+
+  // ── Load saved state ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return
+    const loadState = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bot_simulated_pnl')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('bot_id', bot.id)
+          .maybeSingle()
+
+        if (error) throw error
+
+        if (data) {
+          setPnl(data.pnl ?? 0)
+          setWins(data.wins ?? 0)
+          setLosses(data.losses ?? 0)
+          setAllocation(data.allocation ? String(data.allocation) : '')
+          setConfigured(!!data.configured)
+          winsRef.current = data.wins ?? 0
+          lossesRef.current = data.losses ?? 0
+          allocatedRef.current = data.allocation ?? 0
+          if (data.active) {
+            setActive(true)
+            if (!botIntervals[intervalKey]) {
+              botIntervals[intervalKey] = setInterval(tick, bot.interval)
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load bot state:', err)
+      } finally {
+        setLoaded(true)
+      }
+    }
+    loadState()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, bot.id])
+
+  // ── Start / Stop ──────────────────────────────────────────────────
+  async function handleStart() {
+    const canRun = balance >= MIN_BALANCE
+    if (!canRun || !configured) return
+
+    if (active) {
+      clearInterval(botIntervals[intervalKey])
+      delete botIntervals[intervalKey]
+      setActive(false)
+      allocatedRef.current = 0
+      setAllocation('')
+      setConfigured(false)
+      addLog('🛑 Bot stopped', '#ffaa00')
+      await persist({ active: false, allocation: 0, configured: false })
+      return
+    }
+
+    const alloc = parseFloat(allocation)
+    if (!alloc || alloc < MIN_ALLOCATION) {
+      addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
+      return
+    }
+    if (alloc > balance) {
+      addLog('⚠️ Allocation exceeds balance', '#ff3b5c')
+      return
+    }
+
+    allocatedRef.current = alloc
+    setActive(true)
+    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds NOT deducted)`, '#00c853')
+    await persist({ active: true, allocation: alloc, configured: true })
+
+    if (!botIntervals[intervalKey]) {
+      botIntervals[intervalKey] = setInterval(tick, bot.interval)
+    }
+  }
+
+  async function handleSaveConfig() {
+    const alloc = parseFloat(allocation)
+    if (!alloc || alloc < MIN_ALLOCATION) {
+      addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
+      return
+    }
+    if (alloc > balance) {
+      addLog('⚠️ Allocation exceeds balance', '#ff3b5c')
+      return
+    }
+    allocatedRef.current = alloc
+    setConfigured(true)
+    setShowConfig(false)
+    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (funds not yet deducted)`, '#00c853')
+    await persist({ allocation: alloc, configured: true })
+  }
+
+  const totalTrades = wins + losses
+  const statusLabel = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
+  const statusColor = active ? '#00c853' : configured ? '#ffaa00' : '#555'
+  const canRun = balance >= MIN_BALANCE
+
+  if (!loaded) {
+    return <div className="bot-detail-loading" style={{ padding: '40px', textAlign: 'center' }}>Loading bot details…</div>
+  }
+
+  // ─── RENDER: centered container with two columns ──────────────
+  return (
+    <div style={{ maxWidth: '780px', margin: '0 auto', padding: '0 16px 20px' }}>
+      <button
+        className="bots-back-btn"
+        onClick={onBack}
+        style={{
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border)',
+          borderRadius: '8px',
+          padding: '8px 16px',
+          fontSize: '13px',
+          fontWeight: '600',
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          alignSelf: 'flex-start',
+          fontFamily: 'var(--font-primary)',
+          marginBottom: '16px'
+        }}
+      >
+        ← Back to Bots
+      </button>
+
+      <div className="bot-card" style={{ padding: '28px', display: 'grid', gridTemplateColumns: '1fr 260px', gap: '24px' }}>
+        {/* ─── Left Column – Controls ─── */}
+        <div>
+          <div className="bot-card-top">
+            <div>
+              <div className="bot-name">{bot.name}</div>
+              <div className="bot-subtitle">{bot.subtitle}</div>
+            </div>
+            <div className="bot-status-badge" style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}55` }}>
+              {active && <span style={{ marginRight: 5 }}>●</span>}{statusLabel}
+            </div>
+          </div>
+          <p className="bot-desc">{bot.description}</p>
+
+          {showConfig && (
+            <div className="bot-config-box">
+              <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 8 }}>Available balance: <strong>${Number(balance).toFixed(2)}</strong></div>
+              {!canRun && (
+                <div style={{ fontSize: 13, color: '#ff3b5c', marginBottom: 10, padding: '6px 10px', background: '#ff3b5c22', borderRadius: 6 }}>
+                  ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
+                </div>
+              )}
+              <label className="bot-config-label">Allocation amount (USD)</label>
+              <input
+                type="number"
+                min={MIN_ALLOCATION}
+                max={balance}
+                placeholder=""
+                value={allocation}
+                onChange={e => setAllocation(e.target.value)}
+                className="bot-config-input"
+                disabled={!canRun}
+              />
+              <div style={{ fontSize: 12, color: '#ffaa00', marginTop: 4 }}>⚠️ Allocation must be ${MIN_ALLOCATION} or above</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <button
+                  className="bot-btn-start"   // green button
+                  onClick={handleSaveConfig}
+                  style={{ flex: 1 }}
+                  disabled={!canRun || !allocation || parseFloat(allocation) < MIN_ALLOCATION || parseFloat(allocation) > balance}
+                >
+                  💾 Save Config
+                </button>
+                <button className="bot-btn-configure" onClick={() => setShowConfig(false)} style={{ flex: 1 }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          <div className="bot-actions" style={{ marginTop: '12px' }}>
+            <button
+              className={`bot-btn-${!showConfig ? 'start' : 'configure'}`}   // green when not in config
+              onClick={() => { if (canRun) setShowConfig(v => !v) }}
+              disabled={!canRun || active}
+              style={showConfig ? { background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' } : {}}
+            >
+              {showConfig ? '✕ Close Config' : '⚙️ Configure'}
+            </button>
+            <button
+              className="bot-btn-start"
+              onClick={handleStart}
+              disabled={!canRun || !configured}
+              style={active ? { background: '#ff3b5c22', color: '#ff3b5c', border: '1px solid #ff3b5c55' } : {}}
+            >
+              {active ? '⏹ Stop Bot' : '▶ Start Bot'}
+            </button>
+          </div>
+
+          {log.length > 0 && (
+            <div className="bot-log" style={{ marginTop: '12px', maxHeight: '160px' }}>
+              {log.map((l, i) => (
+                <div key={i} style={{ color: l.color, marginBottom: 2 }}>
+                  <span style={{ opacity: 0.45, marginRight: 6 }}>{l.ts}</span>{l.msg}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ─── Right Column – Stats ─── */}
+        <div style={{ borderLeft: '1px solid var(--border)', paddingLeft: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px', fontFamily: 'var(--font-primary)' }}>Performance</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="stat-label">Available Balance</span>
+              <span className="stat-value" style={{ color: '#00c853' }}>${Number(balance).toFixed(2)}</span>
+            </div>
+            <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="stat-label">P&L</span>
+              <span className="stat-value" style={{ color: pnl >= 0 ? '#00c853' : '#ff3b5c', fontWeight: 700 }}>
+                {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
+              </span>
+            </div>
+            <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="stat-label">Wins</span>
+              <span className="stat-value" style={{ color: '#00c853' }}>{wins}</span>
+            </div>
+            <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="stat-label">Losses</span>
+              <span className="stat-value" style={{ color: '#ff3b5c' }}>{losses}</span>
+            </div>
+            {totalTrades > 0 && (
+              <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span className="stat-label">Win Rate</span>
+                <span className="stat-value">{((wins / totalTrades) * 100).toFixed(0)}%</span>
+              </div>
+            )}
+            {configured && (
+              <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span className="stat-label">Allocation</span>
+                <span className="stat-value">${parseFloat(allocation || 0).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="stat-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="stat-label">Status</span>
+              <span className="stat-value" style={{ color: statusColor }}>{statusLabel}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── UPDATED BOTS PAGE ──────────────────────────────────────────────
 export function BotsPage() {
   const { user } = useAuth()
   const { balance, loading } = useBalance()
@@ -971,32 +1321,13 @@ export function BotsPage() {
     return (
       <div className="dash-main">
         <div className="bots-content">
-          <button
-            className="bots-back-btn"
-            onClick={() => setSelectedBotId(null)}
-            style={{
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border)',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--text-primary)',
-              cursor: 'pointer',
-              alignSelf: 'flex-start',
-              fontFamily: 'var(--font-primary)',
-              marginBottom: '16px'
-            }}
-          >
-            ← Back to Bots
-          </button>
-          <BotDetail bot={bot} balance={balance ?? 0} userId={user?.id} />
+          <BotDetail bot={bot} balance={balance ?? 0} userId={user?.id} onBack={() => setSelectedBotId(null)} />
         </div>
       </div>
     )
   }
 
-  // Otherwise show the summary grid
+  // Otherwise show the summary grid (unchanged)
   return (
     <div className="dash-main">
       <div className="bots-content">
