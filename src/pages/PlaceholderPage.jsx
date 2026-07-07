@@ -5,7 +5,7 @@ import { supabase } from '../supabase'
 import { useBalance } from './Dashboard'
 import './PlaceholderPage.css'
 
-const MIN_BALANCE = 50
+const MIN_BALANCE = 1   // 🔥 Changed from 50 to 1
 
 // ── COINS TO EXCLUDE ───────────────────────────────────────────────────
 const EXCLUDED = new Set(['BOME','NOT','IO','ZK','LISTA','EIGEN','HMSTR','CATI','DOGS','MAJOR','NEIRO'])
@@ -187,7 +187,6 @@ const BOT_CONFIGS = [
 ]
 
 // ── BOT CARD ─────────────────────────────────────────────────────────
-// 🔥 Updated: removed "— simulated" from logs, added insufficient balance note inside config
 function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
   const [active,setActive]         = useState(false)
@@ -251,16 +250,33 @@ function BotCard({ bot, balance, userId }) {
     if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
   }
 
-  // 🔥 Tick: updates P&L AND real balance – log without "— simulated"
+  // 🔥 Tick: updates P&L AND real balance – win rate forced between 62% and 65%
   function tick() {
     const total     = winsRef.current + lossesRef.current
-    const currentWR = total > 0 ? winsRef.current / total : 1
-    const forceWin  = currentWR < 0.74
-    const isLoss    = forceWin ? false : Math.random() < bot.lossChance
-    const noise     = Math.random() * bot.volatility
-    const r         = isLoss ? -(bot.drift * bot.lossMult + noise) : (bot.drift + noise)
-    const stake     = allocatedRef.current * 0.1
-    const gained    = parseFloat((stake * r).toFixed(2))
+    let isLoss = false
+
+    if (total > 0) {
+      const wr = winsRef.current / total
+      // Force win rate between 62% and 65%
+      if (wr < 0.62) {
+        // too low – force a win
+        isLoss = false
+      } else if (wr > 0.65) {
+        // too high – force a loss
+        isLoss = true
+      } else {
+        // within range – random
+        isLoss = Math.random() < bot.lossChance
+      }
+    } else {
+      // first trade – random
+      isLoss = Math.random() < bot.lossChance
+    }
+
+    const noise = Math.random() * bot.volatility
+    const r     = isLoss ? -(bot.drift * bot.lossMult + noise) : (bot.drift + noise)
+    const stake = allocatedRef.current * 0.1
+    const gained = parseFloat((stake * r).toFixed(2))
 
     setPnl(prev => {
       const next = parseFloat((prev + gained).toFixed(2))
@@ -280,6 +296,7 @@ function BotCard({ bot, balance, userId }) {
         if (error) console.error('bot_simulated_pnl tick upsert failed:', error.message)
       })
 
+      // Update REAL balance by the gained amount (no deduction on start)
       supabase.rpc('increment_balance', { p_user_id: userId, p_delta: gained })
         .then(({ error }) => {
           if (error) console.error('Balance update failed:', error.message)
@@ -289,7 +306,6 @@ function BotCard({ bot, balance, userId }) {
     })
 
     const up = gained >= 0
-    // ✅ No "— simulated"
     addLog(`${up?'↑':'↓'} Trade ${up?'+':''}$${gained.toFixed(2)} (${(r*100).toFixed(2)}%)`, up?'#00c853':'#ff3b5c')
   }
 
@@ -312,18 +328,12 @@ function BotCard({ bot, balance, userId }) {
     if (!alloc || alloc < 10) { addLog('⚠️ Set allocation ≥ $10 first','#ff3b5c'); return }
     if (alloc > balance)      { addLog('⚠️ Allocation exceeds balance','#ff3b5c'); return }
 
-    supabase.rpc('increment_balance', { p_user_id: userId, p_delta: -alloc })
-      .then(({ error }) => {
-        if (error) {
-          addLog('❌ Failed to deduct funds: ' + error.message, '#ff3b5c')
-          return
-        }
-        allocatedRef.current = alloc
-        setActive(true)
-        addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds deducted)`, '#00c853')
-        persist({ active: true, allocation: alloc, configured: true })
-        intervalRef.current = setInterval(tick, bot.interval)
-      })
+    // 🔥 No deduction – balance stays unchanged; only trades will modify it
+    allocatedRef.current = alloc
+    setActive(true)
+    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds NOT deducted)`, '#00c853')
+    persist({ active: true, allocation: alloc, configured: true })
+    intervalRef.current = setInterval(tick, bot.interval)
   }
 
   function handleSaveConfig() {
@@ -378,7 +388,6 @@ function BotCard({ bot, balance, userId }) {
       {showConfig && (
         <div className="bot-config-box">
           <div style={{fontSize:12,opacity:0.6,marginBottom:8}}>Available balance: <strong>${Number(balance).toFixed(2)}</strong></div>
-          {/* 🔥 Show a note if balance < 50 */}
           {!canRun && (
             <div style={{fontSize:13,color:'#ff3b5c',marginBottom:10,padding:'6px 10px',background:'#ff3b5c22',borderRadius:6}}>
               ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
@@ -389,7 +398,7 @@ function BotCard({ bot, balance, userId }) {
             type="number"
             min="10"
             max={balance}
-            placeholder=""   // ✅ Removed "e.g. 100"
+            placeholder=""
             value={allocation}
             onChange={e=>setAllocation(e.target.value)}
             className="bot-config-input"
@@ -807,7 +816,7 @@ export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
 
-  const canRun = (balance ?? 0) >= MIN_BALANCE
+  // Removed the "Locked/Ready" status stat from the hero
 
   return (
     <div className="dash-main">
@@ -827,18 +836,11 @@ export function BotsPage() {
                 </span>
                 <span className="bots-stat-label">Available Balance</span>
               </div>
-              <div className="bots-stat">
-                <span className="bots-stat-value" style={{ color: canRun ? '#00c853' : '#ff3b5c' }}>
-                  {canRun ? 'Ready' : 'Locked'}
-                </span>
-                <span className="bots-stat-label">Bot Status</span>
-              </div>
+              {/* ❌ Removed the "Ready/Locked" status stat */}
             </div>
           </div>
           <button className="bots-hero-btn">Create New Bot →</button>
         </div>
-
-        {/* ❌ Removed InsufficientBanner – no longer blocking the page */}
 
         <div className="bots-section">
           <div className="bots-section-header">
@@ -846,7 +848,9 @@ export function BotsPage() {
               <h2 className="bots-section-title">Dollar-Cost Averaging Bots</h2>
               <p className="bots-section-sub">Regular purchases of assets regardless of price</p>
             </div>
-            <button className="bots-create-btn" disabled={!canRun}>Create DCA Bot</button>
+            <button className="bots-create-btn" disabled={(balance ?? 0) < MIN_BALANCE}>
+              Create DCA Bot
+            </button>
           </div>
           <div className="bots-grid">
             {BOT_CONFIGS.map(bot => (
