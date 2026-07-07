@@ -228,16 +228,20 @@ function BotCard({ bot, balance, userId }) {
           allocatedRef.current = data.allocation ?? 0
           if (data.active) {
             setActive(true)
-            // 🔥 Start global interval only if not already running
             if (!botIntervals[intervalKey]) {
               botIntervals[intervalKey] = setInterval(tick, bot.interval)
             }
           }
+        } else {
+          // No row – set defaults
+          setConfigured(false)
+          setActive(false)
+          allocatedRef.current = 0
         }
         setLoaded(true)
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId])
+  }, [userId, bot.id])
 
   function addLog(msg, color='#aaa') {
     setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}) }, ...prev].slice(0,8))
@@ -258,6 +262,12 @@ function BotCard({ bot, balance, userId }) {
   }
 
   function tick() {
+    // Guard: if no allocation, skip
+    if (allocatedRef.current === 0) {
+      addLog('⚠️ No allocation – bot paused', '#ffaa00')
+      return
+    }
+
     const total     = winsRef.current + lossesRef.current
     let isLoss = false
 
@@ -317,6 +327,7 @@ function BotCard({ bot, balance, userId }) {
       return
     }
 
+    // Start: use the allocation from state (which is the saved one)
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < MIN_ALLOCATION) {
       addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
@@ -332,6 +343,7 @@ function BotCard({ bot, balance, userId }) {
     addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds NOT deducted)`, '#00c853')
     persist({ active: true, allocation: alloc, configured: true })
 
+    // Start interval if not already running
     if (!botIntervals[intervalKey]) {
       botIntervals[intervalKey] = setInterval(tick, bot.interval)
     }
@@ -352,7 +364,7 @@ function BotCard({ bot, balance, userId }) {
     setShowConfig(false)
     addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (funds not yet deducted)`, '#00c853')
     persist({ allocation: alloc, configured: true })
-    // 🔥 No interval start here – only start on explicit "Start Bot"
+    // Do NOT start interval here
   }
 
   const totalTrades    = wins + losses
@@ -362,7 +374,6 @@ function BotCard({ bot, balance, userId }) {
   const saveIsNext      = showConfig
   const startIsNext     = canRun && configured && !active
 
-  // Compute if Save Config should be disabled
   const allocNum = parseFloat(allocation)
   const isSaveDisabled = !canRun || !allocation || allocNum < MIN_ALLOCATION || allocNum > balance
 
@@ -480,15 +491,20 @@ function PlaceholderPage({ title, icon, description }) {
 
 // ── MARKETS PAGE ───────────────────────────────────────────────────────
 export function MarketsPage({ onNavigate }) {
-  // ... (same as before) ...
-  // (I'll omit the full MarketsPage here for brevity, but it's unchanged)
+  // (unchanged – same as before)
+  // For brevity, I'll skip the full MarketsPage here – it's identical to your previous version.
+  // You can copy it from your original file.
 }
 
 // ── RECENT TRADES FEED ─────────────────────────────────────────────────
-function RecentTradesFeed({ basePrice }) { /* same as before */ }
+function RecentTradesFeed({ basePrice }) {
+  // (unchanged)
+}
 
 // ── SPOT PAGE ──────────────────────────────────────────────────────────
-export function SpotPage() { /* same as before */ }
+export function SpotPage() {
+  // (unchanged)
+}
 
 export function FuturesPage() {
   return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon."/>
