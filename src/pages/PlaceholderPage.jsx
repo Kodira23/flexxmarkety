@@ -199,7 +199,7 @@ function InsufficientBanner() {
 }
 
 // ── BOT CARD ─────────────────────────────────────────────────────────
-// 🔥 EDITED: Now deducts allocation from real balance on start,
+// 🔥 UPDATED: Now deducts allocation from real balance on start,
 //            and updates real balance on each simulated trade.
 function BotCard({ bot, balance, userId }) {
   const canRun = balance >= MIN_BALANCE
@@ -802,7 +802,7 @@ export function FuturesPage() {
 }
 
 // ── BOTS PAGE ──────────────────────────────────────────────────────────
-// 🔥 EDITED: Now uses real balance directly – no more lockedInBots subtraction.
+// 🔥 Uses real balance directly – bot now deducts from and adds to real balance.
 export function BotsPage() {
   const { user }             = useAuth()
   const { balance, loading } = useBalance()
