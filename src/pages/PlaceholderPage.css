@@ -1005,26 +1005,62 @@
 
 .bot-config-box {
   background: var(--bg-secondary); border: 1px solid var(--border);
-  border-radius: 12px; padding: 14px 16px;
-  display: flex; flex-direction: column; gap: 8px;
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
 }
-.bot-config-head {
-  display: flex; align-items: center; justify-content: space-between;
+
+/* Panel header, e.g. "Enter Order" */
+.bot-order-header { display: flex; align-items: center; gap: 9px; }
+.bot-order-accent-bar {
+  width: 3px; height: 16px; border-radius: 2px;
+  background: var(--green); display: inline-block; flex-shrink: 0;
+}
+.bot-order-accent-bar.small { height: 13px; }
+.bot-order-title {
+  font-size: 14px; font-weight: 800; letter-spacing: -0.2px;
+  color: var(--text-primary); font-family: var(--font-primary);
+}
+
+/* Sub-section, e.g. "Base Order" */
+.bot-order-section { display: flex; flex-direction: column; gap: 10px; }
+.bot-order-section-head { display: flex; align-items: center; gap: 9px; }
+.bot-order-section-title {
   font-size: 12.5px; font-weight: 700; color: var(--text-primary);
-  font-family: var(--font-primary); margin-bottom: 2px;
+  font-family: var(--font-primary); letter-spacing: 0.1px;
 }
-.bot-config-avail { font-weight: 500; color: var(--text-muted); font-size: 11.5px; }
-.bot-config-avail strong { color: var(--text-primary); }
-.bot-config-label { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-primary); }
-.bot-config-input {
+
+.bot-order-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bot-order-field { display: flex; flex-direction: column; gap: 5px; }
+.bot-order-label {
+  font-size: 10.5px; color: var(--text-muted); font-family: var(--font-primary);
+  text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+}
+
+.bot-order-input-wrap { position: relative; display: flex; align-items: center; }
+.bot-order-input {
   width: 100%; background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 8px; padding: 9px 12px; color: var(--text-primary);
+  border-radius: 9px; padding: 10px 56px 10px 12px; color: var(--text-primary);
   font-size: 14px; font-family: var(--font-mono);
-  outline: none; box-sizing: border-box;
+  outline: none; box-sizing: border-box; transition: border-color 0.15s;
 }
-.bot-config-input:focus { border-color: var(--green); }
-.bot-config-hint { font-size: 11px; color: #ffaa00; }
-.bot-config-actions { display: flex; gap: 8px; margin-top: 4px; }
+.bot-order-input:focus { border-color: var(--green); }
+.bot-order-input:disabled { opacity: 0.5; }
+.bot-order-unit-badge {
+  position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
+  background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px;
+  padding: 3px 8px; font-size: 10px; font-weight: 700; color: var(--text-muted);
+  font-family: var(--font-primary); letter-spacing: 0.3px; pointer-events: none;
+}
+
+.bot-order-static-value {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 9px;
+  padding: 10px 12px; font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+  color: #00c853;
+}
+
+.bot-order-hint { font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
+
+.bot-config-actions { display: flex; gap: 8px; }
 .bot-config-actions .bot-btn-start-active,
 .bot-config-actions .bot-btn-configure { flex: 1; }
 
