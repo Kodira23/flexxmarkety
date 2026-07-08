@@ -402,8 +402,9 @@
   transition: all 0.15s;
 }
 .bot-btn-start-active:hover:not(:disabled) {
-  background: #00e8bb;
-  box-shadow: 0 0 26px #00d4aa77, 0 6px 16px #00d4aa33;
+  background: var(--green);
+  opacity: 0.9;
+  box-shadow: 0 0 18px #00d4aa44, 0 4px 12px #00d4aa22;
   transform: translateY(-1px);
 }
 .bot-btn-start-active:disabled {
@@ -454,6 +455,13 @@
   .bots-hero-stats { gap: 16px; flex-wrap: wrap; }
   .bot-metrics-strip { flex-wrap: wrap; row-gap: 10px; }
   .bot-metric { flex: 1 1 40%; }
+
+  /* Config box: stack the allocation/available-balance fields and
+     the Save/Cancel action buttons on phone widths */
+  .bot-order-field-row { grid-template-columns: 1fr; gap: 10px; }
+  .bot-config-actions { flex-direction: column; }
+  .bot-config-actions .bot-btn-start-active,
+  .bot-config-actions .bot-btn-configure { width: 100%; }
 }
 
 /* ══════════════════════════════════════════════════════
