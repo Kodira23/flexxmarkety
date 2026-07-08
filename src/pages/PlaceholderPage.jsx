@@ -191,7 +191,7 @@ const BOT_CONFIGS = [
 ]
 
 // ── BOT CARD (full, one‑page layout) ─────────────────────────────────
-function BotCard({ bot, balance, userId }) {
+function BotCard({ bot, balance, userId, onStatsChange }) {
   const canRun = balance >= MIN_BALANCE
   const [active, setActive] = useState(false)
   const [configured, setConfigured] = useState(false)
@@ -340,7 +340,7 @@ function BotCard({ bot, balance, userId }) {
       allocatedRef.current = 0
       setAllocation('')
       setConfigured(false)
-      addLog('🛑 Bot stopped', '#ffaa00')
+      setLog([])
       await persist({ active: false, allocation: 0, configured: false })
       return
     }
@@ -383,6 +383,19 @@ function BotCard({ bot, balance, userId }) {
   }
 
   const totalTrades = wins + losses
+
+  useEffect(() => {
+    if (!loaded) return
+    onStatsChange?.(bot.id, {
+      pnl,
+      wins,
+      losses,
+      allocation: configured ? parseFloat(allocation || 0) : 0,
+      active,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, pnl, wins, losses, allocation, active, configured])
+
   const statusLabel = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
   const statusColor = active ? '#00c853' : configured ? '#ffaa00' : '#6b7280'
   const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(0) : null
@@ -515,7 +528,7 @@ function BotCard({ bot, balance, userId }) {
       {/* ─── Action Buttons ─── */}
       <div className="bot-actions">
         <button
-          className="bot-btn-configure"
+          className="bot-btn-start-active"
           onClick={() => { if (canRun) setShowConfig(v => !v) }}
           disabled={!canRun || active}
         >
@@ -918,6 +931,22 @@ export function FuturesPage() {
 export function BotsPage() {
   const { user } = useAuth()
   const { balance, loading } = useBalance()
+  const [botStats, setBotStats] = useState({})
+
+  const handleStatsChange = useCallback((botId, stats) => {
+    setBotStats(prev => ({ ...prev, [botId]: stats }))
+  }, [])
+
+  const aggregate = useMemo(() => {
+    const all = Object.values(botStats)
+    const totalPnl = all.reduce((sum, s) => sum + (s.pnl || 0), 0)
+    const totalWins = all.reduce((sum, s) => sum + (s.wins || 0), 0)
+    const totalLosses = all.reduce((sum, s) => sum + (s.losses || 0), 0)
+    const totalTrades = totalWins + totalLosses
+    const totalAllocated = all.reduce((sum, s) => sum + (s.allocation || 0), 0)
+    const winRate = totalTrades > 0 ? Math.round((totalWins / totalTrades) * 100) : null
+    return { totalPnl, totalTrades, totalAllocated, winRate }
+  }, [botStats])
 
   return (
     <div className="dash-main">
@@ -928,16 +957,22 @@ export function BotsPage() {
             <p className="bots-hero-sub">Create and manage algorithmic trading strategies</p>
             <div className="bots-hero-stats">
               <div className="bots-stat">
-                <span className="bots-stat-value">{BOT_CONFIGS.length}</span>
-                <span className="bots-stat-label">Total Bots</span>
+                <span className="bots-stat-value" style={{ color: aggregate.totalPnl >= 0 ? '#4ade80' : '#ff6b81' }}>
+                  {aggregate.totalPnl >= 0 ? '+' : ''}${aggregate.totalPnl.toFixed(2)}
+                </span>
+                <span className="bots-stat-label">P&amp;L</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value green">2</span>
-                <span className="bots-stat-label">Active</span>
+                <span className="bots-stat-value">{aggregate.winRate !== null ? `${aggregate.winRate}%` : '—'}</span>
+                <span className="bots-stat-label">Win Rate</span>
               </div>
               <div className="bots-stat">
-                <span className="bots-stat-value green">+4.8%</span>
-                <span className="bots-stat-label">Weekly Return</span>
+                <span className="bots-stat-value">{aggregate.totalTrades}</span>
+                <span className="bots-stat-label">Trades</span>
+              </div>
+              <div className="bots-stat">
+                <span className="bots-stat-value">${aggregate.totalAllocated.toFixed(0)}</span>
+                <span className="bots-stat-label">Allocated</span>
               </div>
             </div>
           </div>
@@ -956,7 +991,7 @@ export function BotsPage() {
           </div>
           <div className="bots-grid">
             {BOT_CONFIGS.map(bot => (
-              <BotCard key={bot.id} bot={bot} balance={balance ?? 0} userId={user?.id} />
+              <BotCard key={bot.id} bot={bot} balance={balance ?? 0} userId={user?.id} onStatsChange={handleStatsChange} />
             ))}
           </div>
           <p className="bots-disclaimer">
