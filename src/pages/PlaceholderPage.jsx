@@ -398,7 +398,6 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
 
   const statusLabel = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
   const statusColor = active ? '#00c853' : configured ? '#ffaa00' : '#6b7280'
-  const winRate = totalTrades > 0 ? ((wins / totalTrades) * 100).toFixed(0) : null
 
   if (!loaded) {
     return (
@@ -435,45 +434,9 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
 
       <p className="bot-desc">{bot.description}</p>
 
-      {/* ─── Metrics strip ─── */}
-      <div className="bot-metrics-strip">
-        <div className="bot-metric">
-          <span className="bot-metric-label">P&amp;L</span>
-          <span className="bot-metric-value" style={{ color: pnl >= 0 ? '#00c853' : '#ff3b5c' }}>
-            {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
-          </span>
-        </div>
-        <div className="bot-metric-divider" />
-        <div className="bot-metric">
-          <span className="bot-metric-label">Win Rate</span>
-          <span className="bot-metric-value">{winRate !== null ? `${winRate}%` : '—'}</span>
-        </div>
-        <div className="bot-metric-divider" />
-        <div className="bot-metric">
-          <span className="bot-metric-label">Trades</span>
-          <span className="bot-metric-value">{totalTrades}</span>
-        </div>
-        <div className="bot-metric-divider" />
-        <div className="bot-metric">
-          <span className="bot-metric-label">Allocated</span>
-          <span className="bot-metric-value">{configured ? `$${parseFloat(allocation || 0).toFixed(0)}` : '—'}</span>
-        </div>
-      </div>
-
-      {/* ─── Balance row ─── */}
-      <div className="bot-balance-row">
-        <span className="bot-balance-label">Available Balance</span>
-        <span className="bot-balance-val">${Number(balance).toFixed(2)}</span>
-      </div>
-
-      {/* ─── Config Box ("Enter order" style) ─── */}
+      {/* ─── Config Box ─── */}
       {showConfig && (
         <div className="bot-config-box">
-          <div className="bot-order-header">
-            <span className="bot-order-accent-bar" />
-            <span className="bot-order-title">Enter Order</span>
-          </div>
-
           {!canRun && (
             <div className="bot-inline-alert">
               ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
@@ -481,11 +444,6 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
           )}
 
           <div className="bot-order-section">
-            <div className="bot-order-section-head">
-              <span className="bot-order-accent-bar small" />
-              <span className="bot-order-section-title">Base Order</span>
-            </div>
-
             <div className="bot-order-field-row">
               <div className="bot-order-field">
                 <label className="bot-order-label">Allocation size</label>
