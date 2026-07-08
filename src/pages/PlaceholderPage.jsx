@@ -453,30 +453,52 @@ function BotCard({ bot, balance, userId }) {
         <span className="bot-balance-val">${Number(balance).toFixed(2)}</span>
       </div>
 
-      {/* ─── Config Box ─── */}
+      {/* ─── Config Box ("Enter order" style) ─── */}
       {showConfig && (
         <div className="bot-config-box">
-          <div className="bot-config-head">
-            <span>Bot Configuration</span>
-            <span className="bot-config-avail">Available: <strong>${Number(balance).toFixed(2)}</strong></span>
+          <div className="bot-order-header">
+            <span className="bot-order-accent-bar" />
+            <span className="bot-order-title">Enter Order</span>
           </div>
+
           {!canRun && (
             <div className="bot-inline-alert">
               ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
             </div>
           )}
-          <label className="bot-config-label">Allocation amount (USD)</label>
-          <input
-            type="number"
-            min={MIN_ALLOCATION}
-            max={balance}
-            placeholder={`Min $${MIN_ALLOCATION}`}
-            value={allocation}
-            onChange={e => setAllocation(e.target.value)}
-            className="bot-config-input"
-            disabled={!canRun}
-          />
-          <div className="bot-config-hint">Minimum allocation is ${MIN_ALLOCATION}</div>
+
+          <div className="bot-order-section">
+            <div className="bot-order-section-head">
+              <span className="bot-order-accent-bar small" />
+              <span className="bot-order-section-title">Base Order</span>
+            </div>
+
+            <div className="bot-order-field-row">
+              <div className="bot-order-field">
+                <label className="bot-order-label">Allocation size</label>
+                <div className="bot-order-input-wrap">
+                  <input
+                    type="number"
+                    min={MIN_ALLOCATION}
+                    max={balance}
+                    placeholder={`Min ${MIN_ALLOCATION}`}
+                    value={allocation}
+                    onChange={e => setAllocation(e.target.value)}
+                    className="bot-order-input"
+                    disabled={!canRun}
+                  />
+                  <span className="bot-order-unit-badge">USD</span>
+                </div>
+              </div>
+              <div className="bot-order-field">
+                <label className="bot-order-label">Available balance</label>
+                <div className="bot-order-static-value">${Number(balance).toFixed(2)}</div>
+              </div>
+            </div>
+
+            <div className="bot-order-hint">Minimum allocation is ${MIN_ALLOCATION}</div>
+          </div>
+
           <div className="bot-config-actions">
             <button
               className="bot-btn-start-active"
