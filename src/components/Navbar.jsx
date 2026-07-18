@@ -15,7 +15,7 @@ export default function Navbar({ onSignIn, onGetStarted }) {
         <div className="navbar-logo">
           <div
             className="navbar-logo-bg"
-            style={{ backgroundImage: "url(/FM logo.jpeg)" }}
+            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
             role="img"
             aria-label="Flexxmarket"
           />
