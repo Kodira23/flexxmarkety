@@ -13,7 +13,12 @@ export default function Navbar({ onSignIn, onGetStarted }) {
       <div className="navbar-inner">
         {/* Logo + brand + subline */}
         <div className="navbar-logo">
-          <img src="/FM logo.jpeg" alt="Flexxmarket" className="navbar-logo-img" />
+          <div
+            className="navbar-logo-bg"
+            style={{ backgroundImage: "url(/FM logo.jpeg)" }}
+            role="img"
+            aria-label="Flexxmarket"
+          />
           <div className="navbar-brand-wrapper">
             <span className="navbar-brand-top">FLEXX</span>
             <span className="navbar-brand-bottom">MARKET</span>
