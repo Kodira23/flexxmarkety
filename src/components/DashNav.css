@@ -66,7 +66,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 18px;
   font-weight: 800;
-  color: var(--text-primary, #ffffff);
+  color: #22c55e;
   letter-spacing: -0.02em;
 }
 
@@ -254,7 +254,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 17px;
   font-weight: 800;
-  color: var(--text-primary, #ffffff);
+  color: #22c55e;
   letter-spacing: -0.5px;
   margin-left: -11px;
   position: relative;
