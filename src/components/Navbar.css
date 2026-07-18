@@ -143,8 +143,8 @@
   .navbar-inner  { padding: 0 12px; gap: 8px; }
   .navbar-logo   { gap: 8px; }
   .navbar-logo-bg { width: 36px; height: 36px; }
-  .navbar-brand-text { font-size: 12px; }
-  .navbar-brand-sub  { font-size: 7px; margin-top: -1px; }
+  .navbar-brand-text { font-size: 14px; }
+  .navbar-brand-sub  { font-size: 8px; margin-top: -1px; }
   .navbar-actions { gap: 6px; }
   .navbar-actions .btn-ghost,
   .navbar-actions .btn-outline,
