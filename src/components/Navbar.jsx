@@ -20,8 +20,8 @@ export default function Navbar({ onSignIn, onGetStarted }) {
             aria-label="Flexxmarket"
           />
           <div className="navbar-brand-wrapper">
-            <span className="navbar-brand-top">FLEXX</span>
-            <span className="navbar-brand-bottom">MARKET</span>
+            <span className="navbar-brand-text">Flexxmarket</span>
+            <span className="navbar-brand-sub">Trading pro</span>
           </div>
         </div>
         <div className="navbar-actions">
