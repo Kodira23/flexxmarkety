@@ -15,7 +15,7 @@ export default function Navbar({ onSignIn, onGetStarted }) {
       <div className="navbar-inner">
         {/* Logo + brand + subline */}
         <div className="navbar-logo">
-          <img src="/logoz.jpeg" alt="Flexxmarket" className="navbar-logo-img" />
+          <img src="/FM logo.jpeg" alt="Flexxmarket" className="navbar-logo-img" />
           <div className="navbar-brand-wrapper">
             <span className="navbar-brand-text">Flexxmarket</span>
             <span className="navbar-brand-sub">pro trading</span>
