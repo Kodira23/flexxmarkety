@@ -28,14 +28,15 @@
   text-decoration: none;
   flex-shrink: 0;
 }
-.navbar-logo-img,
-.navbar-logo img {
+.navbar-logo-bg {
+  width: 62px;
   height: 62px;
-  width: auto;
-  max-width: 180px;
+  flex-shrink: 0;
   display: block;
   border-radius: 8px;
-  object-fit: contain;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   position: relative;
   z-index: 1;
 }
@@ -107,8 +108,7 @@
   .navbar        { height: 60px; }
   .navbar-inner  { padding: 0 16px; gap: 12px; }
   .navbar-links  { display: none; }
-  .navbar-logo-img,
-  .navbar-logo img { height: 48px; max-width: 120px; }
+  .navbar-logo-bg { width: 48px; height: 48px; }
   /* Show brand on mobile – responsive sizes */
   .navbar-brand-wrapper {
     display: flex; /* overrides any hidden state – now visible on mobile */
@@ -146,8 +146,7 @@
   .navbar        { height: 56px; }
   .navbar-inner  { padding: 0 12px; gap: 8px; }
   .navbar-logo   { gap: 8px; }
-  .navbar-logo-img,
-  .navbar-logo img { height: 36px; max-width: 90px; }
+  .navbar-logo-bg { width: 36px; height: 36px; }
   .navbar-brand-wrapper { margin-left: -9px; }
   .navbar-brand-top    { font-size: 15px; }
   .navbar-brand-bottom { font-size: 9px; margin-top: 1px; }
