@@ -36,30 +36,35 @@
   display: block;
   border-radius: 8px;
   object-fit: contain;
+  position: relative;
+  z-index: 1;
 }
-/* ── Brand text + subline wrapper ── */
+/* ── Brand wordmark: FLEXX / MARKET stacked, pulled left to overlap
+   the right quarter of the logo icon ── */
 .navbar-brand-wrapper {
   display: flex;
   flex-direction: column;
-  line-height: 1.2;
+  line-height: 1.1;
+  margin-left: -16px;
+  position: relative;
+  z-index: 0;
 }
-.navbar-brand-text {
+.navbar-brand-top {
   font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 20px;
+  font-weight: 800;
+  font-size: 24px;
   color: #22c55e;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
-.navbar-brand-sub {
+.navbar-brand-bottom {
   font-family: 'Inter', sans-serif;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-primary, #ffffff);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
   white-space: nowrap;
-  margin-top: -6px;
+  margin-top: 3px;
 }
 .navbar-links {
   display: flex;
@@ -107,13 +112,14 @@
   /* Show brand on mobile – responsive sizes */
   .navbar-brand-wrapper {
     display: flex; /* overrides any hidden state – now visible on mobile */
+    margin-left: -12px;
   }
-  .navbar-brand-text {
-    font-size: 16px; /* smaller on mobile */
+  .navbar-brand-top {
+    font-size: 18px;
   }
-  .navbar-brand-sub {
-    font-size: 10px; /* smaller on mobile */
-    margin-top: -1px;
+  .navbar-brand-bottom {
+    font-size: 11px;
+    margin-top: 2px;
   }
   .navbar-actions { gap: 8px; }
   .navbar-actions .btn-ghost,
@@ -142,8 +148,9 @@
   .navbar-logo   { gap: 8px; }
   .navbar-logo-img,
   .navbar-logo img { height: 36px; max-width: 90px; }
-  .navbar-brand-text { font-size: 14px; }
-  .navbar-brand-sub  { font-size: 8px; margin-top: -3px; }
+  .navbar-brand-wrapper { margin-left: -9px; }
+  .navbar-brand-top    { font-size: 15px; }
+  .navbar-brand-bottom { font-size: 9px; margin-top: 1px; }
   .navbar-actions { gap: 6px; }
   .navbar-actions .btn-ghost,
   .navbar-actions .btn-outline,
