@@ -85,7 +85,12 @@ export default function DashNav({ activePage, onNavigate }) {
       {/* ─── DESKTOP HEADER ─── */}
       <header className="dashnav-header">
         <button className="dashnav-logo" onClick={() => handleNav('home')}>
-          <img src="/logoz.jpeg" alt="Flexxmarket" className="dashnav-logo-img" />
+          <div
+            className="dashnav-logo-bg"
+            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+            role="img"
+            aria-label="Flexxmarket"
+          />
           <div className="logo-text-stack">
             <span className="logo-top">Flexxmarket</span>
             <span className="logo-bottom">pro trading</span>
@@ -121,7 +126,12 @@ export default function DashNav({ activePage, onNavigate }) {
       {/* ─── MOBILE HEADER ─── */}
       <header className="mobile-header">
         <button className="mobile-logo" onClick={() => handleNav('home')}>
-          <img src="/logoz.jpeg" alt="Flexxmarket" className="mobile-logo-img" />
+          <div
+            className="mobile-logo-bg"
+            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+            role="img"
+            aria-label="Flexxmarket"
+          />
           <span className="mobile-logo-text">Flexxmarket</span>
         </button>
         <div className="mobile-header-right">
