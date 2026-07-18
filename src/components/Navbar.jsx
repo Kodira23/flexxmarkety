@@ -1,5 +1,4 @@
 import './Navbar.css';
-
 export default function Navbar({ onSignIn, onGetStarted }) {
   const handleSignIn = () => {
     console.log('Sign In clicked – implement your auth logic');
@@ -9,7 +8,6 @@ export default function Navbar({ onSignIn, onGetStarted }) {
     console.log('Get Started clicked');
     if (onGetStarted) onGetStarted();
   };
-
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -17,8 +15,8 @@ export default function Navbar({ onSignIn, onGetStarted }) {
         <div className="navbar-logo">
           <img src="/FM logo.jpeg" alt="Flexxmarket" className="navbar-logo-img" />
           <div className="navbar-brand-wrapper">
-            <span className="navbar-brand-text">Flexxmarket</span>
-            <span className="navbar-brand-sub">pro trading</span>
+            <span className="navbar-brand-top">FLEXX</span>
+            <span className="navbar-brand-bottom">MARKET</span>
           </div>
         </div>
         <div className="navbar-actions">
