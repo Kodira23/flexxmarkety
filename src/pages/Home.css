@@ -261,10 +261,28 @@
   background: var(--bg-secondary);
 }
 
+/* Full-bleed on desktop: the chart spans the entire viewport width so it
+   visually "covers" the section rather than sitting boxed inside the
+   1280px content column. No rounded corners here since it runs edge to
+   edge; a top/bottom hairline keeps it separated from the copy above and
+   the section below. */
 .tradingview-embed {
-  border-radius: 14px;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   overflow: hidden;
-  border: 1px solid var(--border);
+}
+
+.tv-iframe {
+  display: block;
+  width: 100%;
+  height: 640px;
+  border: none;
 }
 
 /* ── AUTOTRADING ── */
@@ -644,8 +662,27 @@
   .about-badge { bottom: -16px; left: 16px; }
   .discover-btn { width: 100%; text-align: center; }
 
-  .chart-section { padding: 64px 0; }
-  .tradingview-embed iframe { height: 320px !important; }
+  .chart-section { padding: 48px 0 64px; }
+
+  /* On mobile the chart no longer needs to be full-bleed — give it back
+     its rounded card treatment, some breathing room, and a taller,
+     more presentable height instead of the old cramped 320px. */
+  .tradingview-embed {
+    position: static;
+    left: auto;
+    right: auto;
+    margin-left: 0;
+    margin-right: 0;
+    width: calc(100% - 40px);
+    max-width: 100%;
+    margin-top: 8px;
+    margin-inline: 20px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .tv-iframe {
+    height: 460px;
+  }
 
   .autotrading-section { padding: 64px 0; }
   .autotrading-grid { grid-template-columns: 1fr; width: 100%; }
