@@ -973,13 +973,23 @@
 
 /* Mobile spot */
 @media (max-width: 767px) {
-  .spot-mobile-tabs { display: grid; }
+  .spot-mobile-tabs { display: grid; grid-template-columns: 1fr 1fr; }
   .spot-body        { grid-template-columns: 1fr; }
   .spot-header-stats { display: none; }
   .mob-hide         { display: none !important; }
-  .spot-chart-area  { height: calc(100vh - 200px); }
+
+  /* Chart + Buy/Sell now stack together under the "Chart" tab instead
+     of Buy/Sell living behind its own tab; Order Book keeps its own
+     tab since it needs the full page height to be usable. */
+  .spot-chart-area  { height: 360px; flex-shrink: 0; }
+  .spot-trade-panel {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
   .spot-ob-panel    { height: calc(100vh - 200px); }
-  .spot-trade-panel { height: calc(100vh - 200px); }
 }
 
 /* ══════════════════════════════════════════════════════
