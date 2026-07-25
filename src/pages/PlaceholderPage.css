@@ -7,9 +7,11 @@
   --font-mono:    'JetBrains Mono', monospace;
   --font-syne:    'Syne', sans-serif;
 
-  /* Darker container tone used across bot / spot / markets cards */
-  --panel-bg: #0b0c0f;
-  --panel-bg-soft: #0a0a0d;
+  /* Darker container tone used across bot / spot / markets cards —
+     kept a shade lighter than the page background so cards still
+     read as distinct panels instead of blending into it. */
+  --panel-bg: #15171c;
+  --panel-bg-soft: #101217;
 }
 
 /* ── Base font — updated to Inter to match homepage ── */
@@ -932,24 +934,20 @@
   letter-spacing: 0.2px;
 }
 .trade-side-btn.buy {
-  background: #00c85322;
-  color: #00c853;
-  border: 1px solid #00c85355;
-}
-.trade-side-btn.buy.active {
   background: #00c853;
   color: #000;
-  box-shadow: 0 0 16px #00c85344;
+  border: 1px solid transparent;
+}
+.trade-side-btn.buy.active {
+  box-shadow: 0 0 0 2px var(--panel-bg), 0 0 0 4px #00c853, 0 0 16px #00c85366;
 }
 .trade-side-btn.sell {
-  background: #ff3b5c22;
-  color: #ff3b5c;
-  border: 1px solid #ff3b5c55;
+  background: #ff3b5c;
+  color: #000;
+  border: 1px solid transparent;
 }
 .trade-side-btn.sell.active {
-  background: #ff3b5c;
-  color: #fff;
-  box-shadow: 0 0 16px #ff3b5c44;
+  box-shadow: 0 0 0 2px var(--panel-bg), 0 0 0 4px #ff3b5c, 0 0 16px #ff3b5c66;
 }
 .trade-side-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
