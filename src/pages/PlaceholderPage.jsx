@@ -153,8 +153,9 @@ const EXTRA_DATA = {
 
 // ── TRADINGVIEW CHART OVERRIDES ──────────────────────────────────────
 // Green candles match the site accent (var(--green) = #16a34a), grid
-// lines switched off so the panel isn't chopped into a box grid —
-// same treatment as the landing page chart.
+// lines switched off so the panel isn't chopped into a box grid, and
+// the right-hand margin is trimmed so the last candle sits closer to
+// centre instead of leaving a big blank gap on the right.
 const TV_CHART_OVERRIDES = encodeURIComponent(JSON.stringify({
   'mainSeriesProperties.candleStyle.upColor': '#16a34a',
   'mainSeriesProperties.candleStyle.borderUpColor': '#16a34a',
@@ -162,10 +163,11 @@ const TV_CHART_OVERRIDES = encodeURIComponent(JSON.stringify({
   'mainSeriesProperties.candleStyle.downColor': '#ef4444',
   'mainSeriesProperties.candleStyle.borderDownColor': '#ef4444',
   'mainSeriesProperties.candleStyle.wickDownColor': '#ef4444',
-  'paneProperties.background': '#131722',
+  'paneProperties.background': '#0a0a0d',
   'paneProperties.backgroundType': 'solid',
   'paneProperties.vertGridProperties.color': 'rgba(0,0,0,0)',
   'paneProperties.horzGridProperties.color': 'rgba(0,0,0,0)',
+  'timeScale.rightOffset': 3,
 }))
 
 // ── SHARED HELPERS ─────────────────────────────────────────────────────
@@ -599,11 +601,6 @@ export function MarketsPage({ onNavigate }) {
   return (
     <div className="dash-main">
       <div className="markets-page-wrapper">
-        <div className="markets-page-header">
-          <h1 className="markets-page-title">Markets</h1>
-          <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
-        </div>
-
         <div className="movers-grid">
           {[
             { label: '🔥 Top Gainers', list: topGainers, isGain: true },
@@ -755,6 +752,7 @@ export function SpotPage() {
   const [selectedPair, setSelectedPair] = useState('BTC/USDT')
   const [orderType, setOrderType] = useState('limit')
   const [side, setSide] = useState('buy')
+  const [orderOpen, setOrderOpen] = useState(false)
   const [price, setPrice] = useState('')
   const [amount, setAmount] = useState('')
   const [pctSelected, setPctSelected] = useState(null)
@@ -772,6 +770,16 @@ export function SpotPage() {
     if (currentPair && balance) {
       if (side === 'buy') { const spend = balance * pct / 100; const p = currentPair.price; setPrice(p.toFixed(2)); setAmount((spend / p).toFixed(6)) }
       else { setAmount((0.01 * pct / 100).toFixed(6)); setPrice(currentPair.price.toFixed(2)) }
+    }
+  }
+
+  const handleSideClick = s => {
+    if (side === s && orderOpen) {
+      // same button pressed again → collapse
+      setOrderOpen(false)
+    } else {
+      setSide(s)
+      setOrderOpen(true)
     }
   }
 
@@ -813,7 +821,7 @@ export function SpotPage() {
         <div className="spot-body">
           <div className={`spot-chart-area ${mobileTab !== 'chart' ? 'mob-hide' : ''}`}>
             <iframe
-              src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE:${base}USDT&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=131722&studies=[]&theme=dark&style=1&timezone=Etc/UTC&withdateranges=1&showpopupbutton=1&overrides=${TV_CHART_OVERRIDES}&locale=en`}
+              src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE:${base}USDT&interval=60&range=5D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0a0d&studies=[]&theme=dark&style=1&timezone=Etc/UTC&withdateranges=1&showpopupbutton=1&overrides=${TV_CHART_OVERRIDES}&locale=en`}
               style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
               title="TradingView Chart"
             />
@@ -854,43 +862,52 @@ export function SpotPage() {
           </div>
 
           <div className={`spot-trade-panel ${mobileTab !== 'chart' ? 'mob-hide' : ''}`}>
-            <div className="trade-side-tabs">
-              {['buy', 'sell'].map(s => (
-                <button key={s} className={`trade-side-tab ${side === s ? s : ''}`} onClick={() => setSide(s)}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </button>
-              ))}
+            {orderOpen && (
+              <>
+                <div className="order-type-row">
+                  {['limit', 'market'].map(t => (
+                    <button key={t} className={`order-type-btn ${orderType === t ? 'active' : ''}`} onClick={() => setOrderType(t)}>
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <div className="trade-field">
+                  <label className="trade-label">Price (USDT)</label>
+                  <input type="number" className="trade-input" value={price} onChange={e => setPrice(e.target.value)} placeholder={currentPair?.price.toFixed(2)} />
+                </div>
+                <div className="trade-field">
+                  <label className="trade-label">Amount ({base})</label>
+                  <input type="number" className="trade-input" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
+                </div>
+                <div className="pct-row">
+                  {[25, 50, 75, 100].map(pct => (
+                    <button key={pct} className={`pct-btn ${pctSelected === pct ? 'active' : ''}`} onClick={() => handlePct(pct)}>{pct}%</button>
+                  ))}
+                </div>
+                <div className="trade-field">
+                  <label className="trade-label">Total (USDT)</label>
+                  <input type="text" className="trade-input readonly" readOnly value={total} placeholder="0.00" />
+                </div>
+                <div className="trade-info-row"><span>Fee (0.1%)</span><span>${total ? (parseFloat(total) * 0.001).toFixed(4) : '0.0000'}</span></div>
+                <div className="trade-info-row avail">
+                  <span>📋 Available (USDT)</span>
+                  <span className="avail-val">{Number(balance || 0).toFixed(0)} USDT</span>
+                </div>
+              </>
+            )}
+
+            <div className="trade-action-row">
+              <button className={`trade-side-btn buy ${side === 'buy' && orderOpen ? 'active' : ''}`} onClick={() => handleSideClick('buy')}>
+                Buy {base}
+              </button>
+              <button className={`trade-side-btn sell ${side === 'sell' && orderOpen ? 'active' : ''}`} onClick={() => handleSideClick('sell')}>
+                Sell {base}
+              </button>
             </div>
-            <div className="order-type-row">
-              {['limit', 'market'].map(t => (
-                <button key={t} className={`order-type-btn ${orderType === t ? 'active' : ''}`} onClick={() => setOrderType(t)}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </button>
-              ))}
-            </div>
-            <div className="trade-field">
-              <label className="trade-label">Price (USDT)</label>
-              <input type="number" className="trade-input" value={price} onChange={e => setPrice(e.target.value)} placeholder={currentPair?.price.toFixed(2)} />
-            </div>
-            <div className="trade-field">
-              <label className="trade-label">Amount ({base})</label>
-              <input type="number" className="trade-input" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
-            </div>
-            <div className="pct-row">
-              {[25, 50, 75, 100].map(pct => (
-                <button key={pct} className={`pct-btn ${pctSelected === pct ? 'active' : ''}`} onClick={() => handlePct(pct)}>{pct}%</button>
-              ))}
-            </div>
-            <div className="trade-field">
-              <label className="trade-label">Total (USDT)</label>
-              <input type="text" className="trade-input readonly" readOnly value={total} placeholder="0.00" />
-            </div>
-            <div className="trade-info-row"><span>Fee (0.1%)</span><span>${total ? (parseFloat(total) * 0.001).toFixed(4) : '0.0000'}</span></div>
-            <div className="trade-info-row avail">
-              <span>📋 Available (USDT)</span>
-              <span className="avail-val">{Number(balance || 0).toFixed(0)} USDT</span>
-            </div>
-            <button className={`trade-submit-btn ${side}`}>{side === 'buy' ? `Buy ${base}` : `Sell ${base}`}</button>
+
+            {orderOpen && (
+              <button className={`trade-submit-btn ${side}`}>{side === 'buy' ? `Confirm Buy ${base}` : `Confirm Sell ${base}`}</button>
+            )}
           </div>
         </div>
       </div>
