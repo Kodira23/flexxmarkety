@@ -100,6 +100,23 @@ const ABOUT_POINTS = [
 export default function Home() {
   const [modal, setModal] = useState(null)
 
+  // Chart colors match the site's green accent (var(--green) = #16a34a)
+  // and a matching red for down candles. Grid lines are switched off so
+  // the panel isn't chopped up into a box grid.
+  const TV_OVERRIDES = {
+    'mainSeriesProperties.candleStyle.upColor': '#16a34a',
+    'mainSeriesProperties.candleStyle.borderUpColor': '#16a34a',
+    'mainSeriesProperties.candleStyle.wickUpColor': '#16a34a',
+    'mainSeriesProperties.candleStyle.downColor': '#ef4444',
+    'mainSeriesProperties.candleStyle.borderDownColor': '#ef4444',
+    'mainSeriesProperties.candleStyle.wickDownColor': '#ef4444',
+    'paneProperties.background': '#0a0c0f',
+    'paneProperties.backgroundType': 'solid',
+    'paneProperties.vertGridProperties.color': 'rgba(0,0,0,0)',
+    'paneProperties.horzGridProperties.color': 'rgba(0,0,0,0)',
+  }
+  const tvOverridesParam = encodeURIComponent(JSON.stringify(TV_OVERRIDES))
+
   return (
     <div className="home">
       <Navbar onSignIn={() => setModal('signin')} onGetStarted={() => setModal('signup')} />
@@ -194,15 +211,15 @@ export default function Home() {
             Monitor live market movements with professional-grade TradingView charts and
             make informed trading decisions.
           </p>
-          <div className="tradingview-embed">
-            <iframe
-              src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=NASDAQ%3AAAPL&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=1a1d1f&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&showpopupbutton=1&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en"
-              style={{ width: '100%', height: 500, border: 'none', borderRadius: 12 }}
-              allowTransparency
-              allowFullScreen
-              title="TradingView Chart"
-            />
-          </div>
+        </div>
+        <div className="tradingview-embed">
+          <iframe
+            className="tv-iframe"
+            src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_chart&symbol=NASDAQ%3AAAPL&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=0a0c0f&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&showpopupbutton=1&studies_overrides={}&overrides=${tvOverridesParam}&enabled_features=[]&disabled_features=[]&locale=en`}
+            allowTransparency
+            allowFullScreen
+            title="TradingView Chart"
+          />
         </div>
       </section>
 
