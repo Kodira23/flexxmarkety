@@ -1,963 +1,1118 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
-import { useAuth } from '../context/AuthContext'
-import { useTicker } from '../hooks/useTicker'
-import { supabase } from '../supabase'
-import { useBalance } from './Dashboard'
-import './PlaceholderPage.css'
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&family=Syne:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
-const MIN_BALANCE = 1
-const MIN_ALLOCATION = 49
-
-// ── GLOBAL BOT INTERVALS ──────────────────────────────────────────────
-const botIntervals = {}
-
-// ── COINS TO EXCLUDE ───────────────────────────────────────────────────
-const EXCLUDED = new Set(['BOME','NOT','IO','ZK','LISTA','EIGEN','HMSTR','CATI','DOGS','MAJOR','NEIRO'])
-
-// ── COIN LOGOS ─────────────────────────────────────────────────────────
-const COIN_LOGOS = {
-  BTC:'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
-  ETH:'https://assets.coingecko.com/coins/images/279/large/ethereum.png',
-  XRP:'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png',
-  BNB:'https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png',
-  SOL:'https://assets.coingecko.com/coins/images/4128/large/solana.png',
-  DOGE:'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',
-  ADA:'https://assets.coingecko.com/coins/images/975/large/cardano.png',
-  TRX:'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',
-  AVAX:'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png',
-  LINK:'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',
-  SHIB:'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
-  SUI:'https://assets.coingecko.com/coins/images/26375/large/sui_asset.jpeg',
-  XLM:'https://assets.coingecko.com/coins/images/100/large/Stellar_symbol_black_RGB.png',
-  DOT:'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',
-  HBAR:'https://assets.coingecko.com/coins/images/3688/large/hbar.png',
-  BCH:'https://assets.coingecko.com/coins/images/780/large/bitcoin-cash-circle.png',
-  UNI:'https://assets.coingecko.com/coins/images/12504/large/uniswap-uni.png',
-  LTC:'https://assets.coingecko.com/coins/images/2/large/litecoin.png',
-  PEPE:'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg',
-  NEAR:'https://assets.coingecko.com/coins/images/10365/large/near.jpg',
-  ICP:'https://assets.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png',
-  FET:'https://assets.coingecko.com/coins/images/5681/large/Fetch.jpg',
-  MATIC:'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',
-  RNDR:'https://assets.coingecko.com/coins/images/11636/large/rndr.png',
-  ARB:'https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg',
-  ATOM:'https://assets.coingecko.com/coins/images/1481/large/cosmos_hub.png',
-  SEI:'https://assets.coingecko.com/coins/images/28205/large/Sei_Logo_-_Transparent.png',
-  RUNE:'https://assets.coingecko.com/coins/images/6595/large/Rune200x200.png',
-  MKR:'https://assets.coingecko.com/coins/images/1364/large/Mark_Maker.png',
-  QNT:'https://assets.coingecko.com/coins/images/3370/large/5ZOu7brX_400x400.jpg',
-  LDO:'https://assets.coingecko.com/coins/images/13573/large/Lido_DAO.png',
-  GALA:'https://assets.coingecko.com/coins/images/12493/large/GALA-COINGECKO.png',
-  JASMY:'https://assets.coingecko.com/coins/images/13876/large/JASMY200x200.jpg',
-  SAND:'https://assets.coingecko.com/coins/images/12129/large/sandbox_logo.jpg',
-  FLOW:'https://assets.coingecko.com/coins/images/13446/large/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png',
-  MANA:'https://assets.coingecko.com/coins/images/878/large/decentraland-mana.png',
-  AXS:'https://assets.coingecko.com/coins/images/13029/large/axie_infinity_logo.png',
-  APE:'https://assets.coingecko.com/coins/images/24383/large/apecoin.jpg',
-  OP:'https://assets.coingecko.com/coins/images/25244/large/Optimism.png',
-  INJ:'https://assets.coingecko.com/coins/images/12882/large/Secondary_Symbol.png',
-  GRT:'https://assets.coingecko.com/coins/images/13397/large/Graph_Token.png',
-  AAVE:'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',
-  SNX:'https://assets.coingecko.com/coins/images/3406/large/SNX.png',
-  CRV:'https://assets.coingecko.com/coins/images/12124/large/Curve.png',
-  ENS:'https://assets.coingecko.com/coins/images/19785/large/acatxTm8_400x400.jpg',
-  BLUR:'https://assets.coingecko.com/coins/images/28453/large/blur.png',
-  IMX:'https://assets.coingecko.com/coins/images/17233/large/immutableX-symbol-BLK-RGB.png',
-  CAKE:'https://assets.coingecko.com/coins/images/12632/large/pancakeswap-cake-logo_%281%29.png',
-  COMP:'https://assets.coingecko.com/coins/images/10775/large/COMP.png',
-  YFI:'https://assets.coingecko.com/coins/images/11849/large/yearn-finance.png',
-  BAL:'https://assets.coingecko.com/coins/images/11683/large/Balancer.png',
-  ZRX:'https://assets.coingecko.com/coins/images/863/large/0x.png',
-  CHZ:'https://assets.coingecko.com/coins/images/8834/large/Chiliz.png',
-  ENJ:'https://assets.coingecko.com/coins/images/1102/large/enjin-coin-logo.png',
-  BAT:'https://assets.coingecko.com/coins/images/677/large/basic-attention-token.png',
-  ZIL:'https://assets.coingecko.com/coins/images/2687/large/Zilliqa-logo.png',
-  ONE:'https://assets.coingecko.com/coins/images/4344/large/Y88JAze.png',
-  KAVA:'https://assets.coingecko.com/coins/images/9761/large/kava.png',
-  ALGO:'https://assets.coingecko.com/coins/images/4380/large/download.png',
-  VET:'https://assets.coingecko.com/coins/images/1167/large/VeChain-Logo-768x725.png',
-  THETA:'https://assets.coingecko.com/coins/images/2538/large/theta-token-logo.png',
-  FIL:'https://assets.coingecko.com/coins/images/12817/large/filecoin.png',
-  EOS:'https://assets.coingecko.com/coins/images/738/large/eos-eos-logo.png',
-  XTZ:'https://assets.coingecko.com/coins/images/976/large/Tezos-logo.png',
-  IOTA:'https://assets.coingecko.com/coins/images/692/large/IOTA_Swirl.png',
-  NEO:'https://assets.coingecko.com/coins/images/480/large/NEO_512_512.png',
-  WAVES:'https://assets.coingecko.com/coins/images/425/large/waves.png',
-  DASH:'https://assets.coingecko.com/coins/images/19/large/dash-logo.png',
-  XMR:'https://assets.coingecko.com/coins/images/69/large/monero_logo.png',
-  ZEC:'https://assets.coingecko.com/coins/images/486/large/circle-zcash-color.png',
-  EGLD:'https://assets.coingecko.com/coins/images/12335/large/egld-token-logo.png',
-  ROSE:'https://assets.coingecko.com/coins/images/13162/large/rose.png',
-  KSM:'https://assets.coingecko.com/coins/images/9568/large/m4zRhP5e_400x400.jpg',
-  CELO:'https://assets.coingecko.com/coins/images/11090/large/InjXBNx9_400x400.jpg',
-  ANKR:'https://assets.coingecko.com/coins/images/8455/large/Ankr.png',
-  SKL:'https://assets.coingecko.com/coins/images/13245/large/SKALE_token_300x300.png',
-  STORJ:'https://assets.coingecko.com/coins/images/949/large/storj.png',
-  BAND:'https://assets.coingecko.com/coins/images/9545/large/Band_token_blue_violet_token.png',
-  WLD:'https://assets.coingecko.com/coins/images/31069/large/worldcoin.jpeg',
-  STX:'https://assets.coingecko.com/coins/images/2069/large/Stacks_logo_full.png',
-  CFX:'https://assets.coingecko.com/coins/images/13079/large/3vuYMbjN.png',
-  MAGIC:'https://assets.coingecko.com/coins/images/18623/large/magic.png',
-  TIA:'https://assets.coingecko.com/coins/images/33172/large/celestia.png',
-  PYTH:'https://assets.coingecko.com/coins/images/31924/large/pyth.png',
-  JTO:'https://assets.coingecko.com/coins/images/33228/large/jto.png',
-  JUP:'https://assets.coingecko.com/coins/images/34188/large/jup.png',
-  WIF:'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpg',
+/* ── CSS Variables (homepage.css palette) ── */
+:root {
+  --font-primary: 'Inter', sans-serif;
+  --font-display: 'Bebas Neue', 'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+  --font-syne:    'Syne', sans-serif;
 }
 
-const COIN_COLORS = {
-  BTC:'#F7931A',ETH:'#627EEA',XRP:'#00AAE4',BNB:'#F3BA2F',SOL:'#9945FF',DOGE:'#C2A633',ADA:'#0033AD',TRX:'#EF0027',
-  AVAX:'#E84142',LINK:'#2A5ADA',SHIB:'#FFA409',SUI:'#4DA2FF',XLM:'#7D00FF',DOT:'#E6007A',HBAR:'#00BABC',BCH:'#8DC351',
-  UNI:'#FF007A',LTC:'#A8A9AD',PEPE:'#00A550',NEAR:'#00C1DE',ICP:'#29ABE2',FET:'#1D2B55',MATIC:'#8247E5',RNDR:'#CC3000',
-  ARB:'#28A0F0',ATOM:'#6F7390',SEI:'#CC3333',RUNE:'#2ECC71',MKR:'#1AAB9B',QNT:'#272D5A',LDO:'#00A3FF',GALA:'#0033FF',
-  JASMY:'#2B4EFF',SAND:'#04ADEF',FLOW:'#00EF8B',MANA:'#FF2D55',AXS:'#0055D5',APE:'#0054F9',OP:'#FF0420',INJ:'#00BFFF',
-  GRT:'#6F4CFF',AAVE:'#B6509E',SNX:'#00D1FF',CRV:'#D63636',ENS:'#5284FF',BLUR:'#FF8700',IMX:'#17B5CB',CAKE:'#FE8C00',
-  COMP:'#00D395',YFI:'#006AE3',BAL:'#1E1E1E',ZRX:'#555',CHZ:'#CD0124',ENJ:'#7866D5',BAT:'#FF5000',ZIL:'#29CCC4',
-  ONE:'#00AEE9',KAVA:'#FF564F',ALGO:'#3A3A3A',VET:'#15BDFF',THETA:'#2AB8E6',FIL:'#0090FF',EOS:'#454545',XTZ:'#2C7DF7',
-  IOTA:'#131F37',NEO:'#58BF00',WAVES:'#0155FF',DASH:'#008DE4',XMR:'#FF6600',ZEC:'#ECB244',EGLD:'#1A4FE0',ROSE:'#4E8DFF',
-  KSM:'#E6007A',CELO:'#FBCC5C',ANKR:'#0066FF',SKL:'#444',STORJ:'#2683FF',BAND:'#4520E6',WLD:'#555',STX:'#5546FF',
-  CFX:'#E15F1A',MAGIC:'#E2175F',TIA:'#7B2FBE',PYTH:'#8B5CF6',JTO:'#9945FF',JUP:'#7AC231',WIF:'#B08850',
+/* ── Base font — updated to Inter to match homepage ── */
+.dash-layout, .dash-main, .bots-content,
+.placeholder-content, .markets-layout {
+  font-family: var(--font-primary);
 }
 
-const EXTRA_DATA = {
-  BTC:{vol:'$42.50B',mcap:'$1920.00B'},ETH:{vol:'$18.20B',mcap:'$415.00B'},XRP:{vol:'$5.20B',mcap:'$135.00B'},
-  BNB:{vol:'$1.80B',mcap:'$98.00B'},SOL:{vol:'$4.80B',mcap:'$82.00B'},DOGE:{vol:'$2.80B',mcap:'$47.00B'},
-  ADA:{vol:'$980.00M',mcap:'$33.50B'},TRX:{vol:'$620.00M',mcap:'$21.00B'},AVAX:{vol:'$780.00M',mcap:'$17.20B'},
-  LINK:{vol:'$920.00M',mcap:'$14.50B'},SHIB:{vol:'$450.00M',mcap:'$13.00B'},SUI:{vol:'$680.00M',mcap:'$12.80B'},
-  XLM:{vol:'$280.00M',mcap:'$12.50B'},DOT:{vol:'$420.00M',mcap:'$10.80B'},HBAR:{vol:'$380.00M',mcap:'$10.50B'},
-  BCH:{vol:'$380.00M',mcap:'$9.50B'},UNI:{vol:'$220.00M',mcap:'$8.70B'},LTC:{vol:'$520.00M',mcap:'$8.10B'},
-  PEPE:{vol:'$1.20B',mcap:'$8.00B'},NEAR:{vol:'$320.00M',mcap:'$5.80B'},ICP:{vol:'$185.00M',mcap:'$5.40B'},
-  FET:{vol:'$420.00M',mcap:'$5.30B'},MATIC:{vol:'$320.00M',mcap:'$4.80B'},RNDR:{vol:'$320.00M',mcap:'$4.40B'},
-  ARB:{vol:'$380.00M',mcap:'$4.40B'},ATOM:{vol:'$180.00M',mcap:'$3.90B'},SEI:{vol:'$280.00M',mcap:'$1.80B'},
-  RUNE:{vol:'$185.00M',mcap:'$1.80B'},MKR:{vol:'$95.00M',mcap:'$1.70B'},QNT:{vol:'$42.00M',mcap:'$1.70B'},
-  LDO:{vol:'$145.00M',mcap:'$1.70B'},GALA:{vol:'$185.00M',mcap:'$1.60B'},JASMY:{vol:'$185.00M',mcap:'$1.60B'},
-  SAND:{vol:'$145.00M',mcap:'$1.40B'},FLOW:{vol:'$65.00M',mcap:'$1.30B'},MANA:{vol:'$95.00M',mcap:'$720.00M'},
-  AXS:{vol:'$75.00M',mcap:'$680.00M'},APE:{vol:'$85.00M',mcap:'$480.00M'},OP:{vol:'$210.00M',mcap:'$2.30B'},
-  INJ:{vol:'$180.00M',mcap:'$2.10B'},GRT:{vol:'$65.00M',mcap:'$420.00M'},AAVE:{vol:'$95.00M',mcap:'$2.80B'},
-  SNX:{vol:'$45.00M',mcap:'$380.00M'},CRV:{vol:'$55.00M',mcap:'$310.00M'},ENS:{vol:'$35.00M',mcap:'$850.00M'},
-  BLUR:{vol:'$42.00M',mcap:'$320.00M'},IMX:{vol:'$65.00M',mcap:'$1.20B'},CAKE:{vol:'$55.00M',mcap:'$580.00M'},
-  COMP:{vol:'$28.00M',mcap:'$580.00M'},YFI:{vol:'$22.00M',mcap:'$240.00M'},BAL:{vol:'$18.00M',mcap:'$185.00M'},
-  ZRX:{vol:'$15.00M',mcap:'$360.00M'},CHZ:{vol:'$45.00M',mcap:'$480.00M'},ENJ:{vol:'$18.00M',mcap:'$185.00M'},
-  BAT:{vol:'$22.00M',mcap:'$340.00M'},ZIL:{vol:'$12.00M',mcap:'$340.00M'},ONE:{vol:'$8.00M',mcap:'$225.00M'},
-  KAVA:{vol:'$18.00M',mcap:'$225.00M'},ALGO:{vol:'$32.00M',mcap:'$1.40B'},VET:{vol:'$28.00M',mcap:'$2.60B'},
-  THETA:{vol:'$22.00M',mcap:'$1.45B'},FIL:{vol:'$85.00M',mcap:'$2.20B'},EOS:{vol:'$35.00M',mcap:'$1.10B'},
-  XTZ:{vol:'$18.00M',mcap:'$680.00M'},IOTA:{vol:'$12.00M',mcap:'$610.00M'},NEO:{vol:'$22.00M',mcap:'$810.00M'},
-  WAVES:{vol:'$15.00M',mcap:'$195.00M'},DASH:{vol:'$35.00M',mcap:'$310.00M'},XMR:{vol:'$55.00M',mcap:'$3.00B'},
-  ZEC:{vol:'$25.00M',mcap:'$450.00M'},EGLD:{vol:'$28.00M',mcap:'$875.00M'},ROSE:{vol:'$22.00M',mcap:'$215.00M'},
-  KSM:{vol:'$18.00M',mcap:'$385.00M'},CELO:{vol:'$12.00M',mcap:'$415.00M'},ANKR:{vol:'$15.00M',mcap:'$385.00M'},
-  SKL:{vol:'$8.00M',mcap:'$185.00M'},STORJ:{vol:'$12.00M',mcap:'$175.00M'},BAND:{vol:'$8.00M',mcap:'$120.00M'},
-  WLD:{vol:'$85.00M',mcap:'$1.20B'},STX:{vol:'$55.00M',mcap:'$2.50B'},CFX:{vol:'$35.00M',mcap:'$520.00M'},
-  MAGIC:{vol:'$22.00M',mcap:'$280.00M'},TIA:{vol:'$75.00M',mcap:'$1.50B'},PYTH:{vol:'$55.00M',mcap:'$1.20B'},
-  JTO:{vol:'$35.00M',mcap:'$580.00M'},JUP:{vol:'$65.00M',mcap:'$760.00M'},WIF:{vol:'$185.00M',mcap:'$1.45B'},
+/* ══════════════════════════════════════════════════════
+   PLACEHOLDER PAGE
+══════════════════════════════════════════════════════ */
+.placeholder-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
 }
 
-// ── SHARED HELPERS ─────────────────────────────────────────────────────
-function CoinCircle({ base, size = 36 }) {
-  const [failed, setFailed] = useState(false)
-  const logo  = COIN_LOGOS[base]
-  const color = COIN_COLORS[base] || '#333'
-  const label = base.length <= 2 ? base : base.slice(0, 2)
-  const fontSize = size <= 20 ? 8 : size <= 32 ? 11 : 13
-  if (logo && !failed) {
-    return (
-      <img
-        src={logo} alt={base} width={size} height={size}
-        style={{ borderRadius:'50%', objectFit:'cover', flexShrink:0, display:'inline-block', verticalAlign:'middle' }}
-        onError={() => setFailed(true)}
-      />
-    )
-  }
-  return (
-    <span style={{
-      display:'inline-flex', alignItems:'center', justifyContent:'center',
-      width:size, height:size, minWidth:size, borderRadius:'50%',
-      backgroundColor:color, fontSize, fontWeight:900, color:'#fff', flexShrink:0,
-      userSelect:'none', lineHeight:1, fontFamily:'Inter,sans-serif', verticalAlign:'middle'
-    }}>{label}</span>
-  )
+.placeholder-card {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
 
-const fmt = p => {
-  if (p >= 1000) return `$${p.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`
-  if (p >= 1)    return `$${p.toFixed(2)}`
-  if (p >= 0.01) return `$${p.toFixed(4)}`
-  return `$${p.toFixed(8)}`
+.ph-icon  { font-size: 48px; margin-bottom: 8px; }
+
+.ph-title {
+  font-family: var(--font-primary);
+  font-size: clamp(22px, 4vw, 32px);   /* was 28px fixed */
+  font-weight: 800;
+  letter-spacing: -1px;                 /* matches homepage section-title */
+  color: var(--text-primary);
 }
 
-// ── BOT CONFIGS ────────────────────────────────────────────────────────
-const BOT_CONFIGS = [
-  { id:1, name:'Bitcoin Accumulation', subtitle:'Weekly • DCA', description:'Dollar-cost averaging into Bitcoin on a weekly basis.', risk:'Low', interval:3000, drift:0.14, volatility:0.05, lossChance:0.25, lossMult:0.35, pair:'BTC' },
-  { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.26, lossMult:0.38, pair:'ETH' },
-]
-
-// ── BOT CARD (full, one‑page layout) ─────────────────────────────────
-function BotCard({ bot, balance, userId, onStatsChange }) {
-  const canRun = balance >= MIN_BALANCE
-  const [active, setActive] = useState(false)
-  const [configured, setConfigured] = useState(false)
-  const [showConfig, setShowConfig] = useState(false)
-  const [allocation, setAllocation] = useState('')
-  const [log, setLog] = useState([])
-  const [pnl, setPnl] = useState(0)
-  const [wins, setWins] = useState(0)
-  const [losses, setLosses] = useState(0)
-  const [loaded, setLoaded] = useState(false)
-  const allocatedRef = useRef(0)
-  const winsRef = useRef(0)
-  const lossesRef = useRef(0)
-  const intervalKey = `${userId}-${bot.id}`
-
-  function addLog(msg, color = '#aaa') {
-    setLog(prev => [{ msg, color, ts: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }, ...prev].slice(0, 20))
-  }
-
-  async function persist(patch) {
-    try {
-      const { error } = await supabase
-        .from('bot_simulated_pnl')
-        .upsert({
-          user_id: userId,
-          bot_id: bot.id,
-          pnl,
-          wins,
-          losses,
-          allocation: allocatedRef.current,
-          configured,
-          active,
-          updated_at: new Date().toISOString(),
-          ...patch,
-        }, { onConflict: 'user_id,bot_id' })
-      if (error) console.error('bot_simulated_pnl upsert failed:', error.message)
-    } catch (err) { console.error('Persist error:', err) }
-  }
-
-  const tick = useCallback(async () => {
-    try {
-      if (allocatedRef.current === 0) return
-
-      const total = winsRef.current + lossesRef.current
-      let isLoss = false
-      if (total > 0) {
-        const wr = winsRef.current / total
-        if (wr < 0.62) isLoss = false
-        else if (wr > 0.65) isLoss = true
-        else isLoss = Math.random() < bot.lossChance
-      } else {
-        isLoss = Math.random() < bot.lossChance
-      }
-
-      const noise = Math.random() * bot.volatility
-      const r = isLoss ? -(bot.drift * bot.lossMult + noise) : (bot.drift + noise)
-      const stake = allocatedRef.current * 0.1
-      const gained = parseFloat((stake * r).toFixed(2))
-
-      setPnl(prev => {
-        const next = parseFloat((prev + gained).toFixed(2))
-        const newWins = gained >= 0 ? winsRef.current + 1 : winsRef.current
-        const newLosses = gained < 0 ? lossesRef.current + 1 : lossesRef.current
-        winsRef.current = newWins
-        lossesRef.current = newLosses
-        setWins(newWins)
-        setLosses(newLosses)
-
-        supabase
-          .from('bot_simulated_pnl')
-          .upsert({
-            user_id: userId,
-            bot_id: bot.id,
-            pnl: next,
-            wins: newWins,
-            losses: newLosses,
-            allocation: allocatedRef.current,
-            configured: true,
-            active: true,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id,bot_id' })
-          .then(({ error }) => { if (error) console.error('DB upsert error:', error.message) })
-          .catch(err => console.error('DB upsert catch:', err))
-
-        supabase.rpc('increment_balance', { p_user_id: userId, p_delta: gained })
-          .then(({ error }) => { if (error) console.error('Balance update error:', error.message) })
-          .catch(err => console.error('Balance RPC error:', err))
-
-        return next
-      })
-
-      const up = gained >= 0
-      addLog(`${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`, up ? '#00c853' : '#ff3b5c')
-    } catch (err) {
-      console.error('Error in tick:', err)
-      addLog('⚠️ Bot error – check console', '#ff3b5c')
-    }
-  }, [bot, userId])
-
-  useEffect(() => {
-    if (!userId) return
-    const loadState = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('bot_simulated_pnl')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('bot_id', bot.id)
-          .maybeSingle()
-
-        if (error) throw error
-
-        if (data) {
-          setPnl(data.pnl ?? 0)
-          setWins(data.wins ?? 0)
-          setLosses(data.losses ?? 0)
-          setAllocation(data.allocation ? String(data.allocation) : '')
-          setConfigured(!!data.configured)
-          winsRef.current = data.wins ?? 0
-          lossesRef.current = data.losses ?? 0
-          allocatedRef.current = data.allocation ?? 0
-          if (data.active) {
-            setActive(true)
-            if (!botIntervals[intervalKey]) {
-              botIntervals[intervalKey] = setInterval(tick, bot.interval)
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load bot state:', err)
-      } finally {
-        setLoaded(true)
-      }
-    }
-    loadState()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, bot.id])
-
-  async function handleStart() {
-    if (!canRun || !configured) return
-
-    if (active) {
-      clearInterval(botIntervals[intervalKey])
-      delete botIntervals[intervalKey]
-      setActive(false)
-      allocatedRef.current = 0
-      setAllocation('')
-      setConfigured(false)
-      setLog([])
-      await persist({ active: false, allocation: 0, configured: false })
-      return
-    }
-
-    const alloc = parseFloat(allocation)
-    if (!alloc || alloc < MIN_ALLOCATION) {
-      addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
-      return
-    }
-    if (alloc > balance) {
-      addLog('⚠️ Allocation exceeds balance', '#ff3b5c')
-      return
-    }
-
-    allocatedRef.current = alloc
-    setActive(true)
-    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds NOT deducted)`, '#00c853')
-    await persist({ active: true, allocation: alloc, configured: true })
-
-    if (!botIntervals[intervalKey]) {
-      botIntervals[intervalKey] = setInterval(tick, bot.interval)
-    }
-  }
-
-  async function handleSaveConfig() {
-    const alloc = parseFloat(allocation)
-    if (!alloc || alloc < MIN_ALLOCATION) {
-      addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
-      return
-    }
-    if (alloc > balance) {
-      addLog('⚠️ Allocation exceeds balance', '#ff3b5c')
-      return
-    }
-    allocatedRef.current = alloc
-    setConfigured(true)
-    setShowConfig(false)
-    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (funds not yet deducted)`, '#00c853')
-    await persist({ allocation: alloc, configured: true })
-  }
-
-  const totalTrades = wins + losses
-
-  useEffect(() => {
-    if (!loaded) return
-    onStatsChange?.(bot.id, {
-      pnl,
-      wins,
-      losses,
-      allocation: configured ? parseFloat(allocation || 0) : 0,
-      active,
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded, pnl, wins, losses, allocation, active, configured])
-
-  const statusLabel = active ? 'Running' : configured ? 'Ready' : 'Not Configured'
-  const statusColor = active ? '#00c853' : configured ? '#ffaa00' : '#6b7280'
-
-  if (!loaded) {
-    return (
-      <div className="bot-card bot-card-skeleton">
-        <div className="skeleton-line skeleton-w60" />
-        <div className="skeleton-line skeleton-w40" />
-        <div className="skeleton-block" />
-      </div>
-    )
-  }
-
-  return (
-    <div className={`bot-card ${active ? 'bot-card-live' : ''}`}>
-      {/* ─── Header ─── */}
-      <div className="bot-card-header">
-        <div className="bot-id-block">
-          <div className={`bot-avatar ${active ? 'live' : ''}`}>
-            <CoinCircle base={bot.pair} size={40} />
-          </div>
-          <div>
-            <div className="bot-name">{bot.name}</div>
-            <div className="bot-subtitle">
-              {bot.subtitle}
-              <span className="bot-subtitle-dot">•</span>
-              <span className={`risk-tag risk-${bot.risk.toLowerCase()}`}>{bot.risk} Risk</span>
-            </div>
-          </div>
-        </div>
-        <div className="bot-status-badge" style={{ background: statusColor + '1a', color: statusColor, border: `1px solid ${statusColor}55` }}>
-          {active && <span className="status-dot" style={{ background: statusColor }} />}
-          {statusLabel}
-        </div>
-      </div>
-
-      <p className="bot-desc">{bot.description}</p>
-
-      {/* ─── Config Box ─── */}
-      {showConfig && (
-        <div className="bot-config-box">
-          {!canRun && (
-            <div className="bot-inline-alert">
-              ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
-            </div>
-          )}
-
-          <div className="bot-order-section">
-            <div className="bot-order-field-row">
-              <div className="bot-order-field">
-                <label className="bot-order-label">Allocation size</label>
-                <div className="bot-order-input-wrap">
-                  <input
-                    type="number"
-                    min={MIN_ALLOCATION}
-                    max={balance}
-                    placeholder={`Min ${MIN_ALLOCATION}`}
-                    value={allocation}
-                    onChange={e => setAllocation(e.target.value)}
-                    className="bot-order-input"
-                    disabled={!canRun}
-                  />
-                  <span className="bot-order-unit-badge">USD</span>
-                </div>
-              </div>
-              <div className="bot-order-field">
-                <label className="bot-order-label">Available balance</label>
-                <div className="bot-order-static-value">${Number(balance).toFixed(2)}</div>
-              </div>
-            </div>
-
-            <div className="bot-order-hint">Minimum allocation is ${MIN_ALLOCATION}</div>
-          </div>
-
-          <div className="bot-config-actions">
-            <button
-              className="bot-btn-start-active"
-              onClick={handleSaveConfig}
-              disabled={!canRun || !allocation || parseFloat(allocation) < MIN_ALLOCATION || parseFloat(allocation) > balance}
-            >
-              Save Configuration
-            </button>
-            <button className="bot-btn-configure" onClick={() => setShowConfig(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Action Buttons ─── */}
-      <div className="bot-actions">
-        <button
-          className="bot-btn-start-active"
-          onClick={() => { if (canRun) setShowConfig(v => !v) }}
-          disabled={!canRun || active}
-        >
-          {showConfig ? 'Close' : 'Configure'}
-        </button>
-        <button
-          className={active ? 'bot-btn-stop' : 'bot-btn-start-active'}
-          onClick={handleStart}
-          disabled={!canRun || !configured}
-        >
-          {active ? 'Stop Bot' : 'Start Bot'}
-        </button>
-      </div>
-
-      {/* ─── Logs (expands when running) ─── */}
-      {log.length > 0 && (
-        <div className="bot-log-panel">
-          <div className="bot-log-head">Activity Log</div>
-          <div
-            className="bot-log"
-            style={{
-              maxHeight: active ? '260px' : '110px',
-              transition: 'max-height 0.3s ease',
-            }}
-          >
-            {log.map((l, i) => (
-              <div key={i} className="bot-log-line" style={{ color: l.color }}>
-                <span className="bot-log-ts">{l.ts}</span>{l.msg}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
+.ph-desc {
+  font-size: 16px;                      /* was 15px */
+  color: var(--text-secondary);
+  line-height: 1.7;                     /* matches homepage hero-sub */
+  max-width: 360px;
+  font-family: var(--font-primary);
+  font-weight: 400;
 }
 
-// ── PLACEHOLDER PAGE ──────────────────────────────────────────────────
-function PlaceholderPage({ title, icon, description }) {
-  return (
-    <div className="dash-main">
-      <div className="placeholder-content">
-        <div className="placeholder-card">
-          <div className="ph-icon">{icon}</div>
-          <h2 className="ph-title">{title}</h2>
-          <p className="ph-desc">{description}</p>
-          <div className="ph-badge">Coming Soon</div>
-        </div>
-      </div>
-    </div>
-  )
+.ph-badge {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid #16a34a33;          /* matches homepage badge border */
+  padding: 5px 14px;                    /* matches homepage section-tag */
+  border-radius: 100px;                 /* pill like homepage badges */
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;                  /* matches section-tag */
+  text-transform: uppercase;
+  margin-top: 8px;
+  font-family: var(--font-primary);
 }
 
-// ── MARKETS PAGE ───────────────────────────────────────────────────────
-export function MarketsPage({ onNavigate }) {
-  const allPairs = useTicker()
-  const pairs = useMemo(() => allPairs.filter(p => !EXCLUDED.has(p.symbol.split('/')[0])), [allPairs])
-
-  const [filter, setFilter] = useState('all')
-  const [search, setSearch] = useState('')
-  const [favorites, setFavorites] = useState(['BTC', 'ETH'])
-  const [sortKey, setSortKey] = useState(null)
-  const [sortDir, setSortDir] = useState('asc')
-
-  const toggleFav = sym => setFavorites(prev => prev.includes(sym) ? prev.filter(s => s !== sym) : [...prev, sym])
-  const handleSort = key => { if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortKey(key); setSortDir('asc') } }
-
-  const topGainers = useMemo(() => [...pairs].sort((a, b) => b.change - a.change).slice(0, 3), [pairs])
-  const topLosers = useMemo(() => [...pairs].sort((a, b) => a.change - b.change).slice(0, 3), [pairs])
-
-  const filtered = useMemo(() => {
-    let list = [...pairs]
-    if (filter === 'gainers') list = list.filter(p => p.change >= 0)
-    if (filter === 'losers') list = list.filter(p => p.change < 0)
-    if (filter === 'favorites') list = list.filter(p => favorites.includes(p.symbol.split('/')[0]))
-    if (search) list = list.filter(p => p.symbol.toLowerCase().includes(search.toLowerCase()))
-    if (sortKey === 'name') list.sort((a, b) => sortDir === 'asc' ? a.symbol.localeCompare(b.symbol) : b.symbol.localeCompare(a.symbol))
-    if (sortKey === 'price') list.sort((a, b) => sortDir === 'asc' ? a.price - b.price : b.price - a.price)
-    if (sortKey === 'change') list.sort((a, b) => sortDir === 'asc' ? a.change - b.change : b.change - a.change)
-    return list
-  }, [pairs, filter, search, favorites, sortKey, sortDir])
-
-  const SortIcon = ({ k }) => (
-    <span className={`sort-icon ${sortKey === k ? 'active' : ''}`}>
-      {sortKey === k ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
-    </span>
-  )
-
-  const handleTrade = () => {
-    if (onNavigate) onNavigate('home')
-  }
-
-  return (
-    <div className="dash-main">
-      <div className="markets-page-wrapper">
-        <div className="markets-page-header">
-          <h1 className="markets-page-title">Markets</h1>
-          <p className="markets-page-sub">Explore and trade cryptocurrencies</p>
-        </div>
-
-        <div className="movers-grid">
-          {[
-            { label: '🔥 Top Gainers', list: topGainers, isGain: true },
-            { label: '⚡ Top Losers', list: topLosers, isGain: false }
-          ].map(({ label, list, isGain }) => (
-            <div key={label} className="movers-card">
-              <div className="movers-title">{label}</div>
-              {list.map(p => {
-                const base = p.symbol.split('/')[0]
-                return (
-                  <div key={p.symbol} className="mover-row">
-                    <div className="mover-left">
-                      <CoinCircle base={base} size={34} />
-                      <div className="mover-sym">{base}</div>
-                    </div>
-                    <div className="mover-right">
-                      <span className="mover-price">{fmt(p.price)}</span>
-                      <span className={`mover-badge ${isGain ? 'up' : 'down'}`}>
-                        {isGain ? `↗ +${p.change.toFixed(2)}%` : `↘ ${p.change.toFixed(2)}%`}
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-
-        <div className="markets-toolbar">
-          <div className="markets-filters">
-            {['all', 'favorites', 'gainers', 'losers'].map(f => (
-              <button
-                key={f}
-                className={`filter-btn ${filter === f ? 'active' : ''}`}
-                onClick={() => setFilter(f)}
-              >
-                {f === 'favorites' ? '★ Watchlist' : f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
-          </div>
-          <div className="markets-search">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text" placeholder="Search markets..."
-              value={search} onChange={e => setSearch(e.target.value)}
-              className="search-input"
-            />
-          </div>
-        </div>
-
-        <div className="markets-table-card">
-          <div className="markets-table-scroll">
-            <table className="markets-table">
-              <thead>
-                <tr>
-                  <th style={{ width: 28 }}></th>
-                  <th className="th-sort" onClick={() => handleSort('name')}>Name <SortIcon k="name" /></th>
-                  <th className="th-sort" onClick={() => handleSort('price')}>Price <SortIcon k="price" /></th>
-                  <th className="th-sort" onClick={() => handleSort('change')}>24h <SortIcon k="change" /></th>
-                  <th className="th-vol">Volume</th>
-                  <th className="th-mcap">Market Cap</th>
-                  <th className="th-action">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(p => {
-                  const base = p.symbol.split('/')[0]
-                  const isUp = p.change >= 0
-                  const isFav = favorites.includes(base)
-                  const extra = EXTRA_DATA[base] || { vol: '—', mcap: '—' }
-                  return (
-                    <tr key={p.symbol}>
-                      <td className="td-star">
-                        <button className={`star-btn ${isFav ? 'active' : ''}`} onClick={() => toggleFav(base)}>★</button>
-                      </td>
-                      <td>
-                        <div className="td-coin">
-                          <CoinCircle base={base} size={36} />
-                          <div>
-                            <div className="pair-name">{base}</div>
-                            <div className="pair-sub">{base}/USDT</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="td-price">{fmt(p.price)}</td>
-                      <td>
-                        <span className={`change-pill ${isUp ? 'up' : 'down'}`}>
-                          {isUp ? '↗ +' : '↘ '}{p.change.toFixed(2)}%
-                        </span>
-                      </td>
-                      <td className="td-muted td-vol">{extra.vol}</td>
-                      <td className="td-muted td-mcap">{extra.mcap}</td>
-                      <td className="td-action">
-                        <button className="trade-btn" onClick={handleTrade}>Trade</button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+/* ══════════════════════════════════════════════════════
+   MARKETS SIDEBAR LAYOUT (left-rail chart view)
+══════════════════════════════════════════════════════ */
+.markets-layout {
+  display: flex; flex: 1;
+  height: calc(100vh - 60px - 36px); overflow: hidden;
 }
 
-// ── RECENT TRADES FEED ─────────────────────────────────────────────────
-function RecentTradesFeed({ basePrice }) {
-  const [trades, setTrades] = useState(() =>
-    Array.from({ length: 16 }, (_, i) => {
-      const p = basePrice + (Math.random() - 0.5) * 200
-      const now = new Date(); now.setSeconds(now.getSeconds() - i * 5)
-      return { id: i, price: p.toFixed(2), amount: (Math.random() * 0.5 + 0.01).toFixed(4), time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), isBuy: Math.random() > 0.5 }
-    })
-  )
-  useEffect(() => {
-    const iv = setInterval(() => {
-      const p = basePrice + (Math.random() - 0.5) * 200
-      setTrades(prev => [{
-        id: Date.now(), price: p.toFixed(2), amount: (Math.random() * 0.5 + 0.01).toFixed(4),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }), isBuy: Math.random() > 0.45
-      }, ...prev].slice(0, 30))
-    }, 1500)
-    return () => clearInterval(iv)
-  }, [basePrice])
-  return (
-    <>
-      <div className="ob-section-divider">Recent Trades</div>
-      <div className="ob-cols rt-cols"><span>Price</span><span>Amount</span><span>Time</span></div>
-      <div className="recent-trades-scroll">
-        {trades.map((t, i) => (
-          <div key={t.id} className={`ob-row ${i === 0 ? 'rt-new' : ''}`}>
-            <span className={`ob-price ${t.isBuy ? 'buy' : 'sell'}`}>{t.price}</span>
-            <span className="ob-amt">{t.amount}</span>
-            <span className="ob-time">{t.time}</span>
-          </div>
-        ))}
-      </div>
-    </>
-  )
+.markets-sidebar {
+  width: 280px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg-secondary);
 }
 
-// ── SPOT PAGE ──────────────────────────────────────────────────────────
-export function SpotPage() {
-  const allPairs = useTicker()
-  const pairs = useMemo(() => allPairs.filter(p => !EXCLUDED.has(p.symbol.split('/')[0])), [allPairs])
+.markets-sidebar-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
 
-  const [selectedPair, setSelectedPair] = useState('BTC/USDT')
-  const [orderType, setOrderType] = useState('limit')
-  const [side, setSide] = useState('buy')
-  const [price, setPrice] = useState('')
-  const [amount, setAmount] = useState('')
-  const [pctSelected, setPctSelected] = useState(null)
-  const [obTab, setObTab] = useState('both')
-  const [mobileTab, setMobileTab] = useState('chart')
-  const { balance } = useBalance()
+.markets-sidebar-header h2 {
+  font-family: var(--font-primary);
+  font-size: 16px;
+  font-weight: 700;
+}
 
-  const currentPair = pairs.find(p => p.symbol === selectedPair) || pairs[0]
-  const base = currentPair?.symbol.split('/')[0] || 'BTC'
-  const isUp = (currentPair?.change || 0) >= 0
-  const total = price && amount ? (parseFloat(price) * parseFloat(amount)).toFixed(2) : ''
+.live-dot-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  color: var(--green); letter-spacing: 0.5px;
+  font-family: var(--font-primary);
+}
 
-  const handlePct = pct => {
-    setPctSelected(pct)
-    if (currentPair && balance) {
-      if (side === 'buy') { const spend = balance * pct / 100; const p = currentPair.price; setPrice(p.toFixed(2)); setAmount((spend / p).toFixed(6)) }
-      else { setAmount((0.01 * pct / 100).toFixed(6)); setPrice(currentPair.price.toFixed(2)) }
-    }
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green); animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.markets-list { flex: 1; overflow-y: auto; }
+
+.market-list-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.market-list-row:hover  { background: var(--bg-card); }
+.market-list-row.active { background: var(--green-dim); border-left: 2px solid var(--green); }
+
+.mlr-left   { display: flex; align-items: center; gap: 10px; }
+.mlr-icon   {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--green-dim); color: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+  font-family: var(--font-primary); flex-shrink: 0;
+}
+.mlr-symbol { font-family: var(--font-primary); font-weight: 700; font-size: 13px; color: var(--text-primary); }
+.mlr-change { font-family: var(--font-mono); font-size: 11px; }
+.mlr-change.up   { color: var(--green); }
+.mlr-change.down { color: var(--red); }
+.mlr-price  { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+.markets-chart-panel {
+  flex: 1; overflow: hidden; background: #131722;
+  display: flex; flex-direction: column;
+}
+.markets-chart-panel iframe {
+  flex: 1; width: 100%; height: 100%; border: none; display: block;
+}
+
+@media (max-width: 767px) {
+  .markets-layout { flex-direction: column; height: calc(100vh - 60px - 36px - 60px); }
+  .markets-sidebar { display: none; }
+  .markets-chart-panel { flex: 1; width: 100%; height: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════
+   BOTS PAGE
+══════════════════════════════════════════════════════ */
+.bots-content {
+  flex: 1; padding: 32px;
+  display: flex; flex-direction: column; gap: 28px; overflow-y: auto;
+  padding-top: 32px;
+  font-family: var(--font-primary);
+}
+
+.bots-hero {
+  background: linear-gradient(135deg, #1a3a8f 0%, #1e4fd8 50%, #2563eb 100%);
+  border-radius: 16px; padding: 32px 36px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 24px;
+  position: relative; overflow: hidden;
+}
+.bots-hero::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #ffffff10 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.bots-hero-title {
+  font-family: var(--font-primary);
+  font-size: clamp(20px, 3.4vw, 28px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #fff; margin-bottom: 4px;
+}
+.bots-hero-sub  {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ffffffaa;
+  margin-bottom: 20px;
+}
+.bots-hero-stats { display: flex; gap: 28px; }
+
+.bots-stat        { display: flex; flex-direction: column; gap: 2px; }
+.bots-stat-value  {
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 700;
+  letter-spacing: -0.3px; color: #fff;
+}
+.bots-stat-value.green { color: #4ade80; }
+.bots-stat-label  {
+  font-size: 10.5px; color: #ffffff88; font-family: var(--font-primary);
+  text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600;
+}
+
+.bots-hero-btn {
+  background: #fff; color: #1e40af; border: none;
+  padding: 11px 22px;
+  border-radius: 9px;
+  font-size: 13.5px; font-weight: 700;
+  font-family: var(--font-primary);
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.bots-hero-btn:hover { background: #f0f9ff; transform: translateY(-1px); }
+
+.bots-section { display: flex; flex-direction: column; gap: 18px; }
+
+.bots-section-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 16px;
+}
+.bots-section-title {
+  font-family: var(--font-primary);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary); margin-bottom: 3px;
+}
+.bots-section-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-primary);
+}
+
+.bots-create-btn {
+  background: var(--green); color: #000; border: none;
+  padding: 9px 18px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 700;
+  font-family: var(--font-primary);
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.bots-create-btn:hover    { opacity: 0.85; }
+.bots-create-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.bots-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+}
+@media (max-width: 900px) { .bots-grid { grid-template-columns: 1fr; } }
+
+.bots-disclaimer {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-family: var(--font-primary);
+  line-height: 1.6;
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  margin: 0;
+}
+
+/* ── Bot Card ── */
+.bot-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px 22px;
+  display: flex; flex-direction: column; gap: 14px; position: relative;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.bot-card:hover {
+  border-color: var(--border-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+.bot-card-live { border-color: #00c85355; }
+
+.bot-card-skeleton { gap: 10px; }
+.skeleton-line { height: 12px; border-radius: 6px; background: var(--bg-secondary); animation: pulse 1.5s infinite; }
+.skeleton-w60 { width: 60%; }
+.skeleton-w40 { width: 40%; }
+.skeleton-block { height: 100px; border-radius: 10px; background: var(--bg-secondary); animation: pulse 1.5s infinite; }
+
+.bot-card-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 12px;
+}
+.bot-id-block { display: flex; align-items: center; gap: 12px; }
+.bot-avatar {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  flex-shrink: 0; position: relative;
+}
+.bot-avatar.live { border-color: #00c85366; box-shadow: 0 0 0 3px #00c85322; }
+
+.bot-name {
+  font-family: var(--font-primary);
+  font-size: 15.5px; font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary); margin-bottom: 2px;
+}
+.bot-subtitle {
+  font-size: 12px; color: var(--text-muted); font-family: var(--font-primary);
+  display: flex; align-items: center; gap: 6px;
+}
+.bot-subtitle-dot { opacity: 0.5; }
+.risk-tag { font-weight: 700; font-size: 11.5px; }
+
+.bot-status-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-secondary); color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 5px 11px; border-radius: 100px;
+  font-size: 11px; font-weight: 700;
+  white-space: nowrap; flex-shrink: 0;
+  font-family: var(--font-primary);
+  letter-spacing: 0.2px;
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  animation: pulse 1.4s infinite;
+}
+
+.bot-desc {
+  font-family: var(--font-primary);
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.55;
+  margin: -4px 0 0;
+}
+
+/* Metrics strip — the "at a glance" bar found on most bot dashboards */
+.bot-metrics-strip {
+  display: flex; align-items: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 6px;
+}
+.bot-metric {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; text-align: center; min-width: 0;
+}
+.bot-metric-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-muted);
+  font-family: var(--font-primary);
+}
+.bot-metric-value {
+  font-family: var(--font-mono); font-size: 14.5px; font-weight: 700;
+  color: var(--text-primary);
+}
+.bot-metric-divider { width: 1px; align-self: stretch; background: var(--border); flex-shrink: 0; }
+
+.bot-balance-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 2px;
+}
+.bot-balance-label { font-size: 12px; color: var(--text-muted); font-family: var(--font-primary); }
+.bot-balance-val { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #00c853; }
+
+.bot-meta       { display: flex; gap: 24px; flex-wrap: wrap; }
+.bot-meta-item  { display: flex; flex-direction: column; gap: 2px; }
+.bot-meta-label { font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
+.bot-meta-value { font-size: 13px; font-weight: 600; color: var(--text-primary); font-family: var(--font-primary); }
+
+.risk-low    { color: var(--green) !important; }
+.risk-medium { color: #f59e0b !important; }
+.risk-high   { color: var(--red) !important; }
+
+/* ── Bot Action Buttons ── */
+.bot-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 2px;
+}
+
+.bot-btn-configure {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 13px; border-radius: 9px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  font-family: var(--font-primary);
+}
+.bot-btn-configure:hover:not(:disabled) { border-color: var(--green); color: var(--green); }
+.bot-btn-configure:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.bot-btn-start-active {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 13px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  box-shadow: 0 0 18px #00d4aa44, 0 4px 12px #00d4aa22;
+  transition: all 0.15s;
+}
+.bot-btn-start-active:hover:not(:disabled) {
+  background: var(--green);
+  opacity: 0.9;
+  box-shadow: 0 0 18px #00d4aa44, 0 4px 12px #00d4aa22;
+  transform: translateY(-1px);
+}
+.bot-btn-start-active:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  cursor: not-allowed;
+  font-weight: 600;
+}
+
+.bot-btn-stop {
+  background: #ff4d6a1a;
+  color: #ff4d6a;
+  border: 1px solid #ff4d6a55;
+  padding: 13px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-primary);
+  transition: all 0.15s;
+}
+.bot-btn-stop:hover {
+  background: #ff4d6a2b;
+  border-color: #ff4d6a88;
+  transform: translateY(-1px);
+}
+
+/* Alert */
+.bot-alert       { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 10px 14px; }
+.bot-alert-title { font-size: 13px; font-weight: 700; color: #cc0000; margin-bottom: 2px; font-family: var(--font-primary); }
+.bot-alert-msg   { font-size: 12px; color: #cc0000; font-family: var(--font-primary); }
+.bot-alert-link  { text-decoration: underline; cursor: pointer; }
+
+.bot-inline-alert {
+  font-size: 12px; color: #ff3b5c;
+  background: #ff3b5c1a; border: 1px solid #ff3b5c40;
+  padding: 8px 12px; border-radius: 8px;
+  font-family: var(--font-primary);
+}
+
+/* ── Mobile Bots ── */
+@media (max-width: 767px) {
+  .bots-content { padding: 16px; padding-top: 120px; padding-bottom: 76px; }
+  .bots-hero { flex-direction: column; align-items: flex-start; padding: 20px 18px; gap: 16px; }
+  .bots-hero-btn { width: 100%; text-align: center; }
+  .bots-hero-stats { gap: 16px; flex-wrap: wrap; }
+  .bot-metrics-strip { flex-wrap: wrap; row-gap: 10px; }
+  .bot-metric { flex: 1 1 40%; }
+
+  /* Config box: stack the allocation/available-balance fields and
+     the Save/Cancel action buttons on phone widths */
+  .bot-order-field-row { grid-template-columns: 1fr; gap: 10px; }
+  .bot-config-actions { flex-direction: column; }
+  .bot-config-actions .bot-btn-start-active,
+  .bot-config-actions .bot-btn-configure { width: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════
+   MARKETS PAGE (full table view)
+══════════════════════════════════════════════════════ */
+
+.markets-page-wrapper {
+  padding: 28px 28px 80px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header — updated to Inter + homepage sizing ── */
+.markets-page-header { margin-bottom: 4px; }
+
+.markets-page-title {
+  font-family: var(--font-primary);           /* was Bebas Neue — now Inter */
+  font-size: clamp(32px, 5vw, 56px);          /* was clamp(52px,7vw,82px) — less aggressive */
+  font-weight: 900;
+  letter-spacing: -2px;                        /* matches homepage hero-headline */
+  color: var(--text-primary);
+  line-height: 1.05;
+  margin-bottom: 8px;
+}
+
+.markets-page-sub {
+  font-family: var(--font-primary);
+  font-size: 16px;                             /* matches homepage section-sub */
+  color: var(--text-muted);
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+/* Movers grid */
+.movers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.movers-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.movers-card:hover {
+  border-color: var(--border-light);
+  transform: translateY(-2px);
+}
+.movers-title {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+}
+.mover-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mover-left  { display: flex; align-items: center; gap: 10px; }
+.mover-sym   { font-family: var(--font-primary); font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.mover-right { display: flex; align-items: center; gap: 10px; }
+.mover-price { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.mover-badge {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 700;
+  padding: 3px 8px; border-radius: 6px;
+  white-space: nowrap;
+}
+.mover-badge.up   { background: #00c85322; color: #00c853; }
+.mover-badge.down { background: #ff3b5c22; color: #ff3b5c; }
+
+/* Toolbar */
+.markets-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.markets-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 100px;                        /* pill — matches homepage */
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover  { border-color: var(--green); color: var(--green); }
+.filter-btn.active { background: var(--green); color: #000; border-color: var(--green); }
+
+.markets-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 100px;                        /* pill search — matches homepage style */
+  padding: 7px 16px;
+  min-width: 200px;
+  transition: border-color 0.15s;
+}
+.markets-search:focus-within { border-color: var(--green); }
+.search-icon { font-size: 13px; }
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-primary);
+  width: 100%;
+}
+.search-input::placeholder { color: var(--text-muted); }
+
+/* Table card */
+.markets-table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.markets-table-scroll { overflow-x: auto; }
+.markets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-primary);
+  min-width: 600px;
+}
+.markets-table thead tr {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+.markets-table th {
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  color: var(--text-muted);
+  text-align: left;
+  white-space: nowrap;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.th-sort { cursor: pointer; user-select: none; }
+.th-sort:hover { color: var(--text-primary); }
+.sort-icon { font-size: 10px; margin-left: 4px; opacity: 0.4; }
+.sort-icon.active { opacity: 1; color: var(--green); }
+
+.markets-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.markets-table tbody tr:hover { background: var(--bg-secondary); }
+.markets-table tbody tr:last-child { border-bottom: none; }
+.markets-table td { padding: 12px 16px; }
+
+/* Star */
+.td-star { width: 32px; padding: 12px 8px 12px 16px; }
+.star-btn {
+  background: none; border: none;
+  color: var(--text-muted);
+  font-size: 16px; cursor: pointer;
+  transition: color 0.15s; line-height: 1;
+  padding: 0;
+}
+.star-btn:hover  { color: #f59e0b; }
+.star-btn.active { color: #f59e0b; }
+
+/* Coin cell */
+.td-coin {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pair-name {
+  font-family: var(--font-primary);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.pair-sub { font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
+
+/* Price */
+.td-price {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* Change pill */
+.change-pill {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.change-pill.up   { background: #00c85322; color: #00c853; }
+.change-pill.down { background: #ff3b5c22; color: #ff3b5c; }
+
+/* Muted cols */
+.td-muted {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Trade button — matches homepage cta-btn sizing and glow */
+.td-action { text-align: right; }
+.trade-btn {
+  background: var(--green);
+  color: #000;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: opacity 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  box-shadow: 0 0 16px #16a34a22;               /* subtle glow like homepage */
+}
+.trade-btn:hover {
+  opacity: 0.88;
+  box-shadow: 0 0 24px #16a34a55;
+}
+
+/* ── Mobile Markets — FIX: headings no longer overlap ── */
+@media (max-width: 767px) {
+  .markets-page-wrapper {
+    padding: 16px 12px 80px;
+    gap: 12px;
   }
 
-  const askOrders = Array.from({ length: 8 }, (_, i) => { const p = (currentPair?.price || 97500) + (8 - i) * 97.5; return { price: p.toFixed(2), amount: (Math.random() * 2).toFixed(4), total: (p * Math.random() * 2).toFixed(3) } }).reverse()
-  const bidOrders = Array.from({ length: 8 }, (_, i) => { const p = (currentPair?.price || 97500) - i * 97.5; return { price: p.toFixed(2), amount: (Math.random() * 2).toFixed(4), total: (p * Math.random() * 2).toFixed(3) } })
+  /* FIXED: was 24px which caused overlap at narrow widths */
+  .markets-page-title {
+    font-size: clamp(28px, 8vw, 40px);
+    letter-spacing: -1px;
+    line-height: 1.1;
+    word-break: break-word;
+  }
 
-  return (
-    <div className="dash-main spot-main">
-      <div className="spot-wrap">
-        <div className="spot-header-bar">
-          <div className="spot-header-left">
-            <CoinCircle base={base} size={34} />
-            <span className="spot-pair-name">{currentPair?.symbol}</span>
-            <span className={`spot-cur-price ${isUp ? 'up' : 'down'}`}>{fmt(currentPair?.price || 0)}</span>
-            <span className={`spot-change-tag ${isUp ? 'up' : 'down'}`}>{isUp ? '+' : ''}{currentPair?.change.toFixed(2)}%</span>
-          </div>
-          <div className="spot-header-stats">
-            {[
-              { label: '24h High', val: fmt((currentPair?.price || 0) * 1.008) },
-              { label: '24h Low', val: fmt((currentPair?.price || 0) * 0.992) },
-              { label: '24h Vol', val: EXTRA_DATA[base]?.vol || '—' }
-            ].map(({ label, val }) => (
-              <div key={label} className="spot-stat">
-                <span className="spot-stat-label">{label}</span>
-                <span className="spot-stat-val">{val}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+  .markets-page-sub {
+    font-size: 14px;
+    margin-top: 4px;
+  }
 
-        <div className="spot-mobile-tabs">
-          {['chart', 'book', 'trade'].map(t => (
-            <button key={t} className={`spot-mobile-tab ${mobileTab === t ? 'active' : ''}`} onClick={() => setMobileTab(t)}>
-              {t === 'chart' ? '📈 Chart' : t === 'book' ? '📒 Book' : '💰 Trade'}
-            </button>
-          ))}
-        </div>
+  .markets-page-header {
+    /* ensure header stacks cleanly, no overflow */
+    overflow: hidden;
+    padding-right: 0;
+  }
 
-        <div className="spot-body">
-          <div className={`spot-chart-area ${mobileTab !== 'chart' ? 'mob-hide' : ''}`}>
-            <iframe
-              src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE:${base}USDT&interval=D&hidesidetoolbar=0&symboledit=1&saveimage=1&toolbarbg=131722&studies=[]&theme=dark&style=1&timezone=Etc/UTC&withdateranges=1&showpopupbutton=1&locale=en`}
-              style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-              title="TradingView Chart"
-            />
-          </div>
+  .movers-grid  { grid-template-columns: 1fr; gap: 10px; }
 
-          <div className={`spot-ob-panel ${mobileTab !== 'book' ? 'mob-hide' : ''}`}>
-            <div className="ob-header">
-              <span className="ob-title">Order Book</span>
-              <div className="ob-tabs">
-                {['both', 'bids', 'asks'].map(t => (
-                  <button key={t} className={`ob-tab ${obTab === t ? 'active' : ''}`} onClick={() => setObTab(t)}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="ob-cols"><span>Price</span><span>Amount</span><span>Total</span></div>
-            <div className="ob-rows">
-              {obTab !== 'bids' && askOrders.map((o, i) => (
-                <div key={i} className="ob-row">
-                  <span className="ob-price sell">{o.price}</span>
-                  <span className="ob-amt">{o.amount}</span>
-                  <span className="ob-total">{o.total}</span>
-                </div>
-              ))}
-              <div className="ob-mid" style={{ color: isUp ? '#00c853' : '#ff3b5c' }}>
-                {fmt(currentPair?.price || 0)}
-              </div>
-              {obTab !== 'asks' && bidOrders.map((o, i) => (
-                <div key={i} className="ob-row">
-                  <span className="ob-price buy">{o.price}</span>
-                  <span className="ob-amt">{o.amount}</span>
-                  <span className="ob-total">{o.total}</span>
-                </div>
-              ))}
-            </div>
-            <RecentTradesFeed basePrice={currentPair?.price || 97500} />
-          </div>
+  .markets-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .markets-filters { flex-wrap: wrap; gap: 6px; }
+  .markets-search  { min-width: unset; }
 
-          <div className={`spot-trade-panel ${mobileTab !== 'trade' ? 'mob-hide' : ''}`}>
-            <div className="trade-side-tabs">
-              {['buy', 'sell'].map(s => (
-                <button key={s} className={`trade-side-tab ${side === s ? s : ''}`} onClick={() => setSide(s)}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
-                </button>
-              ))}
-            </div>
-            <div className="order-type-row">
-              {['limit', 'market'].map(t => (
-                <button key={t} className={`order-type-btn ${orderType === t ? 'active' : ''}`} onClick={() => setOrderType(t)}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </button>
-              ))}
-            </div>
-            <div className="trade-field">
-              <label className="trade-label">Price (USDT)</label>
-              <input type="number" className="trade-input" value={price} onChange={e => setPrice(e.target.value)} placeholder={currentPair?.price.toFixed(2)} />
-            </div>
-            <div className="trade-field">
-              <label className="trade-label">Amount ({base})</label>
-              <input type="number" className="trade-input" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
-            </div>
-            <div className="pct-row">
-              {[25, 50, 75, 100].map(pct => (
-                <button key={pct} className={`pct-btn ${pctSelected === pct ? 'active' : ''}`} onClick={() => handlePct(pct)}>{pct}%</button>
-              ))}
-            </div>
-            <div className="trade-field">
-              <label className="trade-label">Total (USDT)</label>
-              <input type="text" className="trade-input readonly" readOnly value={total} placeholder="0.00" />
-            </div>
-            <div className="trade-info-row"><span>Fee (0.1%)</span><span>${total ? (parseFloat(total) * 0.001).toFixed(4) : '0.0000'}</span></div>
-            <div className="trade-info-row avail">
-              <span>📋 Available (USDT)</span>
-              <span className="avail-val">{Number(balance || 0).toFixed(0)} USDT</span>
-            </div>
-            <button className={`trade-submit-btn ${side}`}>{side === 'buy' ? `Buy ${base}` : `Sell ${base}`}</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  /* Hide Volume and Market Cap on mobile */
+  .th-vol, .th-mcap, .td-vol, .td-mcap { display: none; }
+
+  /* Let table fill full width */
+  .markets-table-scroll { overflow-x: visible; width: 100%; }
+  .markets-table        { min-width: unset; width: 100%; table-layout: fixed; }
+  .markets-table-card   { border-radius: 10px; overflow: visible; }
+
+  /* Tighter cells on mobile */
+  .markets-table th,
+  .markets-table td { padding: 8px 6px; }
+
+  /* Fixed column widths so Trade button is never cut */
+  .markets-table th:nth-child(1),
+  .markets-table td:nth-child(1) { width: 28px; padding: 8px 4px; }   /* star */
+  .markets-table th:nth-child(2),
+  .markets-table td:nth-child(2) { width: 36%; }                        /* name */
+  .markets-table th:nth-child(3),
+  .markets-table td:nth-child(3) { width: 28%; }                        /* price */
+  .markets-table th:nth-child(4),
+  .markets-table td:nth-child(4) { width: 20%; }                        /* 24h */
+  .markets-table th:nth-child(7),
+  .markets-table td:nth-child(7) { width: 60px; text-align: right; }    /* action */
+
+  /* Compact styles */
+  .trade-btn    { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
+  .td-price     { font-size: 12px; }
+  .pair-name    { font-size: 12px; }
+  .pair-sub     { display: none; }
+  .change-pill  { font-size: 10px; padding: 2px 5px; }
+  .td-star      { padding: 8px 2px 8px 8px; }
+  .td-coin      { gap: 6px; }
 }
 
-export function FuturesPage() {
-  return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
+/* ══════════════════════════════════════════════════════
+   SPOT PAGE
+══════════════════════════════════════════════════════ */
+.spot-main { overflow: hidden; }
+.spot-wrap { display: flex; flex-direction: column; height: 100%; }
+
+.spot-header-bar {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  gap: 12px; flex-wrap: wrap; flex-shrink: 0;
+}
+.spot-header-left { display: flex; align-items: center; gap: 10px; }
+.spot-pair-name   { font-family: var(--font-primary); font-size: 15px; font-weight: 800; color: var(--text-primary); }
+.spot-cur-price   { font-family: var(--font-mono); font-size: 18px; font-weight: 700; }
+.spot-cur-price.up   { color: #00c853; }
+.spot-cur-price.down { color: #ff3b5c; }
+.spot-change-tag  { font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+.spot-change-tag.up   { background: #00c85322; color: #00c853; }
+.spot-change-tag.down { background: #ff3b5c22; color: #ff3b5c; }
+.spot-header-stats { display: flex; gap: 24px; }
+.spot-stat { display: flex; flex-direction: column; gap: 2px; }
+.spot-stat-label { font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
+.spot-stat-val   { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+/* Mobile tabs */
+.spot-mobile-tabs {
+  display: none;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.spot-mobile-tab {
+  background: var(--bg-secondary);
+  border: none;
+  color: var(--text-muted);
+  padding: 12px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.spot-mobile-tab:last-child { border-right: none; }
+.spot-mobile-tab.active { background: var(--bg-card); color: var(--green); }
+
+/* 3-col body */
+.spot-body {
+  display: grid;
+  grid-template-columns: 1fr 220px 280px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
-// ── BOTS PAGE (one‑page, no detail navigation) ──────────────────────
-export function BotsPage() {
-  const { user } = useAuth()
-  const { balance, loading } = useBalance()
-  const [botStats, setBotStats] = useState({})
+/* Chart */
+.spot-chart-area { overflow: hidden; background: #131722; }
+.spot-chart-area iframe { width: 100%; height: 100%; border: none; display: block; }
 
-  const handleStatsChange = useCallback((botId, stats) => {
-    setBotStats(prev => ({ ...prev, [botId]: stats }))
-  }, [])
-
-  const aggregate = useMemo(() => {
-    const all = Object.values(botStats)
-    const totalPnl = all.reduce((sum, s) => sum + (s.pnl || 0), 0)
-    const totalWins = all.reduce((sum, s) => sum + (s.wins || 0), 0)
-    const totalLosses = all.reduce((sum, s) => sum + (s.losses || 0), 0)
-    const totalTrades = totalWins + totalLosses
-    const totalAllocated = all.reduce((sum, s) => sum + (s.allocation || 0), 0)
-    const winRate = totalTrades > 0 ? Math.round((totalWins / totalTrades) * 100) : null
-    return { totalPnl, totalTrades, totalAllocated, winRate }
-  }, [botStats])
-
-  return (
-    <div className="dash-main">
-      <div className="bots-content">
-        <div className="bots-hero">
-          <div className="bots-hero-left">
-            <h1 className="bots-hero-title">Automated Trading</h1>
-            <p className="bots-hero-sub">Create and manage algorithmic trading strategies</p>
-            <div className="bots-hero-stats">
-              <div className="bots-stat">
-                <span className="bots-stat-value" style={{ color: aggregate.totalPnl >= 0 ? '#4ade80' : '#ff6b81' }}>
-                  {aggregate.totalPnl >= 0 ? '+' : ''}${aggregate.totalPnl.toFixed(2)}
-                </span>
-                <span className="bots-stat-label">P&amp;L</span>
-              </div>
-              <div className="bots-stat">
-                <span className="bots-stat-value">{aggregate.winRate !== null ? `${aggregate.winRate}%` : '—'}</span>
-                <span className="bots-stat-label">Win Rate</span>
-              </div>
-              <div className="bots-stat">
-                <span className="bots-stat-value">{aggregate.totalTrades}</span>
-                <span className="bots-stat-label">Trades</span>
-              </div>
-              <div className="bots-stat">
-                <span className="bots-stat-value">${aggregate.totalAllocated.toFixed(0)}</span>
-                <span className="bots-stat-label">Allocated</span>
-              </div>
-            </div>
-          </div>
-          <button className="bots-hero-btn">Create New Bot →</button>
-        </div>
-
-        <div className="bots-section">
-          <div className="bots-section-header">
-            <div>
-              <h2 className="bots-section-title">Dollar-Cost Averaging Bots</h2>
-              <p className="bots-section-sub">Regular purchases of assets regardless of price</p>
-            </div>
-            <button className="bots-create-btn" disabled={(balance ?? 0) < MIN_BALANCE}>
-              Create DCA Bot
-            </button>
-          </div>
-          <div className="bots-grid">
-            {BOT_CONFIGS.map(bot => (
-              <BotCard key={bot.id} bot={bot} balance={balance ?? 0} userId={user?.id} onStatsChange={handleStatsChange} />
-            ))}
-          </div>
-          <p className="bots-disclaimer">
-            ⓘ Automated bots trade based on your configuration and market conditions. Past performance
-            does not guarantee future results. Only allocate funds you can afford to have at risk.
-          </p>
-        </div>
-      </div>
-    </div>
-  )
+/* Order book */
+.spot-ob-panel {
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  font-size: 11px;
 }
+.ob-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.ob-title { font-family: var(--font-primary); font-size: 12px; font-weight: 700; }
+.ob-tabs  { display: flex; gap: 2px; }
+.ob-tab   {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); padding: 3px 7px; border-radius: 5px;
+  font-size: 10px; font-weight: 600; cursor: pointer;
+  font-family: var(--font-primary);
+}
+.ob-tab.active { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+
+.ob-cols {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  padding: 5px 10px; color: var(--text-muted); font-size: 10px; font-weight: 600;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+  font-family: var(--font-primary);
+}
+.ob-cols.rt-cols { padding: 5px 10px; }
+
+.ob-rows { flex: 1; overflow-y: auto; }
+.ob-row  {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  padding: 2px 10px;
+}
+.ob-price      { font-family: var(--font-mono); font-size: 11px; }
+.ob-price.buy  { color: #00c853; }
+.ob-price.sell { color: #ff3b5c; }
+.ob-amt   { color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; }
+.ob-total { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+.ob-time  { color: var(--text-muted); font-size: 10px; font-family: var(--font-mono); }
+.ob-mid   {
+  text-align: center; padding: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 700;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ob-section-divider {
+  font-family: var(--font-primary); font-size: 11px; font-weight: 700;
+  color: var(--text-muted); padding: 6px 10px;
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.rt-new { animation: flashRow 0.4s ease; }
+@keyframes flashRow { from { background: #00c85315; } to { background: transparent; } }
+.recent-trades-scroll { flex: 1; overflow-y: auto; }
+
+/* Trade panel */
+.spot-trade-panel {
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; padding: 14px;
+  gap: 10px; background: var(--bg-card);
+}
+.trade-side-tabs {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+}
+.trade-side-tab  {
+  padding: 9px; background: transparent; border: none;
+  font-family: var(--font-primary); font-size: 13px; font-weight: 700;
+  cursor: pointer; color: var(--text-muted);
+}
+.trade-side-tab.buy  { background: #00c85322; color: #00c853; }
+.trade-side-tab.sell { background: #ff3b5c22; color: #ff3b5c; }
+
+.order-type-row { display: flex; gap: 6px; }
+.order-type-btn {
+  flex: 1; background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); padding: 6px; border-radius: 6px;
+  font-size: 12px; font-weight: 600;
+  font-family: var(--font-primary); cursor: pointer;
+}
+.order-type-btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+.trade-field { display: flex; flex-direction: column; gap: 4px; }
+.trade-label { font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
+.trade-input {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 7px; padding: 8px 10px; color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 13px; outline: none;
+  transition: border-color 0.15s;
+}
+.trade-input:focus { border-color: var(--green); }
+.trade-input.readonly { color: var(--text-muted); }
+
+.pct-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; }
+.pct-btn {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 5px 4px; border-radius: 5px;
+  font-size: 11px; font-weight: 700;
+  font-family: var(--font-primary); cursor: pointer;
+}
+.pct-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+.trade-info-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
+.trade-info-row.avail { padding-top: 4px; border-top: 1px solid var(--border); }
+.avail-val { color: var(--green); font-weight: 700; font-family: var(--font-mono); }
+
+.trade-submit-btn {
+  width: 100%; padding: 12px; border-radius: 8px; border: none;
+  font-size: 14px; font-weight: 800;
+  font-family: var(--font-primary);
+  cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.3px;
+}
+.trade-submit-btn.buy  { background: #00c853; color: #000; box-shadow: 0 0 16px #00c85344; }
+.trade-submit-btn.sell { background: #ff3b5c; color: #fff; box-shadow: 0 0 16px #ff3b5c44; }
+.trade-submit-btn:hover { opacity: 0.88; }
+
+/* Mobile spot */
+@media (max-width: 767px) {
+  .spot-mobile-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+  .spot-body        { grid-template-columns: 1fr; }
+  .spot-header-stats { display: none; }
+  .mob-hide         { display: none !important; }
+
+  /* Chart + Buy/Sell now stack together under the "Chart" tab instead
+     of Buy/Sell living behind its own tab; Order Book keeps its own
+     tab since it needs the full page height to be usable. */
+  .spot-chart-area  { height: 360px; flex-shrink: 0; }
+  .spot-trade-panel {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+  .spot-ob-panel    { height: calc(100vh - 200px); }
+}
+
+/* ══════════════════════════════════════════════════════
+   BOT EXTRA STYLES
+══════════════════════════════════════════════════════ */
+.bot-steps {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; background: var(--bg-secondary);
+  border-radius: 8px; border: 1px solid var(--border);
+}
+.bot-step {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600;
+  font-family: var(--font-primary);
+}
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+}
+.active-step   { color: var(--green); }
+.active-step .step-num   { background: var(--green); color: #000; }
+.done-step     { color: var(--text-muted); }
+.done-step .step-num     { background: #00c85333; color: #00c853; }
+.inactive-step { color: var(--text-muted); opacity: 0.5; }
+.inactive-step .step-num { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); }
+.step-line { flex: 1; height: 1px; background: var(--border); }
+
+.bot-config-box {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* Panel header, e.g. "Enter Order" */
+.bot-order-header { display: flex; align-items: center; gap: 9px; }
+.bot-order-accent-bar {
+  width: 3px; height: 17px; border-radius: 2px;
+  background: var(--green); display: inline-block; flex-shrink: 0;
+}
+.bot-order-accent-bar.small { height: 17px; }
+.bot-order-title {
+  font-size: 15px; font-weight: 700;
+  color: var(--text-primary); font-family: var(--font-primary);
+}
+
+/* Sub-section, e.g. "Base Order" */
+.bot-order-section { display: flex; flex-direction: column; gap: 12px; }
+.bot-order-section-head { display: flex; align-items: center; gap: 9px; }
+.bot-order-section-title {
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+  font-family: var(--font-primary);
+}
+
+.bot-order-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bot-order-field { display: flex; flex-direction: column; gap: 6px; }
+.bot-order-label {
+  font-size: 12.5px; color: var(--text-muted); font-family: var(--font-primary);
+  font-weight: 500;
+}
+
+.bot-order-input-wrap { position: relative; display: flex; align-items: center; }
+.bot-order-input {
+  width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 58px 12px 14px; color: var(--text-primary);
+  font-size: 14px; font-family: var(--font-primary);
+  outline: none; box-sizing: border-box; transition: border-color 0.15s;
+}
+.bot-order-input:focus { border-color: var(--green); }
+.bot-order-input:disabled { opacity: 0.5; }
+.bot-order-unit-badge {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 9px; font-size: 11px; font-weight: 600; color: var(--text-muted);
+  font-family: var(--font-primary); pointer-events: none;
+}
+
+.bot-order-static-value {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 14px; font-family: var(--font-primary); font-size: 14px; font-weight: 700;
+  color: #00c853;
+}
+
+.bot-order-hint { font-size: 12px; color: var(--text-muted); font-family: var(--font-primary); }
+
+.bot-config-actions { display: flex; gap: 10px; }
+.bot-config-actions .bot-btn-start-active,
+.bot-config-actions .bot-btn-configure { flex: 1; }
+
+.bot-log-panel {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.bot-log-head {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px;
+  text-transform: uppercase; color: var(--text-muted);
+  font-family: var(--font-primary);
+}
+.bot-log {
+  background: #000000bb; border-radius: 10px; padding: 8px 12px;
+  overflow-y: auto;
+  font-family: var(--font-mono); font-size: 11px;
+}
+.bot-log-line { margin-bottom: 2px; }
+.bot-log-ts { opacity: 0.45; margin-right: 6px; }
+
+.bot-btn-start, .btn-next {
+  background: var(--green); color: #000;
+  border: none; border-radius: 8px; padding: 11px;
+  font-size: 13px; font-weight: 800;
+  font-family: var(--font-primary); cursor: pointer;
+  box-shadow: 0 0 16px #00d4aa44; transition: all 0.15s;
+}
+.bot-btn-start:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.bot-btn-start:disabled {
+  background: var(--bg-secondary); color: var(--text-muted);
+  border: 1px solid var(--border); box-shadow: none; cursor: not-allowed;
+}
+
+.insuf-banner {
+  display: flex; align-items: flex-start; gap: 16px;
+  background: linear-gradient(135deg, #ff3b5c22, #ff3b5c08);
+  border: 1px solid #ff3b5c55; border-radius: 14px; padding: 20px 24px;
+}
+.insuf-icon  { font-size: 28px; flex-shrink: 0; }
+.insuf-title { font-size: 15px; font-weight: 700; color: #ff3b5c; margin-bottom: 4px; font-family: var(--font-primary); }
+.insuf-msg   { font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-family: var(--font-primary); }
