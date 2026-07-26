@@ -204,7 +204,6 @@ function DepositPage({ onBack }) {
 
   return (
     <div className="subpage">
-      <button className="back-btn" onClick={onBack}>← Back to Dashboard</button>
       <div className="subpage-header">
         <h1 className="subpage-title">Fund Your Account</h1>
         <p className="subpage-sub">Choose your preferred deposit method below</p>
@@ -316,7 +315,6 @@ function WithdrawPage({ onBack, balance }) {
 
   return (
     <div className="subpage">
-      <button className="back-btn" onClick={onBack}>← Back to Dashboard</button>
       <div className="subpage-header">
         <h1 className="subpage-title">Withdraw Funds</h1>
         <p className="subpage-sub">Choose your preferred withdrawal method below</p>
