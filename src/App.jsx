@@ -19,14 +19,19 @@ function DashLayout({ children, activePage, onNavigate }) {
         {children}
       </main>
 
-      {/* ── FOOTER (matches Home.jsx style) ── */}
+      {/* ── FOOTER (matches Home.jsx / Navbar style) ── */}
       <footer className="footer">
         <div className="footer-inner">
-          <div className="footer-left">
-            <img src="/logoz.jpeg" alt="Flexxmarket" className="footer-logo-img" />
+          <div className="footer-logo">
+            <div
+              className="footer-logo-bg"
+              style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+              role="img"
+              aria-label="Flexxmarket"
+            />
             <div className="footer-brand-wrapper">
               <span className="footer-brand-text">Flexxmarket</span>
-              <span className="footer-brand-sub">pro trading</span>
+              <span className="footer-brand-sub">Trading pro</span>
             </div>
           </div>
           <div className="footer-copy">© 2026 Flexxmarket. All rights reserved. Trading involves risk.</div>
