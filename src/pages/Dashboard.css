@@ -146,16 +146,6 @@
 /* ── SUBPAGE (deposit / withdraw) ── */
 .subpage { display: flex; flex-direction: column; gap: 24px; max-width: 760px; margin: 0 auto; width: 100%; }
 
-.back-btn {
-  align-self: flex-start;
-  background: none; border: 1px solid var(--border);
-  color: var(--text-secondary); padding: 8px 16px;
-  border-radius: 8px; font-size: 13px; cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-  font-family: var(--font-primary); font-weight: 600;
-}
-.back-btn:hover { border-color: var(--green); color: var(--green); }
-
 .subpage-header { text-align: center; }
 .subpage-title  {
   font-family: var(--font-primary);
@@ -165,12 +155,16 @@
 }
 .subpage-sub { color: var(--text-secondary); font-size: 15px; font-family: var(--font-primary); line-height: 1.6; }
 
-/* Fund container */
+/* Fund container — widened slightly, still centered; outer card
+   background/border removed so tabs, coin buttons, and the wallet
+   box sit directly on the page instead of inside a bordered panel. */
 .fund-container {
-  background: #161a22; border: 1px solid var(--border);
-  border-radius: 16px; padding: 28px;
+  border: none;
+  background: none;
+  border-radius: 0;
+  padding: 0;
   display: flex; flex-direction: column; gap: 22px;
-  max-width: 580px; margin: 0 auto; width: 100%; box-sizing: border-box;
+  max-width: 640px; margin: 0 auto; width: 100%; box-sizing: border-box;
 }
 
 /* Tabs */
@@ -259,7 +253,7 @@
 .balance-card {
   background: linear-gradient(135deg, #3949ab 0%, #1a237e 100%);
   border-radius: 14px; padding: 32px; text-align: center;
-  max-width: 580px; margin: 0 auto; width: 100%; box-sizing: border-box;
+  max-width: 640px; margin: 0 auto; width: 100%; box-sizing: border-box;
 }
 .balance-amount { font-size: 40px; font-weight: 700; color: #fff; letter-spacing: -1px; margin-bottom: 6px; font-family: var(--font-mono); }
 .balance-label  { font-size: 14px; color: rgba(255,255,255,0.7); font-family: var(--font-primary); }
@@ -334,7 +328,6 @@
   .crypto-mini-grid        { grid-template-columns: 1fr; }
   .coin-grid.three         { grid-template-columns: 1fr 1fr; }
   .portfolio-value         { font-size: 32px; }
-  .fund-container          { padding: 18px; }
   .wallet-addr             { font-size: 11px; }
   .cc-footer               { flex-direction: column; align-items: flex-start; }
   .pending-item            { flex-direction: column; align-items: flex-start; }
