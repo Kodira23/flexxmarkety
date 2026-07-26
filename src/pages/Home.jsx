@@ -100,9 +100,6 @@ const ABOUT_POINTS = [
 export default function Home() {
   const [modal, setModal] = useState(null)
 
-  // Chart colors match the site's green accent (var(--green) = #16a34a)
-  // and a matching red for down candles. Grid lines are switched off so
-  // the panel isn't chopped up into a box grid.
   const TV_OVERRIDES = {
     'mainSeriesProperties.candleStyle.upColor': '#16a34a',
     'mainSeriesProperties.candleStyle.borderUpColor': '#16a34a',
@@ -307,11 +304,16 @@ export default function Home() {
       {/* ── FOOTER ── */}
       <footer className="footer">
         <div className="footer-inner">
-          <div className="footer-left">
-            <img src="/logoz.jpeg" alt="Flexxmarket" className="footer-logo-img" />
+          <div className="footer-logo">
+            <div
+              className="footer-logo-bg"
+              style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+              role="img"
+              aria-label="Flexxmarket"
+            />
             <div className="footer-brand-wrapper">
               <span className="footer-brand-text">Flexxmarket</span>
-              <span className="footer-brand-sub">pro trading</span>
+              <span className="footer-brand-sub">Trading pro</span>
             </div>
           </div>
           <div className="footer-copy">© 2026 Flexxmarket. All rights reserved. Trading involves risk.</div>
