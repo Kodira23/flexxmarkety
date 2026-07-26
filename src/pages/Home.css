@@ -261,11 +261,6 @@
   background: var(--bg-secondary);
 }
 
-/* Full-bleed on desktop: the chart spans the entire viewport width so it
-   visually "covers" the section rather than sitting boxed inside the
-   1280px content column. No rounded corners here since it runs edge to
-   edge; a top/bottom hairline keeps it separated from the copy above and
-   the section below. */
 .tradingview-embed {
   position: relative;
   left: 50%;
@@ -532,7 +527,10 @@
 .cta-btn { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 700; }
 .cta-btn-outline { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; }
 
-/* ── FOOTER ── */
+/* ── FOOTER ──
+   Rebuilt to mirror Navbar: same logo badge treatment (background-image
+   div, 8px radius), same brand wordmark overlap trick, same green
+   brand-text / white uppercase sub-label, same Inter font weights. */
 .footer {
   padding: 24px 24px;
   border-top: 1px solid var(--border);
@@ -551,40 +549,52 @@
   gap: 16px;
 }
 
-.footer-left {
+.footer-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-.footer-logo-img {
-  height: 40px;
-  width: auto;
-  border-radius: 6px;
-  object-fit: contain;
+.footer-logo-bg {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: block;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  z-index: 0;
 }
 
 .footer-brand-wrapper {
   display: flex;
   flex-direction: column;
   line-height: 1.2;
+  margin-left: -14px;
+  position: relative;
+  z-index: 1;
 }
 
 .footer-brand-text {
   font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 18px;
-  color: var(--text-primary, #ffffff);
+  color: #22c55e;
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .footer-brand-sub {
   font-family: 'Inter', sans-serif;
-  font-weight: 400;
+  font-weight: 600;
   font-size: 10px;
-  color: var(--text-secondary, #a0a0a0);
-  letter-spacing: 1.2px;
+  color: var(--text-primary, #ffffff);
+  letter-spacing: 0.03em;
   text-transform: uppercase;
+  white-space: nowrap;
   margin-top: -2px;
 }
 
@@ -664,9 +674,6 @@
 
   .chart-section { padding: 48px 0 64px; }
 
-  /* Full-bleed on mobile too, same as desktop — no side gutters left
-     unfilled, and a taller panel so the widget has more room to
-     lay itself out without empty space at the bottom. */
   .tradingview-embed {
     position: relative;
     left: 50%;
@@ -721,14 +728,18 @@
     align-items: flex-start;
     gap: 8px;
   }
-  .footer-left {
+  .footer-logo {
     gap: 8px;
   }
-  .footer-logo-img {
-    height: 32px;
+  .footer-logo-bg {
+    width: 40px;
+    height: 40px;
+  }
+  .footer-brand-wrapper {
+    margin-left: -11px;
   }
   .footer-brand-text {
-    font-size: 16px;
+    font-size: 15px;
   }
   .footer-brand-sub {
     font-size: 9px;
