@@ -279,13 +279,13 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
       priceRef.current = priceRef.current * (1 + (Math.random() - 0.5) * 0.004)
       addLog(randomComment(bot.pair, priceRef.current), '#3b82f6')
 
-      // ── win-rate targeting: keep losses between ~22% and ~27% of
-      //     total trades (i.e. a 73–78% win rate) ──
+      // ── win-rate targeting: keep losses between ~24% and ~27% of
+      //     total trades (i.e. a 73–76% win rate) ──
       const total = winsRef.current + lossesRef.current
       let isLoss = false
       if (total > 0) {
         const lossRate = lossesRef.current / total
-        if (lossRate < 0.22) isLoss = true
+        if (lossRate < 0.24) isLoss = true
         else if (lossRate > 0.27) isLoss = false
         else isLoss = Math.random() < bot.lossChance
       } else {
