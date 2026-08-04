@@ -4,6 +4,16 @@
 .dash-content { flex: 1; padding: 32px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
 .dash-content > * { max-width: 1200px; width: 100%; margin-left: auto; margin-right: auto; }
 
+/* Spot page needs the full width of the viewport for its 3-column
+   trading layout (chart / order book / trade panel) — exempt it
+   from the 1200px content cap above, or the right-hand panels get
+   squeezed into a centered box and everything past 1200px is blank. */
+.dash-content > .spot-main {
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 @media (max-width: 767px) {
   .dash-content { padding: 16px; padding-bottom: 76px; }
 }
