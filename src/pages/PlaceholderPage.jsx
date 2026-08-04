@@ -152,6 +152,10 @@ const EXTRA_DATA = {
 }
 
 // ── TRADINGVIEW CHART OVERRIDES ──────────────────────────────────────
+// Green candles match the site accent (var(--green) = #16a34a), grid
+// lines switched off so the panel isn't chopped into a box grid, and
+// the right-hand margin is trimmed so the last candle sits closer to
+// centre instead of leaving a big blank gap on the right.
 const TV_CHART_OVERRIDES = encodeURIComponent(JSON.stringify({
   'mainSeriesProperties.candleStyle.upColor': '#16a34a',
   'mainSeriesProperties.candleStyle.borderUpColor': '#16a34a',
@@ -221,8 +225,8 @@ function randomComment(base, price) {
 
 // ── BOT CONFIGS ────────────────────────────────────────────────────────
 const BOT_CONFIGS = [
-  { id:1, name:'Bitcoin Accumulation', subtitle:'Weekly • DCA', description:'Dollar-cost averaging into Bitcoin on a weekly basis.', risk:'Low', interval:3000, drift:0.14, volatility:0.05, lossChance:0.12, lossMult:0.35, pair:'BTC' },
-  { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.14, lossMult:0.38, pair:'ETH' },
+  { id:1, name:'Bitcoin Accumulation', subtitle:'Weekly • DCA', description:'Dollar-cost averaging into Bitcoin on a weekly basis.', risk:'Low', interval:3000, drift:0.14, volatility:0.05, lossChance:0.24, lossMult:0.35, pair:'BTC' },
+  { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.25, lossMult:0.38, pair:'ETH' },
 ]
 
 // ── BOT CARD (full, one‑page layout) ─────────────────────────────────
@@ -275,13 +279,14 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
       priceRef.current = priceRef.current * (1 + (Math.random() - 0.5) * 0.004)
       addLog(randomComment(bot.pair, priceRef.current), '#3b82f6')
 
-      // ── win-rate targeting (78–82% window) ──
+      // ── win-rate targeting: keep losses between ~22% and ~27% of
+      //     total trades (i.e. a 73–78% win rate) ──
       const total = winsRef.current + lossesRef.current
       let isLoss = false
       if (total > 0) {
-        const wr = winsRef.current / total
-        if (wr < 0.78) isLoss = false
-        else if (wr > 0.82) isLoss = true
+        const lossRate = lossesRef.current / total
+        if (lossRate < 0.22) isLoss = true
+        else if (lossRate > 0.27) isLoss = false
         else isLoss = Math.random() < bot.lossChance
       } else {
         isLoss = Math.random() < bot.lossChance
@@ -289,7 +294,7 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
 
       // ── fixed profit/loss bands ──
       const gained = isLoss
-        ? -parseFloat((0.90 + Math.random() * 0.90).toFixed(2))   // -$0.90 to -$1.80
+        ? -parseFloat((2.90 + Math.random() * 0.50).toFixed(2))   // -$2.90 to -$3.40
         : parseFloat((3.40 + Math.random() * 1.00).toFixed(2))     // +$3.40 to +$4.40
 
       setPnl(prev => {
