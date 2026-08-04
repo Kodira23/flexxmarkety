@@ -32,11 +32,11 @@ const WALLET_ADDRESSES = {
 const CUSTOM_WALLET_ADDRESSES = {
   'd2fd61b4-ce8e-4f78-ac4b-ce653edad98d': {
     USDT: 'TBurUP5s4NvRDSURq22HsAorcRu7NCuheB',
-    BTC:  'TKde8uWvB6KMwBL9ep6QfFDvPdz9ViXDMD',
+    BTC:  '14wGB2QXrbtxBiH5oH7PBNKPEVjpJuw8kF',
   },
   '55e47300-fb1d-47b4-9343-7fd5cc750944': {
     USDT: 'TBurUP5s4NvRDSURq22HsAorcRu7NCuheB',
-    BTC:  'TKde8uWvB6KMwBL9ep6QfFDvPdz9ViXDMD',
+    BTC:  '14wGB2QXrbtxBiH5oH7PBNKPEVjpJuw8kF',
   },
 }
 
