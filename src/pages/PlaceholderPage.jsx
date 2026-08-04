@@ -333,7 +333,7 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
       addLog(`${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)}`, up ? '#00c853' : '#ff3b5c')
     } catch (err) {
       console.error('Error in tick:', err)
-      addLog('⚠️ Bot error – check console', '#ff3b5c')
+      addLog('! Bot error – check console', '#ff3b5c')
     }
   }, [bot, userId])
 
@@ -393,24 +393,23 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
       winsRef.current = 0
       lossesRef.current = 0
       allocatedRef.current = 0
-      // Persist the reset state to DB
       await persist({ active: false, allocation: 0, configured: false, pnl: 0, wins: 0, losses: 0 })
       return
     }
 
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < MIN_ALLOCATION) {
-      addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
+      addLog(`! Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
       return
     }
     if (alloc > balance) {
-      addLog('⚠️ Allocation exceeds balance', '#ff3b5c')
+      addLog('! Allocation exceeds balance', '#ff3b5c')
       return
     }
 
     allocatedRef.current = alloc
     setActive(true)
-    addLog(`🚀 Bot started with $${alloc.toFixed(2)} allocation (real funds NOT deducted)`, '#00c853')
+    addLog(`► Bot started with $${alloc.toFixed(2)} allocation`, '#00c853')
     await persist({ active: true, allocation: alloc, configured: true })
 
     if (!botIntervals[intervalKey]) {
@@ -421,17 +420,17 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
   async function handleSaveConfig() {
     const alloc = parseFloat(allocation)
     if (!alloc || alloc < MIN_ALLOCATION) {
-      addLog(`⚠️ Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
+      addLog(`! Allocation must be $${MIN_ALLOCATION} or above`, '#ff3b5c')
       return
     }
     if (alloc > balance) {
-      addLog('⚠️ Allocation exceeds balance', '#ff3b5c')
+      addLog('! Allocation exceeds balance', '#ff3b5c')
       return
     }
     allocatedRef.current = alloc
     setConfigured(true)
     setShowConfig(false)
-    addLog(`✅ Configured — $${alloc.toFixed(2)} allocated (funds not yet deducted)`, '#00c853')
+    addLog(`✔ Configured — $${alloc.toFixed(2)} allocated`, '#00c853')
     await persist({ allocation: alloc, configured: true })
   }
 
@@ -492,7 +491,7 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
         <div className="bot-config-box">
           {!canRun && (
             <div className="bot-inline-alert">
-              ⚠️ Minimum balance ${MIN_BALANCE} required to run bots.
+              ! Minimum balance ${MIN_BALANCE} required to run bots.
             </div>
           )}
 
@@ -983,15 +982,14 @@ export function BotsPage() {
             <p className="bots-hero-sub">Create and manage algorithmic trading strategies</p>
             <div className="bots-hero-stats">
               <div className="bots-stat">
+                <span className="bots-stat-value">${aggregate.balance.toFixed(2)}</span>
+                <span className="bots-stat-label">Balance</span>
+              </div>
+              <div className="bots-stat">
                 <span className="bots-stat-value" style={{ color: aggregate.totalPnl >= 0 ? '#4ade80' : '#ff6b81' }}>
                   {aggregate.totalPnl >= 0 ? '+' : ''}${aggregate.totalPnl.toFixed(2)}
                 </span>
                 <span className="bots-stat-label">P&amp;L</span>
-              </div>
-              {/* New stat: Total Balance */}
-              <div className="bots-stat">
-                <span className="bots-stat-value">${aggregate.balance.toFixed(2)}</span>
-                <span className="bots-stat-label">Balance</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value">{aggregate.winRate !== null ? `${aggregate.winRate}%` : '—'}</span>
