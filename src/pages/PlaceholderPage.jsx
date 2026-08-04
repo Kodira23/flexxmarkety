@@ -380,14 +380,21 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
     if (!canRun || !configured) return
 
     if (active) {
+      // ── STOP: reset P&L, wins, losses, allocation, config, logs ──
       clearInterval(botIntervals[intervalKey])
       delete botIntervals[intervalKey]
       setActive(false)
-      allocatedRef.current = 0
       setAllocation('')
       setConfigured(false)
       setLog([])
-      await persist({ active: false, allocation: 0, configured: false })
+      setPnl(0)
+      setWins(0)
+      setLosses(0)
+      winsRef.current = 0
+      lossesRef.current = 0
+      allocatedRef.current = 0
+      // Persist the reset state to DB
+      await persist({ active: false, allocation: 0, configured: false, pnl: 0, wins: 0, losses: 0 })
       return
     }
 
@@ -964,8 +971,8 @@ export function BotsPage() {
     const totalTrades = totalWins + totalLosses
     const totalAllocated = all.reduce((sum, s) => sum + (s.allocation || 0), 0)
     const winRate = totalTrades > 0 ? Math.round((totalWins / totalTrades) * 100) : null
-    return { totalPnl, totalTrades, totalAllocated, winRate }
-  }, [botStats])
+    return { totalPnl, totalTrades, totalAllocated, winRate, balance: balance || 0 }
+  }, [botStats, balance])
 
   return (
     <div className="dash-main">
@@ -980,6 +987,11 @@ export function BotsPage() {
                   {aggregate.totalPnl >= 0 ? '+' : ''}${aggregate.totalPnl.toFixed(2)}
                 </span>
                 <span className="bots-stat-label">P&amp;L</span>
+              </div>
+              {/* New stat: Total Balance */}
+              <div className="bots-stat">
+                <span className="bots-stat-value">${aggregate.balance.toFixed(2)}</span>
+                <span className="bots-stat-label">Balance</span>
               </div>
               <div className="bots-stat">
                 <span className="bots-stat-value">{aggregate.winRate !== null ? `${aggregate.winRate}%` : '—'}</span>
