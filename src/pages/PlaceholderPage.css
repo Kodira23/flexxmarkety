@@ -455,7 +455,7 @@
 
 /* ── Mobile Bots ── */
 @media (max-width: 767px) {
-  .bots-content { padding: 16px; padding-top: 76px; padding-bottom: 76px; }
+  .bots-content { padding: 16px; padding-bottom: 76px; }
   .bots-hero { flex-direction: column; align-items: flex-start; padding: 20px 18px; gap: 16px; }
   .bots-hero-btn { width: 100%; text-align: center; }
   .bots-hero-stats { gap: 16px; flex-wrap: wrap; }
