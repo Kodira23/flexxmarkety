@@ -89,10 +89,10 @@ export default function DashNav({ activePage, onNavigate }) {
             className="dashnav-logo-bg"
             style={{ backgroundImage: "url('/FM logo.jpeg')" }}
             role="img"
-            aria-label="Flexxmarket"
+            aria-label="FlexxMarket"
           />
           <div className="logo-text-stack">
-            <span className="logo-top">Flexxmarket</span>
+            <span className="logo-top">FlexxMarket</span>
             <span className="logo-bottom">pro trading</span>
           </div>
         </button>
