@@ -152,10 +152,6 @@ const EXTRA_DATA = {
 }
 
 // ── TRADINGVIEW CHART OVERRIDES ──────────────────────────────────────
-// Green candles match the site accent (var(--green) = #16a34a), grid
-// lines switched off so the panel isn't chopped into a box grid, and
-// the right-hand margin is trimmed so the last candle sits closer to
-// centre instead of leaving a big blank gap on the right.
 const TV_CHART_OVERRIDES = encodeURIComponent(JSON.stringify({
   'mainSeriesProperties.candleStyle.upColor': '#16a34a',
   'mainSeriesProperties.candleStyle.borderUpColor': '#16a34a',
@@ -203,10 +199,30 @@ const fmt = p => {
   return `$${p.toFixed(8)}`
 }
 
+// ── SIMULATED PRICE FEED FOR BOT COMMENTARY ───────────────────────────
+const BASE_PRICES = { BTC: 97500, ETH: 3400 }
+
+// ── BOT ACTIVITY COMMENT GENERATOR (blue log lines) ────────────────────
+function randomComment(base, price) {
+  const p = price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const templates = [
+    `Buy ${base} @ $${p}`,
+    `Sell ${base} @ $${p}`,
+    `Scanning ${base}/USDT order book`,
+    `RSI signal confirmed on ${base}`,
+    `Rebalancing ${base} allocation`,
+    `Volume spike detected on ${base}`,
+    `Executing DCA order for ${base}`,
+    `Market trend: ${base} consolidating`,
+    `Spread tightening on ${base}/USDT`,
+  ]
+  return templates[Math.floor(Math.random() * templates.length)]
+}
+
 // ── BOT CONFIGS ────────────────────────────────────────────────────────
 const BOT_CONFIGS = [
-  { id:1, name:'Bitcoin Accumulation', subtitle:'Weekly • DCA', description:'Dollar-cost averaging into Bitcoin on a weekly basis.', risk:'Low', interval:3000, drift:0.14, volatility:0.05, lossChance:0.25, lossMult:0.35, pair:'BTC' },
-  { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.26, lossMult:0.38, pair:'ETH' },
+  { id:1, name:'Bitcoin Accumulation', subtitle:'Weekly • DCA', description:'Dollar-cost averaging into Bitcoin on a weekly basis.', risk:'Low', interval:3000, drift:0.14, volatility:0.05, lossChance:0.12, lossMult:0.35, pair:'BTC' },
+  { id:2, name:'ETH DCA Pro', subtitle:'Daily • DCA', description:'Dynamic DCA based on RSI and volume indicators.', risk:'Medium', interval:3000, drift:0.14, volatility:0.06, lossChance:0.14, lossMult:0.38, pair:'ETH' },
 ]
 
 // ── BOT CARD (full, one‑page layout) ─────────────────────────────────
@@ -224,6 +240,7 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
   const allocatedRef = useRef(0)
   const winsRef = useRef(0)
   const lossesRef = useRef(0)
+  const priceRef = useRef(BASE_PRICES[bot.pair] || 100)
   const intervalKey = `${userId}-${bot.id}`
 
   function addLog(msg, color = '#aaa') {
@@ -254,21 +271,26 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
     try {
       if (allocatedRef.current === 0) return
 
+      // ── simulate a small price move and drop a blue market comment ──
+      priceRef.current = priceRef.current * (1 + (Math.random() - 0.5) * 0.004)
+      addLog(randomComment(bot.pair, priceRef.current), '#3b82f6')
+
+      // ── win-rate targeting (78–82% window) ──
       const total = winsRef.current + lossesRef.current
       let isLoss = false
       if (total > 0) {
         const wr = winsRef.current / total
-        if (wr < 0.62) isLoss = false
-        else if (wr > 0.65) isLoss = true
+        if (wr < 0.78) isLoss = false
+        else if (wr > 0.82) isLoss = true
         else isLoss = Math.random() < bot.lossChance
       } else {
         isLoss = Math.random() < bot.lossChance
       }
 
-      const noise = Math.random() * bot.volatility
-      const r = isLoss ? -(bot.drift * bot.lossMult + noise) : (bot.drift + noise)
-      const stake = allocatedRef.current * 0.1
-      const gained = parseFloat((stake * r).toFixed(2))
+      // ── fixed profit/loss bands ──
+      const gained = isLoss
+        ? -parseFloat((0.90 + Math.random() * 0.90).toFixed(2))   // -$0.90 to -$1.80
+        : parseFloat((3.40 + Math.random() * 1.00).toFixed(2))     // +$3.40 to +$4.40
 
       setPnl(prev => {
         const next = parseFloat((prev + gained).toFixed(2))
@@ -303,7 +325,7 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
       })
 
       const up = gained >= 0
-      addLog(`${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)} (${(r * 100).toFixed(2)}%)`, up ? '#00c853' : '#ff3b5c')
+      addLog(`${up ? '↑' : '↓'} Trade ${up ? '+' : ''}$${gained.toFixed(2)}`, up ? '#00c853' : '#ff3b5c')
     } catch (err) {
       console.error('Error in tick:', err)
       addLog('⚠️ Bot error – check console', '#ff3b5c')
@@ -505,7 +527,7 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
       {/* ─── Action Buttons ─── */}
       <div className="bot-actions">
         <button
-          className="bot-btn-start-active"
+          className={configured ? 'bot-btn-configure' : 'bot-btn-start-active'}
           onClick={() => { if (canRun) setShowConfig(v => !v) }}
           disabled={!canRun || active}
         >
