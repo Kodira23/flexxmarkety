@@ -119,7 +119,7 @@ export default function Home() {
       <Navbar onSignIn={() => setModal('signin')} onGetStarted={() => setModal('signup')} />
       <Ticker />
 
-      {/* ── HERO ── */}
+      {/* HERO */}
       <section className="hero">
         <div className="hero-bg">
           <CandleChart />
@@ -149,7 +149,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── ABOUT / DISCOVER ── */}
+      {/* ABOUT / DISCOVER */}
       <section className="about-section" id="about">
         <div className="section-inner about-inner">
           <div className="about-image-wrap">
@@ -173,7 +173,7 @@ export default function Home() {
           <div className="about-text">
             <div className="section-tag">About Us</div>
             <h2 className="section-title">
-              Discover Our Platform —<br />Don't Miss Out
+              Discover Our Platform<br />Don't Miss Out
             </h2>
             <p className="section-sub">
               Trade smarter with AI-driven Crypto automation that analyzes,
@@ -197,7 +197,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── LIVE CHART ── */}
+      {/* LIVE CHART */}
       <section className="chart-section" id="markets">
         <div className="section-inner" style={{ textAlign: 'center' }}>
           <div className="section-tag" style={{ display: 'inline-block' }}>Live Market Data</div>
@@ -220,7 +220,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── AUTOTRADING ── */}
+      {/* AUTOTRADING */}
       <section className="autotrading-section" id="features">
         <div className="section-inner" style={{ textAlign: 'center' }}>
           <div className="section-tag" style={{ display: 'inline-block' }}>Our Services</div>
@@ -248,7 +248,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── STATS BAR ── */}
+      {/* STATS BAR */}
       <section className="stats-bar">
         <div className="section-inner stats-bar-inner">
           {STATS_BAR.map((s, i) => (
@@ -261,7 +261,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── WHY CHOOSE ── */}
+      {/* WHY CHOOSE */}
       <section className="why-section">
         <div className="section-inner" style={{ textAlign: 'center' }}>
           <h2 className="section-title" style={{ textAlign: 'center', maxWidth: '100%', fontSize: 'clamp(32px,5vw,52px)' }}>
@@ -282,7 +282,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA BANNER ── */}
+      {/* CTA BANNER */}
       <section className="cta-banner">
         <div className="cta-inner">
           <div className="cta-glow" />
@@ -301,7 +301,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
+      {/* FOOTER */}
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-logo">
