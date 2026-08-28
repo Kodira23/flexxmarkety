@@ -136,7 +136,7 @@ export default function Home() {
           </h1>
           <p className="hero-sub animate-fade-up delay-2">
             Combine real-time market intelligence with automated strategies to help
-            your investments work harder — built for traders who want an edge.
+            your investments work harder built for traders who want an edge.
           </p>
           <div className="hero-cta animate-fade-up delay-3">
             <button className="btn-primary cta-main" onClick={() => setModal('signup')}>
