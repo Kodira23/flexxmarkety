@@ -127,7 +127,7 @@ export default function Home() {
         </div>
         <div className="hero-content">
           <div className="hero-badge animate-fade-up">
-            <span className="badge-dot" />
+            
             Powering Smarter Trades
           </div>
           <h1 className="hero-headline animate-fade-up delay-1">
