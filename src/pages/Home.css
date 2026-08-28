@@ -528,8 +528,28 @@
   flex-wrap: wrap;
 }
 
-.cta-btn { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 700; }
-.cta-btn-outline { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; }
+.cta-btn {
+  padding: 16px 40px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.cta-btn-outline {
+  padding: 16px 40px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  line-height: 1.4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 
 /* FOOTER
    Mirrors Navbar: same logo badge treatment (background-image
@@ -736,8 +756,8 @@
   .cta-btn,
   .cta-btn-outline {
     width: auto;
-    min-width: 120px;
-    padding: 14px 18px;
+    min-width: 100px;
+    padding: 12px 16px;
     box-sizing: border-box;
     border-radius: 14px;
   }
