@@ -424,6 +424,10 @@
   overflow: hidden;
 }
 
+.why-title {
+  white-space: nowrap;
+}
+
 .why-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -675,7 +679,7 @@
   .about-inner { grid-template-columns: 1fr; gap: 48px; }
   .about-img { height: 240px; }
   .about-badge { bottom: -16px; left: 16px; }
-  .discover-btn { width: 60%; text-align: center; }
+  .discover-btn { width: 42%; text-align: center; }
 
   .chart-section { padding: 48px 0 64px; }
 
@@ -710,6 +714,11 @@
   .stats-bar-value { font-size: 32px; }
 
   .why-section { padding: 64px 0; }
+  .why-title {
+    font-size: 20px;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
   .why-grid { grid-template-columns: 1fr; width: 100%; }
   .why-card { width: 100%; }
 
