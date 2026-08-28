@@ -1,4 +1,4 @@
-/* ── FONT IMPORT — Inter (matches Horizon Markets) + JetBrains Mono for numbers ── */
+/* FONT IMPORT — Inter (matches Horizon Markets) + JetBrains Mono for numbers */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
 
 .home {
@@ -8,7 +8,7 @@
   padding-top: 72px;
 }
 
-/* ── HERO ── */
+/* HERO */
 .hero {
   position: relative;
   min-height: 85vh;
@@ -105,7 +105,7 @@
   animation: glow-green 3s ease-in-out infinite;
 }
 
-/* ── SHARED LAYOUT ── */
+/* SHARED LAYOUT */
 .section-inner {
   max-width: 1280px;
   margin: 0 auto;
@@ -148,7 +148,7 @@
   font-weight: 400;
 }
 
-/* ── ABOUT / DISCOVER ── */
+/* ABOUT / DISCOVER */
 .about-section {
   padding: 100px 0;
   border-top: 1px solid var(--border);
@@ -254,7 +254,7 @@
 
 .discover-btn { padding: 14px 32px; font-size: 15px; font-family: 'Inter', sans-serif; font-weight: 700; }
 
-/* ── CHART SECTION ── */
+/* CHART SECTION */
 .chart-section {
   padding: 100px 0;
   border-top: 1px solid var(--border);
@@ -280,7 +280,7 @@
   border: none;
 }
 
-/* ── AUTOTRADING ── */
+/* AUTOTRADING */
 .autotrading-section {
   padding: 100px 0;
   border-top: 1px solid var(--border);
@@ -361,7 +361,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* ── STATS BAR ── */
+/* STATS BAR */
 .stats-bar {
   padding: 56px 0;
   border-top: 1px solid var(--border);
@@ -415,7 +415,7 @@
   background: var(--border);
 }
 
-/* ── WHY CHOOSE ── */
+/* WHY CHOOSE */
 .why-section {
   padding: 100px 0;
   background: var(--bg-secondary);
@@ -471,7 +471,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* ── CTA BANNER ── */
+/* CTA BANNER */
 .cta-banner {
   padding: 100px 24px;
   text-align: center;
@@ -527,8 +527,8 @@
 .cta-btn { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 700; }
 .cta-btn-outline { padding: 16px 40px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 600; }
 
-/* ── FOOTER ──
-   Rebuilt to mirror Navbar: same logo badge treatment (background-image
+/* FOOTER
+   Mirrors Navbar: same logo badge treatment (background-image
    div, 8px radius), same brand wordmark overlap trick, same green
    brand-text / white uppercase sub-label, same Inter font weights. */
 .footer {
@@ -605,7 +605,7 @@
   white-space: nowrap;
 }
 
-/* ── ANIMATIONS ── */
+/* ANIMATIONS */
 @keyframes glow-green {
   0%, 100% { box-shadow: 0 0 20px #16a34a22; }
   50%       { box-shadow: 0 0 40px #16a34a55; }
@@ -629,7 +629,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── RESPONSIVE ── */
+/* RESPONSIVE */
 @media (max-width: 1024px) {
   .autotrading-grid,
   .why-grid { grid-template-columns: 1fr 1fr; }
@@ -648,13 +648,18 @@
   .hero-headline { letter-spacing: -1px; }
   .headline-primary { white-space: normal; }
   .hero-sub { font-size: 15px; max-width: 100%; }
-  .hero-cta { flex-direction: column; gap: 10px; align-items: flex-start; }
+
+  .hero-cta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
   .hero-cta .btn-primary,
   .hero-cta .btn-outline {
     width: auto;
-    max-width: 220px;
-    text-align: left;
-    padding: 12px 18px;
+    text-align: center;
+    padding: 12px 20px;
   }
   .cta-main { width: auto; }
 
@@ -670,7 +675,7 @@
   .about-inner { grid-template-columns: 1fr; gap: 48px; }
   .about-img { height: 240px; }
   .about-badge { bottom: -16px; left: 16px; }
-  .discover-btn { width: 100%; text-align: center; }
+  .discover-btn { width: 60%; text-align: center; }
 
   .chart-section { padding: 48px 0 64px; }
 
@@ -710,11 +715,16 @@
 
   .cta-banner { padding: 64px 20px; }
   .cta-inner { padding: 36px 20px; border-radius: 16px; }
-  .cta-btns { flex-direction: column; gap: 10px; align-items: center; }
+  .cta-btns {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
   .cta-btn,
   .cta-btn-outline {
     width: auto;
-    min-width: 140px;
+    min-width: 120px;
     padding: 14px 18px;
     box-sizing: border-box;
     border-radius: 14px;
