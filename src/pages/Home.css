@@ -649,7 +649,10 @@
     padding: 48px 20px 24px;
     box-sizing: border-box;
   }
-  .hero-headline { letter-spacing: -1px; }
+  .hero-headline {
+    font-size: clamp(30px, 9.5vw, 44px);
+    letter-spacing: -1px;
+  }
   .headline-primary { white-space: normal; }
   .hero-sub { font-size: 15px; max-width: 100%; }
 
