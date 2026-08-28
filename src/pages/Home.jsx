@@ -126,10 +126,7 @@ export default function Home() {
           <div className="hero-gradient" />
         </div>
         <div className="hero-content">
-          <div className="hero-badge animate-fade-up">
-            
-            Powering Smarter Trades
-          </div>
+          
           <h1 className="hero-headline animate-fade-up delay-1">
             <span className="headline-primary">Build Your Portfolio</span>{' '}
             <span className="headline-accent">Smarter</span>
