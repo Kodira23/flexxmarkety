@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './DashNav.css';
 
-// ── SVG Icon Components (white outline sketches) ──
+// ── SVG Icons (unchanged) ──
 const GridIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" />
@@ -93,7 +93,7 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
     signOut?.();
   };
 
-  // Close mobile dropdown when tapping outside it
+  // Close dropdown when clicking outside (on the backdrop)
   useEffect(() => {
     if (!menuOpen) return;
     function handleClickOutside(e) {
@@ -182,37 +182,52 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
             </button>
 
             {menuOpen && (
-              <div className="mobile-dropdown">
-                {NAV_ITEMS.map(item => (
-                  <button
-                    key={item.id}
-                    className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
-                    onClick={() => handleNav(item.id)}
-                  >
-                    <span className="mobile-dropdown-icon">{item.icon}</span>
-                    {item.label}
-                  </button>
-                ))}
-                <div className="mobile-dropdown-divider" />
-                <div className="mobile-dropdown-user">
-                  <div className="mobile-dropdown-avatar">
-                    <UserIcon />
+              <>
+                {/* Backdrop (blurs background) */}
+                <div className="mobile-dropdown-backdrop" onClick={() => setMenuOpen(false)} />
+
+                {/* Dropdown panel (full‑screen) */}
+                <div className="mobile-dropdown">
+                  {/* Profile header */}
+                  <div className="mobile-dropdown-profile">
+                    <div className="mobile-dropdown-avatar">
+                      <UserIcon />
+                    </div>
+                    <div className="mobile-dropdown-userinfo">
+                      <span className="mobile-dropdown-username">{username}</span>
+                      <span className="mobile-dropdown-email">{email}</span>
+                    </div>
                   </div>
-                  <span className="mobile-dropdown-email">{username}</span>
+
+                  <div className="mobile-dropdown-divider" />
+
+                  {/* Navigation links */}
+                  <div className="mobile-dropdown-links">
+                    {NAV_ITEMS.map(item => (
+                      <button
+                        key={item.id}
+                        className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
+                        onClick={() => handleNav(item.id)}
+                      >
+                        <span className="mobile-dropdown-icon">{item.icon}</span>
+                        <span className="mobile-dropdown-label">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mobile-dropdown-divider" />
+
+                  {/* Logout */}
+                  <button className="mobile-dropdown-logout" onClick={handleSignOut}>
+                    <LogoutIcon />
+                    <span>Sign Out</span>
+                  </button>
                 </div>
-                <button className="mobile-dropdown-logout" onClick={handleSignOut}>
-                  <span className="mobile-dropdown-icon"><LogoutIcon /></span>
-                  Sign out
-                </button>
-              </div>
+              </>
             )}
           </div>
         </div>
       </header>
-
-      {menuOpen && (
-        <div className="mobile-dropdown-backdrop open" onClick={() => setMenuOpen(false)} />
-      )}
     </>
   );
 }
