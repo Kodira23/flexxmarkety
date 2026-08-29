@@ -146,7 +146,6 @@ function DepositPage({ onBack }) {
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState(null)
 
-  // Resolve the address for this coin: custom override for specific users, else default
   const walletAddress =
     (user && CUSTOM_WALLET_ADDRESSES[user.id]?.[coin]) || WALLET_ADDRESSES[coin]
 
@@ -389,22 +388,16 @@ function WithdrawPage({ onBack, balance }) {
 }
 
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────
-export default function Dashboard() {
+export default function Dashboard({ balance: balanceProp, balanceLoading: balanceLoadingProp } = {}) {
   const pairs = useTicker()
-  const { balance, loading: balanceLoading } = useBalance()
+  const fallback = useBalance()
+  const balance = balanceProp !== undefined ? balanceProp : fallback.balance
+  const balanceLoading = balanceLoadingProp !== undefined ? balanceLoadingProp : fallback.loading
+
   const [page,          setPage]          = useState('home')
   const [priceSource,   setPriceSource]   = useState('Binance')
   const [fetchingLabel, setFetchingLabel] = useState('')
 
-  // Deposit/Withdraw aren't separate routes — they're just this local
-  // `page` state, and both live at the same "/dashboard" URL. That means
-  // clicking a "Dashboard" link in the header or mobile footer nav while
-  // page === 'deposit' or 'withdraw' calls navigate('/dashboard') on a
-  // route that's already active, so React Router doesn't remount this
-  // component and `page` never resets — the person stays stuck on the
-  // sub-page. `location.key` changes on every navigation call, even to
-  // the same path, so watching it here lets any "Dashboard" link (header
-  // or mobile) reliably bounce back to the home view.
   const location = useLocation()
   useEffect(() => {
     setPage('home')
