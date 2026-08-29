@@ -333,6 +333,16 @@
 }
 .status-note--rejected { color: var(--text-muted); }
 
+/* ── OUTER CARD BACKGROUND OVERRIDE ──
+   Forces the Watchlist / Your Crypto outer wrapper (a shared .card
+   class defined outside Dashboard.css, likely on var(--bg-card))
+   to match .portfolio-card's var(--panel-bg) instead. If this
+   selector doesn't hit, the class isn't literally ".card" — inspect
+   the element to find the real name and swap it in below. */
+.dash-grid-2 > .card {
+  background: var(--panel-bg) !important;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 640px) {
   .crypto-mini-grid        { grid-template-columns: 1fr; }
