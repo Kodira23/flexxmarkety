@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './DashNav.css';
 
@@ -42,7 +42,7 @@ const CpuIcon = () => (
 );
 
 const UserIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
@@ -56,6 +56,14 @@ const LogoutIcon = () => (
   </svg>
 );
 
+const WalletIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
+  </svg>
+);
+
 const NAV_ITEMS = [
   { id: 'home',    label: 'Dashboard', icon: <GridIcon /> },
   { id: 'markets', label: 'Markets',   icon: <BarChartIcon /> },
@@ -63,22 +71,59 @@ const NAV_ITEMS = [
   { id: 'bots',    label: 'Bots',      icon: <CpuIcon /> },
 ];
 
-export default function DashNav({ activePage, onNavigate }) {
+function fmtBalance(n) {
+  return `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+}
+
+export default function DashNav({ activePage, onNavigate, balance = 0 }) {
   const { user, signOut } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const email = user?.email || 'trader@flexx.com';
   const username = email.split('@')[0];
 
   const handleNav = (id) => {
     if (onNavigate) onNavigate(id);
-    setMenuOpen(false);
+    setMobileMenuOpen(false);
   };
 
   const handleSignOut = () => {
-    setMenuOpen(false);
+    setMobileMenuOpen(false);
     signOut?.();
   };
+
+  // Close mobile dropdown when tapping outside it
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [mobileMenuOpen]);
+
+  // Show/hide mobile footer based on scroll direction
+  const [footerVisible, setFooterVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    function handleScroll() {
+      const currentY = window.scrollY;
+      if (currentY <= 0) {
+        setFooterVisible(true);
+      } else if (currentY > lastScrollY.current) {
+        setFooterVisible(false); // scrolling down
+      } else {
+        setFooterVisible(true); // scrolling up
+      }
+      lastScrollY.current = currentY;
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <>
@@ -111,15 +156,16 @@ export default function DashNav({ activePage, onNavigate }) {
         </nav>
 
         <div className="dashnav-right">
-          <div className="dashnav-user">
-            <div className="user-avatar">
-              <UserIcon />
-            </div>
-            <div className="user-info">
-              <span className="user-email">{username}</span>
-            </div>
+          <div className="dashnav-wallet">
+            <WalletIcon />
+            <span className="wallet-balance">{fmtBalance(balance)}</span>
           </div>
-          <button className="logout-btn" onClick={handleSignOut}>Sign out</button>
+          <div className="user-avatar">
+            <UserIcon />
+          </div>
+          <button className="icon-logout-btn" onClick={handleSignOut} aria-label="Sign out">
+            <LogoutIcon />
+          </button>
         </div>
       </header>
 
@@ -130,55 +176,54 @@ export default function DashNav({ activePage, onNavigate }) {
             className="mobile-logo-bg"
             style={{ backgroundImage: "url('/FM logo.jpeg')" }}
             role="img"
-            aria-label="Flexxmarket"
+            aria-label="FlexxMarket"
           />
-          <span className="mobile-logo-text">Flexxmarket</span>
-        </button>
-        <div className="mobile-header-right">
-          <div className="mobile-user-icon">
-            <div className="mobile-avatar-small">
-              <UserIcon />
-            </div>
+          <div className="mobile-logo-text-stack">
+            <span className="mobile-logo-top">FlexxMarket</span>
+            <span className="mobile-logo-bottom">pro trading</span>
           </div>
-          <button
-            className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(v => !v)}
-            aria-label="Open menu"
-          >
-            <span className="ham-line" />
-            <span className="ham-line" />
-            <span className="ham-line" />
-          </button>
+        </button>
+
+        <div className="mobile-header-right">
+          <div className="mobile-wallet">
+            <WalletIcon />
+            <span className="wallet-balance">{fmtBalance(balance)}</span>
+          </div>
+
+          <div className="mobile-user-menu-wrap" ref={menuRef}>
+            <button
+              className="mobile-avatar-small"
+              onClick={() => setMobileMenuOpen(v => !v)}
+              aria-label="Account menu"
+            >
+              <UserIcon />
+            </button>
+
+            {mobileMenuOpen && (
+              <div className="user-dropdown">
+                <div className="user-dropdown-name">{username}</div>
+                <button className="user-dropdown-signout" onClick={handleSignOut}>
+                  <LogoutIcon />
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* ─── BACKDROP & DROPDOWN ─── */}
-      <div
-        className={`mobile-dropdown-backdrop ${menuOpen ? 'open' : ''}`}
-        onClick={() => setMenuOpen(false)}
-      />
-      <nav className={`mobile-dropdown ${menuOpen ? 'open' : ''}`}>
+      {/* ─── MOBILE BOTTOM NAV FOOTER ─── */}
+      <nav className={`mobile-nav-footer ${footerVisible ? '' : 'hidden'}`}>
         {NAV_ITEMS.map(item => (
           <button
             key={item.id}
-            className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
+            className={`mobile-nav-footer-item ${activePage === item.id ? 'active' : ''}`}
             onClick={() => handleNav(item.id)}
           >
-            <span className="mobile-dropdown-icon">{item.icon}</span>
-            {item.label}
+            <span className="mobile-nav-footer-icon">{item.icon}</span>
+            <span className="mobile-nav-footer-label">{item.label}</span>
           </button>
         ))}
-        <div className="mobile-dropdown-divider" />
-        <div className="mobile-dropdown-user">
-          <div className="mobile-dropdown-avatar">
-            <UserIcon />
-          </div>
-          <span className="mobile-dropdown-email">{username}</span>
-        </div>
-        <button className="mobile-dropdown-logout" onClick={handleSignOut}>
-          <span className="mobile-dropdown-icon"><LogoutIcon /></span>
-          Sign out
-        </button>
       </nav>
     </>
   );
