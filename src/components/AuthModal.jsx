@@ -100,8 +100,16 @@ export default function AuthModal({ mode: initialMode, onClose }) {
         <div className="auth-visual-panel">
           <div className="auth-visual-inner">
             <div className="auth-brand">
-              <img src="/logoz.jpeg" alt="Flexx Market" className="auth-brand-logo" />
-              <span className="auth-brand-name">FLEXX MARKET</span>
+              <div
+                className="auth-brand-logo-bg"
+                style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+                role="img"
+                aria-label="Flexx Market"
+              />
+              <div className="auth-brand-wrapper">
+                <span className="auth-brand-text">FLEXX MARKET</span>
+                <span className="auth-brand-sub">Trading Platform</span>
+              </div>
             </div>
 
             <h2 className="auth-visual-heading">
