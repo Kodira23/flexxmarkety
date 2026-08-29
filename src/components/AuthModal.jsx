@@ -14,6 +14,9 @@ export default function AuthModal({ mode: initialMode, onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [pendingEmail, setPendingEmail] = useState('')
+  const [resendLoading, setResendLoading] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
@@ -21,6 +24,7 @@ export default function AuthModal({ mode: initialMode, onClose }) {
     setMode(next)
     setError('')
     setSuccess('')
+    setResendMessage('')
   }
 
   useEffect(() => {
@@ -58,31 +62,25 @@ export default function AuthModal({ mode: initialMode, onClose }) {
         onClose()
         navigate('/dashboard')
       } else {
-        // Sign up without email confirmation
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { username },
-            emailRedirectTo: undefined,
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         })
         if (error) throw error
 
-        // If session is returned immediately, user is logged in — go straight to dashboard
         if (data?.session) {
+          // Project has email confirmation OFF — user is signed in immediately
           onClose()
           navigate('/dashboard')
         } else {
-          // Supabase project still has email confirm ON — auto sign them in manually
-          const { error: signInError } = await signIn(email, password)
-          if (signInError) {
-            setSuccess('Account created! You can now sign in.')
-            setMode('signin')
-          } else {
-            onClose()
-            navigate('/dashboard')
-          }
+          // Email confirmation is required — do not attempt to sign the user in.
+          // Show a "check your inbox" screen instead.
+          setPendingEmail(email)
+          setMode('confirm')
         }
       }
     } catch (err) {
@@ -90,6 +88,80 @@ export default function AuthModal({ mode: initialMode, onClose }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleResend = async () => {
+    setResendLoading(true)
+    setResendMessage('')
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: pendingEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+      setResendMessage('Confirmation email resent.')
+    } catch (err) {
+      setResendMessage(err.message || 'Could not resend the email.')
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  if (mode === 'confirm') {
+    return (
+      <div className="auth-overlay">
+        <div className="auth-page">
+          <button className="auth-close" onClick={onClose} aria-label="Close">✕</button>
+
+          <div className="auth-visual-panel">
+            <div className="auth-visual-inner">
+              <h2 className="auth-visual-heading">
+                Beyond Every<br />
+                <span className="auth-visual-heading-accent">Market</span>
+              </h2>
+              <p className="auth-visual-copy">
+                Access real-time crypto data, advanced charts, and automated trading
+                tools — all in one powerful platform.
+              </p>
+            </div>
+          </div>
+
+          <div className="auth-form-panel">
+            <div className="auth-form-inner">
+              <h1 className="auth-title">Check your e-mail</h1>
+              <p className="auth-subtitle">
+                We sent a confirmation link to <strong>{pendingEmail}</strong>.
+                Click it to activate your account, then sign in below.
+              </p>
+
+              {resendMessage && <div className="modal-success">{resendMessage}</div>}
+
+              <button
+                type="button"
+                className="auth-submit"
+                onClick={handleResend}
+                disabled={resendLoading}
+              >
+                {resendLoading ? 'Sending...' : 'Resend confirmation email'}
+              </button>
+
+              <p className="auth-switch">
+                <button
+                  type="button"
+                  className="auth-switch-btn"
+                  onClick={() => switchMode('signin')}
+                >
+                  Back to sign in
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
