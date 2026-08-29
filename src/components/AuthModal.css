@@ -46,23 +46,117 @@ body.auth-open [class*="ChatWidget"] {
   border-color: var(--green, #22c55e);
 }
 
-/* Left image panel */
-.auth-image-panel {
+/* Left visual panel — brand + copy, no photo */
+.auth-visual-panel {
   position: relative;
   height: 100%;
+  background: #060606;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 26px 26px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
 }
-.auth-image {
+
+.auth-visual-inner {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: grayscale(0.15) brightness(0.55);
+  max-width: 480px;
+  padding: 60px;
 }
-.auth-image-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 60%);
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 56px;
+}
+.auth-brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+.auth-brand-name {
+  font-family: 'Syne', 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary, #fff);
+}
+
+.auth-visual-heading {
+  font-family: 'Syne', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--text-primary, #fff);
+  margin: 0 0 20px;
+}
+.auth-visual-heading-accent {
+  color: var(--green, #22c55e);
+}
+
+.auth-visual-copy {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary, #999);
+  margin: 0 0 40px;
+  max-width: 400px;
+}
+
+.auth-visual-stats {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.auth-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.auth-stat-value {
+  font-family: 'Syne', 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--green, #22c55e);
+}
+.auth-stat-label {
+  font-size: 13px;
+  color: var(--text-secondary, #999);
+}
+
+.auth-visual-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.auth-visual-features li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-primary, #fff);
+}
+.auth-feature-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--green-dim, rgba(34, 197, 94, 0.12));
+  color: var(--green, #22c55e);
+}
+.auth-feature-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Right form panel */
@@ -129,11 +223,61 @@ body.auth-open [class*="ChatWidget"] {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
 }
 .form-group input:focus {
   border-color: var(--green, #22c55e);
 }
 .form-group input::placeholder { color: var(--text-muted, #666); }
+
+/* Kill the browser's default white autofill background so autofilled
+   fields (e.g. a remembered e-mail) match the dark theme. */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text-primary, #fff);
+  -webkit-box-shadow: 0 0 0 1000px #000 inset;
+  box-shadow: 0 0 0 1000px #000 inset;
+  caret-color: var(--text-primary, #fff);
+  transition: background-color 9999s ease-in-out 0s;
+}
+.form-group input:-moz-autofill {
+  background: #000 !important;
+  color: var(--text-primary, #fff) !important;
+}
+
+/* Password field + show/hide toggle */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-wrapper input {
+  padding-right: 32px;
+}
+.password-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #666);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.password-toggle:hover {
+  color: var(--green, #22c55e);
+}
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
 
 .auth-row {
   display: flex;
@@ -179,16 +323,19 @@ body.auth-open [class*="ChatWidget"] {
   color: var(--green, #22c55e);
 }
 
+/* Submit button — smaller, left-aligned instead of full width */
 .auth-submit {
-  width: 100%;
-  padding: 16px;
-  font-size: 16px;
+  align-self: flex-start;
+  width: auto;
+  min-width: 150px;
+  padding: 10px 28px;
+  font-size: 14px;
   font-weight: 700;
   font-family: 'Syne', sans-serif;
   background: var(--green, #22c55e);
   color: #000;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -225,30 +372,37 @@ body.auth-open [class*="ChatWidget"] {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile: collapse to single column, image becomes a blurred background */
+/* Mobile: stack visual panel above the form instead of using it as a background */
 @media (max-width: 860px) {
   .auth-page {
     grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
   }
-  .auth-image-panel {
-    position: absolute;
-    inset: 0;
+  .auth-overlay {
+    overflow-y: auto;
   }
-  .auth-image {
-    filter: grayscale(0.15) brightness(0.35) blur(2px);
+  .auth-visual-panel {
+    height: auto;
+    padding: 48px 0 24px;
   }
-  .auth-image-overlay {
-    background: rgba(0,0,0,0.55);
+  .auth-visual-inner {
+    padding: 0 28px;
+  }
+  .auth-visual-heading {
+    font-size: 34px;
+  }
+  .auth-visual-stats {
+    gap: 28px;
   }
   .auth-form-panel {
-    position: relative;
-    z-index: 10;
-    background: transparent;
     padding: 24px;
   }
   .auth-title,
   .auth-subtitle {
-    text-align: center;
+    text-align: left;
   }
-  .auth-title { font-size: 32px; }
+  .auth-title { font-size: 28px; }
 }
