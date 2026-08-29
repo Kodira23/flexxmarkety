@@ -1,197 +1,152 @@
-import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import ProtectedRoute from './components/ProtectedRoute'
-import AdminRoute from './components/AdminRoute'
-import ChatWidget from './components/ChatWidget'
-import DashNav from './components/DashNav'
-import Home from './pages/Home'
-import Dashboard, { useBalance } from './pages/Dashboard'
-import Admin from './pages/Admin'
-import AuthCallback from './pages/AuthCallback'
-import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage'
-import './components/DashNav.css'
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useBalance } from '../pages/Dashboard'; // 👈 import the hook
+import './DashNav.css';
 
-// Renders Home for signed-out visitors, but bounces already-signed-in users
-// straight to /dashboard. This makes the "/" route safe to land on after
-// email confirmation regardless of what redirect_to Supabase actually used —
-// as soon as AuthContext picks up the session, this will send them onward.
-function HomeOrDashboard() {
-  const { user, loading } = useAuth()
-  if (loading) return null // could swap for a spinner if desired
-  if (user) return <Navigate to="/dashboard" replace />
-  return <Home />
+// ── Icons (same as before) ──
+const GridIcon = () => (/* ... */);
+const BarChartIcon = () => (/* ... */);
+const ZapIcon = () => (/* ... */);
+const CpuIcon = () => (/* ... */);
+const UserIcon = () => (/* ... */);
+const LogoutIcon = () => (/* ... */);
+const WalletIcon = () => (/* ... */);
+
+const NAV_ITEMS = [
+  { id: 'home',    label: 'Dashboard', icon: <GridIcon /> },
+  { id: 'markets', label: 'Markets',   icon: <BarChartIcon /> },
+  { id: 'spot',    label: 'Spot',      icon: <ZapIcon /> },
+  { id: 'bots',    label: 'Bots',      icon: <CpuIcon /> },
+];
+
+function fmtBalance(n) {
+  return `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 }
 
-// Layout that receives activePage, onNavigate, and the shared balance
-function DashLayout({ children, activePage, onNavigate, balance }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <DashNav activePage={activePage} onNavigate={onNavigate} balance={balance} />
-      <main style={{ flex: 1 }}>
-        {children}
-      </main>
+export default function DashNav({ activePage, onNavigate }) {
+  const { user, signOut } = useAuth();
+  const { balance } = useBalance(); // 👈 fetch balance here
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
-      {/* ── FOOTER (matches Home.jsx / Navbar style) ── */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-logo">
-            <div
-              className="footer-logo-bg"
-              style={{ backgroundImage: "url('/FM logo.jpeg')" }}
-              role="img"
-              aria-label="Flexxmarket"
-            />
-            <div className="footer-brand-wrapper">
-              <span className="footer-brand-text">Flexxmarket</span>
-              <span className="footer-brand-sub">Trading pro</span>
-            </div>
-          </div>
-          <div className="footer-copy">© 2026 Flexxmarket. All rights reserved. Trading involves risk.</div>
-        </div>
-      </footer>
+  const email = user?.email || 'trader@flexx.com';
+  const username = email.split('@')[0];
 
-      {/* ── OLD DASHBOARD FOOTER (disabled, kept for reference — flip to true to restore) ── */}
-      {false && (
-        <>
-          <footer className="dashnav-desktop-footer">
-            <div className="desktop-footer-inner">
-              <div className="desktop-footer-logo">
-                <span className="logo-icon-nav">◈</span>
-                <div className="logo-text-stack">
-                  <span className="logo-top">Flexx</span>
-                  <span className="logo-bottom">MARKET</span>
-                </div>
-              </div>
-              <div className="desktop-footer-copy">
-                © 2026 Flexxmarket. All rights reserved. Trading involves risk.
-              </div>
-            </div>
-          </footer>
-
-          <footer className="mobile-footer">
-            <div className="mobile-footer-inner">
-              <span className="mobile-footer-logo">◈ Flexxmarket</span>
-              <span className="mobile-footer-copy">© 2026 · Pro Trading</span>
-            </div>
-          </footer>
-        </>
-      )}
-    </div>
-  )
-}
-
-// Wrapper component that manages navigation state
-function ProtectedPages() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { balance } = useBalance(); // shared balance for header + dashboard
-
-  const getActivePage = () => {
-    const path = location.pathname;
-    if (path === '/dashboard') return 'home';
-    if (path === '/markets') return 'markets';
-    if (path === '/spot') return 'spot';
-    if (path === '/futures') return 'futures';
-    if (path === '/bots') return 'bots';
-    return 'home';
+  const handleNav = (id) => {
+    if (onNavigate) onNavigate(id);
+    setMenuOpen(false);
   };
 
-  const handleNavigate = (pageId) => {
-    switch (pageId) {
-      case 'home':
-        navigate('/dashboard');
-        break;
-      case 'markets':
-        navigate('/markets');
-        break;
-      case 'spot':
-        navigate('/spot');
-        break;
-      case 'futures':
-        navigate('/futures');
-        break;
-      case 'bots':
-        navigate('/bots');
-        break;
-      default:
-        navigate('/dashboard');
+  const handleSignOut = () => {
+    setMenuOpen(false);
+    signOut?.();
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
     }
-  };
-
-  const renderPage = () => {
-    const path = location.pathname;
-    switch (path) {
-      case '/dashboard':
-        return <Dashboard />;
-      case '/markets':
-        return <MarketsPage />;
-      case '/spot':
-        return <SpotPage />;
-      case '/futures':
-        return <FuturesPage />;
-      case '/bots':
-        return <BotsPage />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
-  return (
-    <DashLayout activePage={getActivePage()} onNavigate={handleNavigate} balance={balance ?? 0}>
-      {renderPage()}
-    </DashLayout>
-  );
-}
-
-function AppRoutes() {
-  const location = useLocation();
-  const isAdmin = location.pathname === '/admin';
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
 
   return (
     <>
-      <Routes>
-        <Route path="/" element={<HomeOrDashboard />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <ProtectedPages />
-          </ProtectedRoute>
-        } />
-        <Route path="/markets" element={
-          <ProtectedRoute>
-            <ProtectedPages />
-          </ProtectedRoute>
-        } />
-        <Route path="/spot" element={
-          <ProtectedRoute>
-            <ProtectedPages />
-          </ProtectedRoute>
-        } />
-        <Route path="/futures" element={
-          <ProtectedRoute>
-            <ProtectedPages />
-          </ProtectedRoute>
-        } />
-        <Route path="/bots" element={
-          <ProtectedRoute>
-            <ProtectedPages />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin" element={
-          <AdminRoute><Admin /></AdminRoute>
-        } />
-      </Routes>
-      {!isAdmin && <ChatWidget />}
-    </>
-  );
-}
+      {/* ─── Desktop Header ─── */}
+      <header className="dashnav-header">
+        <button className="dashnav-logo" onClick={() => handleNav('home')}>
+          <div className="dashnav-logo-bg" style={{ backgroundImage: "url('/FM logo.jpeg')" }} />
+          <div className="logo-text-stack">
+            <span className="logo-top">FlexxMarket</span>
+            <span className="logo-bottom">pro trading</span>
+          </div>
+        </button>
 
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+        <nav className="dashnav-links">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              className={`dashnav-link ${activePage === item.id ? 'active' : ''}`}
+              onClick={() => handleNav(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="dashnav-right">
+          <div className="dashnav-wallet">
+            <WalletIcon />
+            <span className="wallet-balance">{fmtBalance(balance)}</span>
+          </div>
+          <div className="user-avatar"><UserIcon /></div>
+          <button className="icon-logout-btn" onClick={handleSignOut}><LogoutIcon /></button>
+        </div>
+      </header>
+
+      {/* ─── Mobile Header ─── */}
+      <header className="mobile-header">
+        <button className="mobile-logo" onClick={() => handleNav('home')}>
+          <div className="mobile-logo-bg" style={{ backgroundImage: "url('/FM logo.jpeg')" }} />
+          <div className="mobile-logo-text-stack">
+            <span className="mobile-logo-top">FlexxMarket</span>
+            <span className="mobile-logo-bottom">pro trading</span>
+          </div>
+        </button>
+
+        <div className="mobile-header-right">
+          <div className="mobile-wallet">
+            <WalletIcon />
+            <span className="wallet-balance">{fmtBalance(balance)}</span>
+          </div>
+
+          <div className="mobile-menu-wrap" ref={menuRef}>
+            <button
+              className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
+              onClick={() => setMenuOpen(v => !v)}
+            >
+              <span className="ham-line" /><span className="ham-line" /><span className="ham-line" />
+            </button>
+
+            {menuOpen && (
+              <>
+                <div className="mobile-dropdown-backdrop" onClick={() => setMenuOpen(false)} />
+                <div className="mobile-dropdown">
+                  <div className="mobile-dropdown-profile">
+                    <div className="mobile-dropdown-avatar"><UserIcon /></div>
+                    <div className="mobile-dropdown-userinfo">
+                      <span className="mobile-dropdown-username">{username}</span>
+                      <span className="mobile-dropdown-email">{email}</span>
+                    </div>
+                  </div>
+                  <div className="mobile-dropdown-divider" />
+                  <div className="mobile-dropdown-links">
+                    {NAV_ITEMS.map(item => (
+                      <button
+                        key={item.id}
+                        className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
+                        onClick={() => handleNav(item.id)}
+                      >
+                        <span className="mobile-dropdown-icon">{item.icon}</span>
+                        <span className="mobile-dropdown-label">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mobile-dropdown-divider" />
+                  <button className="mobile-dropdown-logout" onClick={handleSignOut}>
+                    <LogoutIcon /> Sign Out
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+    </>
   );
 }
