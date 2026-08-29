@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './DashNav.css';
 
-// ── SVG Icons (unchanged) ──
+// ── SVG Icons ──
 const GridIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" />
@@ -93,7 +93,6 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
     signOut?.();
   };
 
-  // Close dropdown when clicking outside (on the backdrop)
   useEffect(() => {
     if (!menuOpen) return;
     function handleClickOutside(e) {
@@ -183,12 +182,8 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
 
             {menuOpen && (
               <>
-                {/* Backdrop (blurs background) */}
                 <div className="mobile-dropdown-backdrop" onClick={() => setMenuOpen(false)} />
-
-                {/* Dropdown panel (full‑screen) */}
                 <div className="mobile-dropdown">
-                  {/* Profile header */}
                   <div className="mobile-dropdown-profile">
                     <div className="mobile-dropdown-avatar">
                       <UserIcon />
@@ -201,7 +196,6 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
 
                   <div className="mobile-dropdown-divider" />
 
-                  {/* Navigation links */}
                   <div className="mobile-dropdown-links">
                     {NAV_ITEMS.map(item => (
                       <button
@@ -217,7 +211,6 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
 
                   <div className="mobile-dropdown-divider" />
 
-                  {/* Logout */}
                   <button className="mobile-dropdown-logout" onClick={handleSignOut}>
                     <LogoutIcon />
                     <span>Sign Out</span>
