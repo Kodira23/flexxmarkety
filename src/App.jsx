@@ -5,7 +5,7 @@ import AdminRoute from './components/AdminRoute'
 import ChatWidget from './components/ChatWidget'
 import DashNav from './components/DashNav'
 import Home from './pages/Home'
-import Dashboard from './pages/Dashboard'
+import Dashboard, { useBalance } from './pages/Dashboard'
 import Admin from './pages/Admin'
 import AuthCallback from './pages/AuthCallback'
 import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage'
@@ -22,11 +22,11 @@ function HomeOrDashboard() {
   return <Home />
 }
 
-// Layout that receives activePage and onNavigate
-function DashLayout({ children, activePage, onNavigate }) {
+// Layout that receives activePage, onNavigate, and the shared balance
+function DashLayout({ children, activePage, onNavigate, balance }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <DashNav activePage={activePage} onNavigate={onNavigate} />
+      <DashNav activePage={activePage} onNavigate={onNavigate} balance={balance} />
       <main style={{ flex: 1 }}>
         {children}
       </main>
@@ -84,6 +84,7 @@ function DashLayout({ children, activePage, onNavigate }) {
 function ProtectedPages() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { balance } = useBalance(); // shared balance for header + dashboard
 
   const getActivePage = () => {
     const path = location.pathname;
@@ -136,7 +137,7 @@ function ProtectedPages() {
   };
 
   return (
-    <DashLayout activePage={getActivePage()} onNavigate={handleNavigate}>
+    <DashLayout activePage={getActivePage()} onNavigate={handleNavigate} balance={balance ?? 0}>
       {renderPage()}
     </DashLayout>
   );
