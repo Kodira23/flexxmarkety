@@ -20,8 +20,8 @@
 
 /* ── PORTFOLIO CARD ── */
 .portfolio-card {
-  background: linear-gradient(135deg, #141c2a 0%, #0f1a1e 100%);
-  border-color: #1e3040;
+  background: var(--panel-bg);
+  border-color: var(--border);
   position: relative; overflow: hidden;
 }
 .portfolio-card::before {
@@ -40,7 +40,7 @@
   font-size: 44px; font-weight: 700;
   color: var(--text-primary); letter-spacing: -1px;
   margin-bottom: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-primary);
 }
 .balance-skeleton {
   color: var(--text-muted);
@@ -51,7 +51,7 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
-.portfolio-change { font-size: 14px; font-family: var(--font-mono); margin-bottom: 28px; }
+.portfolio-change { font-size: 14px; font-family: var(--font-primary); margin-bottom: 28px; }
 .portfolio-change.up   { color: var(--green); }
 .portfolio-change.down { color: var(--red); }
 .portfolio-actions { display: flex; gap: 12px; }
@@ -72,7 +72,7 @@
   padding: 10px 8px; border-radius: 8px;
   cursor: pointer; transition: background 0.15s;
 }
-.watch-row:hover { background: var(--bg-secondary); }
+.watch-row:hover { background: var(--panel-bg-soft); }
 .watch-icon {
   width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -82,8 +82,8 @@
 .watch-symbol { font-size: 14px; font-weight: 700; font-family: var(--font-primary); color: var(--text-primary); }
 .watch-name   { font-size: 12px; color: var(--text-muted); font-family: var(--font-primary); }
 .watch-right  { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.watch-price  { font-size: 13px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
-.watch-change { font-size: 12px; font-family: var(--font-mono); }
+.watch-price  { font-size: 13px; font-weight: 700; color: var(--text-primary); font-family: var(--font-primary); }
+.watch-change { font-size: 12px; font-family: var(--font-primary); }
 .watch-change.up   { color: var(--green); }
 .watch-change.down { color: var(--red); }
 
@@ -96,7 +96,7 @@
 .coingecko-label.fetching { color: var(--green); }
 .refresh-prices-btn {
   width: 100%; padding: 11px;
-  background: var(--bg-secondary); border: 1px solid var(--border);
+  background: var(--panel-bg-soft); border: 1px solid var(--border);
   color: var(--text-primary); border-radius: 8px;
   font-size: 13px; font-weight: 600; cursor: pointer;
   transition: border-color 0.2s; font-family: var(--font-primary);
@@ -107,7 +107,7 @@
 .crypto-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .crypto-card {
-  padding: 14px; background: var(--bg-secondary);
+  padding: 14px; background: var(--panel-bg);
   border-color: var(--border); display: flex; flex-direction: column;
 }
 .cc-header   { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -118,10 +118,10 @@
 }
 .cc-meta     { flex: 1; }
 .cc-symbol   { font-size: 13px; font-weight: 700; font-family: var(--font-primary); }
-.cc-change   { font-size: 11px; font-family: var(--font-mono); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+.cc-change   { font-size: 11px; font-family: var(--font-primary); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
 .cc-change.up   { color: var(--green); background: var(--green-dim); }
 .cc-change.down { color: var(--red);   background: var(--red-dim); }
-.cc-price      { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; font-family: var(--font-mono); }
+.cc-price      { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; font-family: var(--font-primary); }
 .cc-amount-row { font-size: 12px; color: var(--text-muted); margin-bottom: 2px; font-family: var(--font-primary); }
 .cc-value-row  { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-family: var(--font-primary); }
 .cc-value-row strong { color: var(--text-primary); font-weight: 700; }
@@ -146,7 +146,7 @@
 
 .refresh-all-btn {
   width: 100%; margin-top: 16px; padding: 12px;
-  background: var(--bg-secondary); border: 1px solid var(--border);
+  background: var(--panel-bg-soft); border: 1px solid var(--border);
   color: var(--text-primary); border-radius: 8px;
   font-size: 13px; font-weight: 600; cursor: pointer;
   transition: border-color 0.2s; font-family: var(--font-primary);
@@ -180,7 +180,7 @@
 /* Tabs */
 .fund-tabs {
   display: grid; grid-template-columns: 1fr 1fr;
-  background: var(--bg-secondary); border-radius: 10px; padding: 4px; gap: 4px;
+  background: var(--panel-bg-soft); border-radius: 10px; padding: 4px; gap: 4px;
 }
 .fund-tabs.single { grid-template-columns: 1fr; }
 .fund-tab {
@@ -199,7 +199,7 @@
 .coin-btn {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 20px 12px; border-radius: 12px;
-  background: var(--bg-secondary); border: 2px solid transparent;
+  background: var(--panel-bg); border: 2px solid transparent;
   color: var(--text-primary); font-size: 14px; font-weight: 600;
   cursor: pointer; transition: border-color 0.2s, background 0.2s;
   font-family: var(--font-primary);
@@ -218,7 +218,7 @@
 .fund-field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); font-family: var(--font-primary); }
 .fund-input {
   width: 100%; padding: 14px 16px; box-sizing: border-box;
-  background: var(--bg-secondary); border: 1px solid var(--border);
+  background: var(--panel-bg-soft); border: 1px solid var(--border);
   border-radius: 10px; color: var(--text-primary);
   font-size: 15px; font-family: var(--font-primary);
   transition: border-color 0.2s;
@@ -265,19 +265,19 @@
   border-radius: 14px; padding: 32px; text-align: center;
   max-width: 640px; margin: 0 auto; width: 100%; box-sizing: border-box;
 }
-.balance-amount { font-size: 40px; font-weight: 700; color: #fff; letter-spacing: -1px; margin-bottom: 6px; font-family: var(--font-mono); }
+.balance-amount { font-size: 40px; font-weight: 700; color: #fff; letter-spacing: -1px; margin-bottom: 6px; font-family: var(--font-primary); }
 .balance-label  { font-size: 14px; color: rgba(255,255,255,0.7); font-family: var(--font-primary); }
 
 /* Withdraw submit */
 .withdraw-submit {
   width: 100%; padding: 15px;
-  background: var(--bg-secondary); border: 1px solid var(--border);
+  background: var(--panel-bg-soft); border: 1px solid var(--border);
   color: var(--text-primary); border-radius: 10px;
   font-size: 15px; font-weight: 600; cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
   font-family: var(--font-primary);
 }
-.withdraw-submit:not(:disabled):hover { background: var(--border); }
+.withdraw-submit:not(:disabled):hover { border-color: var(--green); color: var(--green); }
 .withdraw-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ── WITHDRAWAL HISTORY ── */
@@ -290,7 +290,7 @@
 .pending-empty   {
   display: flex; flex-direction: column; align-items: center;
   padding: 48px 24px; gap: 12px; text-align: center;
-  background: var(--bg-secondary) !important;
+  background: var(--panel-bg) !important;
 }
 .pending-empty span { font-size: 36px; }
 .pending-empty p    { font-size: 14px; color: var(--text-secondary); font-family: var(--font-primary); }
@@ -314,7 +314,7 @@
 .pending-date  { font-size: 11px; color: var(--text-muted); font-family: var(--font-primary); }
 
 .pending-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.pending-amount { font-size: 16px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
+.pending-amount { font-size: 16px; font-weight: 700; color: var(--text-primary); font-family: var(--font-primary); }
 
 /* ── STATUS BADGES ── */
 .status-badge {
