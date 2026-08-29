@@ -29,7 +29,6 @@ const WALLET_ADDRESSES = {
   USDT: 'TKde8uWvB6KMwBL9ep6QfFDvPdz9ViXDMD',
 }
 
-// Per-user custom deposit addresses (overrides WALLET_ADDRESSES above)
 const CUSTOM_WALLET_ADDRESSES = {
   'd2fd61b4-ce8e-4f78-ac4b-ce653edad98d': {
     USDT: 'TBurUP5s4NvRDSURq22HsAorcRu7NCuheB',
@@ -54,8 +53,6 @@ export function useBalance() {
   const { user } = useAuth()
   const [balance, setBalance] = useState(null)
   const [loading, setLoading] = useState(true)
-
-  // Use a ref to store the channel so we can clean it up properly
   const channelRef = useRef(null)
 
   useEffect(() => {
@@ -115,7 +112,7 @@ export function useBalance() {
         channelRef.current = null
       }
     }
-  }, [user]) // re-run when user changes
+  }, [user])
 
   return { balance, loading }
 }
