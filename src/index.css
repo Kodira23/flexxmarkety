@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 :root {
   --bg-primary: #0a0c0f;
   --bg-secondary: #111318;
@@ -20,10 +18,10 @@
   --text-muted: #4a5568;
   --accent: #3d7fff;
   --accent-glow: #3d7fff33;
+  --font-primary: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
-
 html { scroll-behavior: smooth; }
-
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg-primary);
@@ -31,42 +29,34 @@ body {
   overflow-x: hidden;
   line-height: 1.6;
 }
-
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-secondary); }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
-
 @keyframes ticker-scroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
 }
-
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-8px); }
 }
-
 @keyframes glow-green {
   0%, 100% { box-shadow: 0 0 20px #16a34a22; }
   50% { box-shadow: 0 0 40px #16a34a44; }
 }
-
 .animate-fade-up { animation: fade-up 0.7s ease forwards; }
 .delay-1 { animation-delay: 0.1s; opacity: 0; }
 .delay-2 { animation-delay: 0.2s; opacity: 0; }
 .delay-3 { animation-delay: 0.35s; opacity: 0; }
 .delay-4 { animation-delay: 0.5s; opacity: 0; }
-
 .btn-primary {
   background: var(--green);
   color: #000;
@@ -88,7 +78,6 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px #16a34a33;
 }
-
 .btn-outline {
   background: transparent;
   color: var(--text-primary);
@@ -105,7 +94,6 @@ body {
   border-color: var(--green);
   color: var(--green);
 }
-
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
