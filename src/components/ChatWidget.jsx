@@ -1,184 +1,217 @@
-import { useState, useEffect, useRef } from 'react'
-import { supabase } from '../supabase'
-import { useAuth } from '../context/AuthContext'
-import './ChatWidget.css'
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
+import './DashNav.css';
 
-export default function ChatWidget() {
-  const { user }                    = useAuth()
-  const [open, setOpen]             = useState(false)
-  const [menu, setMenu]             = useState(false)
-  const [input, setInput]           = useState('')
-  const [messages, setMessages]     = useState([])
-  const [unread, setUnread]         = useState(0)
-  const bottomRef                   = useRef(null)
-  const menuRef                     = useRef(null)
+// ── SVG Icon Components (white outline sketches) ──
+const GridIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
+  </svg>
+);
 
-  const chatId = user?.id || null
+const BarChartIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 20V10" />
+    <path d="M18 20V4" />
+    <path d="M6 20v-4" />
+  </svg>
+);
 
-  // Fetch initial messages + subscribe to realtime
+const ZapIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+  </svg>
+);
+
+const CpuIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+    <rect x="9" y="9" width="6" height="6" />
+    <path d="M9 1v3" />
+    <path d="M15 1v3" />
+    <path d="M9 20v3" />
+    <path d="M15 20v3" />
+    <path d="M1 9h3" />
+    <path d="M1 15h3" />
+    <path d="M20 9h3" />
+    <path d="M20 15h3" />
+  </svg>
+);
+
+const UserIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const WalletIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
+  </svg>
+);
+
+const NAV_ITEMS = [
+  { id: 'home',    label: 'Dashboard', icon: <GridIcon /> },
+  { id: 'markets', label: 'Markets',   icon: <BarChartIcon /> },
+  { id: 'spot',    label: 'Spot',      icon: <ZapIcon /> },
+  { id: 'bots',    label: 'Bots',      icon: <CpuIcon /> },
+];
+
+function fmtBalance(n) {
+  return `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+}
+
+export default function DashNav({ activePage, onNavigate, balance = 0 }) {
+  const { user, signOut } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  const email = user?.email || 'trader@flexx.com';
+  const username = email.split('@')[0];
+
+  const handleNav = (id) => {
+    if (onNavigate) onNavigate(id);
+    setMenuOpen(false);
+  };
+
+  const handleSignOut = () => {
+    setMenuOpen(false);
+    signOut?.();
+  };
+
   useEffect(() => {
-    if (!chatId) return
-
-    supabase
-      .from('messages')
-      .select('*')
-      .eq('chat_id', chatId)
-      .order('created_at', { ascending: true })
-      .then(({ data }) => {
-        if (data) {
-          setMessages(data)
-          if (!open) setUnread(data.filter(m => m.role === 'agent' && !m.seen_by_user).length)
-        }
-      })
-
-    const channel = supabase
-      .channel(`messages:${chatId}`)
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
-        filter: `chat_id=eq.${chatId}`,
-      }, payload => {
-        setMessages(prev => [...prev, payload.new])
-        if (!open && payload.new.role === 'agent') setUnread(u => u + 1)
-      })
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
-  }, [chatId])
-
-  useEffect(() => {
-    if (open && chatId) {
-      setUnread(0)
-      supabase.from('messages')
-        .update({ seen_by_user: true })
-        .eq('chat_id', chatId).eq('role', 'agent').eq('seen_by_user', false)
-        .then(() => {})
+    if (!menuOpen) return;
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
     }
-  }, [open, chatId])
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, open])
-
-  useEffect(() => {
-    const handler = e => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenu(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  async function sendMessage() {
-    const text = input.trim()
-    if (!text || !chatId) return
-    setInput('')
-
-    // Create/update the chat thread. user_id must be set to satisfy RLS
-    // (policy requires auth.uid() = user_id on insert/update).
-    const { error: chatErr } = await supabase.from('chats').upsert({
-      id:           chatId,
-      user_id:      chatId,
-      user_name:    user?.user_metadata?.full_name || user?.email || 'Guest',
-      user_email:   user?.email || '',
-      last_message: text,
-      updated_at:   new Date().toISOString(),
-    })
-    if (chatErr) {
-      console.error('Chat upsert failed:', chatErr.message)
-      return
-    }
-
-    // Insert the message. Only seen_by_user exists in the schema
-    // (there is no seen_by_agent column).
-    const { error: msgErr } = await supabase.from('messages').insert({
-      chat_id: chatId, text, role: 'user', seen_by_user: true,
-    })
-    if (msgErr) {
-      console.error('Message insert failed:', msgErr.message)
-    }
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
-  }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
 
   return (
-    <div className="cw-root">
-      {open && (
-        <div className="cw-window">
-          <div className="cw-header">
-            <button className="cw-back" onClick={() => setOpen(false)}>‹</button>
-            <span className="cw-header-title">Customer Support</span>
-            <div className="cw-menu-wrap" ref={menuRef}>
-              <button className="cw-menu-btn" onClick={() => setMenu(m => !m)}>☰</button>
-              {menu && (
-                <div className="cw-menu">
-                  <div className="cw-menu-item">✎ Change Name</div>
-                  <div className="cw-menu-item">✉ Email transcript</div>
-                  <div className="cw-menu-item">🔊 Sound On</div>
-                  <div className="cw-menu-item">⬡ Pop out widget</div>
-                  <div className="cw-menu-item">＋ Add Chat to your website</div>
-                </div>
-              )}
-            </div>
+    <>
+      {/* ─── DESKTOP HEADER ─── */}
+      <header className="dashnav-header">
+        <button className="dashnav-logo" onClick={() => handleNav('home')}>
+          <div
+            className="dashnav-logo-bg"
+            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+            role="img"
+            aria-label="FlexxMarket"
+          />
+          <div className="logo-text-stack">
+            <span className="logo-top">FlexxMarket</span>
+            <span className="logo-bottom">pro trading</span>
+          </div>
+        </button>
+
+        <nav className="dashnav-links">
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.id}
+              className={`dashnav-link ${activePage === item.id ? 'active' : ''}`}
+              onClick={() => handleNav(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="dashnav-right">
+          <div className="dashnav-wallet">
+            <WalletIcon />
+            <span className="wallet-balance">{fmtBalance(balance)}</span>
+          </div>
+          <div className="user-avatar">
+            <UserIcon />
+          </div>
+          <button className="icon-logout-btn" onClick={handleSignOut} aria-label="Sign out">
+            <LogoutIcon />
+          </button>
+        </div>
+      </header>
+
+      {/* ─── MOBILE HEADER ─── */}
+      <header className="mobile-header">
+        <button className="mobile-logo" onClick={() => handleNav('home')}>
+          <div
+            className="mobile-logo-bg"
+            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+            role="img"
+            aria-label="FlexxMarket"
+          />
+          <div className="mobile-logo-text-stack">
+            <span className="mobile-logo-top">FlexxMarket</span>
+            <span className="mobile-logo-bottom">pro trading</span>
+          </div>
+        </button>
+
+        <div className="mobile-header-right">
+          <div className="mobile-wallet">
+            <WalletIcon />
+            <span className="wallet-balance">{fmtBalance(balance)}</span>
           </div>
 
-          <div className="cw-body">
-            <div className="cw-msg agent">
-              <div className="cw-avatar">
-                <svg viewBox="0 0 24 24" fill="#888" width="22" height="22">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                </svg>
-              </div>
-              <div className="cw-bubble agent">👋 Hi! How can we help?</div>
-            </div>
+          <div className="mobile-menu-wrap" ref={menuRef}>
+            <button
+              className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
+              onClick={() => setMenuOpen(v => !v)}
+              aria-label="Open menu"
+            >
+              <span className="ham-line" />
+              <span className="ham-line" />
+              <span className="ham-line" />
+            </button>
 
-            {messages.map(m => (
-              <div key={m.id} className={`cw-msg ${m.role}`}>
-                {m.role === 'agent' && (
-                  <div className="cw-avatar">
-                    <svg viewBox="0 0 24 24" fill="#888" width="22" height="22">
-                      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                    </svg>
+            {menuOpen && (
+              <div className="mobile-dropdown">
+                {NAV_ITEMS.map(item => (
+                  <button
+                    key={item.id}
+                    className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
+                    onClick={() => handleNav(item.id)}
+                  >
+                    <span className="mobile-dropdown-icon">{item.icon}</span>
+                    {item.label}
+                  </button>
+                ))}
+                <div className="mobile-dropdown-divider" />
+                <div className="mobile-dropdown-user">
+                  <div className="mobile-dropdown-avatar">
+                    <UserIcon />
                   </div>
-                )}
-                <div className={`cw-bubble ${m.role}`}>{m.text}</div>
-              </div>
-            ))}
-
-            {messages.length === 0 && (
-              <div className="cw-quick-replies">
-                <button className="cw-quick-btn" onClick={() => setInput('I have a question')}>I have a question</button>
-                <button className="cw-quick-btn" onClick={() => setInput('Tell me more')}>Tell me more</button>
+                  <span className="mobile-dropdown-email">{username}</span>
+                </div>
+                <button className="mobile-dropdown-logout" onClick={handleSignOut}>
+                  <span className="mobile-dropdown-icon"><LogoutIcon /></span>
+                  Sign out
+                </button>
               </div>
             )}
-            <div ref={bottomRef} />
-          </div>
-
-          <div className="cw-footer">
-            <input
-              className="cw-input"
-              placeholder="Type here and press enter..."
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKey}
-            />
-            <div className="cw-footer-icons">
-              <button className="cw-icon-btn">☺</button>
-              <button className="cw-icon-btn">📎</button>
-              <button className="cw-icon-btn send" onClick={sendMessage}>➤</button>
-            </div>
           </div>
         </div>
-      )}
+      </header>
 
-      <button className="cw-bubble-btn" onClick={() => setOpen(o => !o)}>
-        {open
-          ? <svg viewBox="0 0 24 24" fill="white" width="26" height="26"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-          : <svg viewBox="0 0 24 24" fill="white" width="26" height="26"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-        }
-        {!open && unread > 0 && <span className="cw-badge">{unread}</span>}
-        {!open && <span className="cw-label">We Are Here!</span>}
-      </button>
-    </div>
-  )
+      {menuOpen && (
+        <div className="mobile-dropdown-backdrop open" onClick={() => setMenuOpen(false)} />
+      )}
+    </>
+  );
 }
