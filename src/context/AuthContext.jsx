@@ -8,14 +8,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
+    // onAuthStateChange fires immediately on subscription with whatever
+    // session currently exists — including one supabase-js just parsed out
+    // of the URL (e.g. right after an email confirmation redirect). Using
+    // this single listener as the only source of truth, instead of also
+    // calling getSession() separately, avoids a race where getSession()
+    // could resolve with `user: null` a moment before the URL-derived
+    // session was actually set. That race was flipping `loading` to false
+    // too early and causing ProtectedRoute to redirect confirmed users
+    // back to "/" before their session ever registered.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', _event, session)  // ← temporary log
       setUser(session?.user ?? null)
+      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
