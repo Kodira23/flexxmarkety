@@ -47,6 +47,14 @@ export default function AuthModal({ mode: initialMode, onClose }) {
       if (mode === 'signin') {
         const { error } = await signIn(email, password)
         if (error) throw error
+
+        // Persist or clear the remembered email based on the checkbox
+        if (rememberMe) {
+          localStorage.setItem('flexx_remembered_email', email)
+        } else {
+          localStorage.removeItem('flexx_remembered_email')
+        }
+
         onClose()
         navigate('/dashboard')
       } else {
@@ -89,9 +97,69 @@ export default function AuthModal({ mode: initialMode, onClose }) {
       <div className="auth-page">
         <button className="auth-close" onClick={onClose} aria-label="Close">✕</button>
 
-        <div className="auth-image-panel">
-          <img src="/logoz.jpeg" alt="FlexMarket" className="auth-image" />
-          <div className="auth-image-overlay" />
+        <div className="auth-visual-panel">
+          <div className="auth-visual-inner">
+            <div className="auth-brand">
+              <img src="/logoz.jpeg" alt="Flexx Market" className="auth-brand-logo" />
+              <span className="auth-brand-name">FLEXX MARKET</span>
+            </div>
+
+            <h2 className="auth-visual-heading">
+              Beyond<br />
+              <span className="auth-visual-heading-accent">Every Market</span>
+            </h2>
+
+            <p className="auth-visual-copy">
+              Access real-time crypto data, advanced charts, and automated trading
+              tools — all in one powerful platform.
+            </p>
+
+            <div className="auth-visual-stats">
+              <div className="auth-stat">
+                <span className="auth-stat-value">50+</span>
+                <span className="auth-stat-label">Markets</span>
+              </div>
+              <div className="auth-stat">
+                <span className="auth-stat-value">1.95x</span>
+                <span className="auth-stat-label">Multiplier</span>
+              </div>
+              <div className="auth-stat">
+                <span className="auth-stat-value">24/7</span>
+                <span className="auth-stat-label">Trading</span>
+              </div>
+            </div>
+
+            <ul className="auth-visual-features">
+              <li>
+                <span className="auth-feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                </span>
+                Lightning-fast execution
+              </li>
+              <li>
+                <span className="auth-feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                </span>
+                Bank-grade security
+              </li>
+              <li>
+                <span className="auth-feature-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="10" rx="2" />
+                    <circle cx="12" cy="5" r="2" />
+                    <path d="M12 7v4" />
+                    <circle cx="8" cy="16" r="1" />
+                    <circle cx="16" cy="16" r="1" />
+                  </svg>
+                </span>
+                Auto trading bot included
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="auth-form-panel">
@@ -128,14 +196,35 @@ export default function AuthModal({ mode: initialMode, onClose }) {
 
               <div className="form-group">
                 <label>Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
+                <div className="password-wrapper">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {mode === 'signin' && (
