@@ -77,7 +77,7 @@ function fmtBalance(n) {
 
 export default function DashNav({ activePage, onNavigate, balance = 0 }) {
   const { user, signOut } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   const email = user?.email || 'trader@flexx.com';
@@ -85,45 +85,25 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
 
   const handleNav = (id) => {
     if (onNavigate) onNavigate(id);
-    setMobileMenuOpen(false);
+    setMenuOpen(false);
   };
 
   const handleSignOut = () => {
-    setMobileMenuOpen(false);
+    setMenuOpen(false);
     signOut?.();
   };
 
   // Close mobile dropdown when tapping outside it
   useEffect(() => {
-    if (!mobileMenuOpen) return;
+    if (!menuOpen) return;
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMobileMenuOpen(false);
+        setMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [mobileMenuOpen]);
-
-  // Show/hide mobile footer based on scroll direction
-  const [footerVisible, setFooterVisible] = useState(true);
-  const lastScrollY = useRef(0);
-
-  useEffect(() => {
-    function handleScroll() {
-      const currentY = window.scrollY;
-      if (currentY <= 0) {
-        setFooterVisible(true);
-      } else if (currentY > lastScrollY.current) {
-        setFooterVisible(false); // scrolling down
-      } else {
-        setFooterVisible(true); // scrolling up
-      }
-      lastScrollY.current = currentY;
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [menuOpen]);
 
   return (
     <>
@@ -190,20 +170,38 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
             <span className="wallet-balance">{fmtBalance(balance)}</span>
           </div>
 
-          <div className="mobile-user-menu-wrap" ref={menuRef}>
+          <div className="mobile-menu-wrap" ref={menuRef}>
             <button
-              className="mobile-avatar-small"
-              onClick={() => setMobileMenuOpen(v => !v)}
-              aria-label="Account menu"
+              className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
+              onClick={() => setMenuOpen(v => !v)}
+              aria-label="Open menu"
             >
-              <UserIcon />
+              <span className="ham-line" />
+              <span className="ham-line" />
+              <span className="ham-line" />
             </button>
 
-            {mobileMenuOpen && (
-              <div className="user-dropdown">
-                <div className="user-dropdown-name">{username}</div>
-                <button className="user-dropdown-signout" onClick={handleSignOut}>
-                  <LogoutIcon />
+            {menuOpen && (
+              <div className="mobile-dropdown">
+                {NAV_ITEMS.map(item => (
+                  <button
+                    key={item.id}
+                    className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
+                    onClick={() => handleNav(item.id)}
+                  >
+                    <span className="mobile-dropdown-icon">{item.icon}</span>
+                    {item.label}
+                  </button>
+                ))}
+                <div className="mobile-dropdown-divider" />
+                <div className="mobile-dropdown-user">
+                  <div className="mobile-dropdown-avatar">
+                    <UserIcon />
+                  </div>
+                  <span className="mobile-dropdown-email">{username}</span>
+                </div>
+                <button className="mobile-dropdown-logout" onClick={handleSignOut}>
+                  <span className="mobile-dropdown-icon"><LogoutIcon /></span>
                   Sign out
                 </button>
               </div>
@@ -212,19 +210,9 @@ export default function DashNav({ activePage, onNavigate, balance = 0 }) {
         </div>
       </header>
 
-      {/* ─── MOBILE BOTTOM NAV FOOTER ─── */}
-      <nav className={`mobile-nav-footer ${footerVisible ? '' : 'hidden'}`}>
-        {NAV_ITEMS.map(item => (
-          <button
-            key={item.id}
-            className={`mobile-nav-footer-item ${activePage === item.id ? 'active' : ''}`}
-            onClick={() => handleNav(item.id)}
-          >
-            <span className="mobile-nav-footer-icon">{item.icon}</span>
-            <span className="mobile-nav-footer-label">{item.label}</span>
-          </button>
-        ))}
-      </nav>
+      {menuOpen && (
+        <div className="mobile-dropdown-backdrop open" onClick={() => setMenuOpen(false)} />
+      )}
     </>
   );
 }
