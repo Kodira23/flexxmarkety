@@ -18,18 +18,12 @@ function HomeOrDashboard() {
   return <Home />;
 }
 
-// Layout – now includes a simple copyright footer only
+// Layout – only header, no footer
 function DashLayout({ children, activePage, onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <DashNav activePage={activePage} onNavigate={onNavigate} />
       <main style={{ flex: 1 }}>{children}</main>
-      {/* ✅ Only copyright – no duplicate header */}
-      <footer className="footer-copyright">
-        <div className="footer-copyright-inner">
-          © 2026 Flexxmarket. All rights reserved. Trading involves risk.
-        </div>
-      </footer>
     </div>
   );
 }
