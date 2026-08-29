@@ -78,7 +78,8 @@ export default function AuthModal({ mode: initialMode, onClose }) {
           navigate('/dashboard')
         } else {
           // Email confirmation is required — do not attempt to sign the user in.
-          // Show a "check your inbox" screen instead.
+          // Show a "check your inbox" screen instead. Clicking the link in that
+          // email lands on /auth/callback, which forwards to /dashboard.
           setPendingEmail(email)
           setMode('confirm')
         }
@@ -131,30 +132,41 @@ export default function AuthModal({ mode: initialMode, onClose }) {
 
           <div className="auth-form-panel">
             <div className="auth-form-inner">
-              <h1 className="auth-title">Check your e-mail</h1>
+              <div className="auth-confirm-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m2 7 10 6 10-6" />
+                </svg>
+              </div>
+
+              <h1 className="auth-title" style={{ whiteSpace: 'normal' }}>Check your e-mail</h1>
               <p className="auth-subtitle">
-                We sent a confirmation link to <strong>{pendingEmail}</strong>.
-                Click it to activate your account, then sign in below.
+                We sent a confirmation link to{' '}
+                <span className="auth-confirm-email">{pendingEmail}</span>.
+                Click it to activate your account — it'll take you straight to your dashboard.
               </p>
 
-              {resendMessage && <div className="modal-success">{resendMessage}</div>}
+              <div className="auth-confirm-actions">
+                {resendMessage && <div className="modal-success">{resendMessage}</div>}
 
-              <button
-                type="button"
-                className="auth-submit"
-                onClick={handleResend}
-                disabled={resendLoading}
-              >
-                {resendLoading ? 'Sending...' : 'Resend confirmation email'}
-              </button>
+                <button
+                  type="button"
+                  className="auth-resend-btn"
+                  onClick={handleResend}
+                  disabled={resendLoading}
+                >
+                  {resendLoading ? 'Sending...' : 'Resend confirmation email'}
+                </button>
+              </div>
 
               <p className="auth-switch">
+                Wrong e-mail?{' '}
                 <button
                   type="button"
                   className="auth-switch-btn"
-                  onClick={() => switchMode('signin')}
+                  onClick={() => switchMode('signup')}
                 >
-                  Back to sign in
+                  Start over
                 </button>
               </p>
             </div>
