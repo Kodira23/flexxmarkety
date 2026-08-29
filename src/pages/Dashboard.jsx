@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTicker, CRYPTO_DATA } from '../hooks/useTicker'
@@ -49,34 +49,73 @@ const generateSparkline = (base, n = 20) => {
   })
 }
 
+// ── FIXED useBalance HOOK ─────────────────────────────────────────────
 export function useBalance() {
   const { user } = useAuth()
   const [balance, setBalance] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!user) { setBalance(0); setLoading(false); return }
+  // Use a ref to store the channel so we can clean it up properly
+  const channelRef = useRef(null)
 
+  useEffect(() => {
+    if (!user) {
+      setBalance(0)
+      setLoading(false)
+      return
+    }
+
+    let isMounted = true
+
+    // 1. Fetch initial balance
     supabase
       .from('balances')
       .select('amount')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        setBalance(data?.amount ?? 0)
-        setLoading(false)
+        if (isMounted) {
+          setBalance(data?.amount ?? 0)
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        if (isMounted) setLoading(false)
       })
 
+    // 2. Create a unique channel name to avoid conflicts
+    const channelName = `balance-${user.id}-${Date.now()}`
+
+    // 3. Subscribe to realtime changes – attach listener BEFORE subscribe
     const channel = supabase
-      .channel(`balance-${user.id}`)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'balances', filter: `user_id=eq.${user.id}` },
-        payload => setBalance(payload.new?.amount ?? 0)
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'balances',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (isMounted) {
+            setBalance(payload.new?.amount ?? 0)
+          }
+        }
       )
       .subscribe()
 
-    return () => supabase.removeChannel(channel)
-  }, [user])
+    channelRef.current = channel
+
+    // 4. Cleanup: remove the channel and mark unmounted
+    return () => {
+      isMounted = false
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
+  }, [user]) // re-run when user changes
 
   return { balance, loading }
 }
@@ -255,7 +294,7 @@ function DepositPage({ onBack }) {
   )
 }
 
-// ── WITHDRAW PAGE ──────────────────────────────────────────────────────
+// ── WITHDRAW PAGE (fixed channel) ────────────────────────────────────
 const WITHDRAW_COINS = [
   { id: 'BTC',  label: 'Bitcoin',  icon: '₿', bg: '#f7931a' },
   { id: 'USDT', label: 'USDT',     icon: '₮', bg: '#26a17b' },
@@ -276,22 +315,48 @@ function WithdrawPage({ onBack, balance }) {
   const [submitted,  setSubmitted]  = useState(false)
   const [error,      setError]      = useState(null)
   const [pending,    setPending]    = useState([])
+  const channelRef = useRef(null)
 
   useEffect(() => {
     if (!user) return
+
+    let isMounted = true
+
+    // Initial fetch
     supabase.from('withdrawals').select('*')
       .eq('user_id', user.id).order('created_at', { ascending: false })
-      .then(({ data }) => setPending(data || []))
+      .then(({ data }) => {
+        if (isMounted) setPending(data || [])
+      })
 
-    const channel = supabase.channel(`withdrawals-${user.id}`)
+    // Create unique channel
+    const channelName = `withdrawals-${user.id}-${Date.now()}`
+    const channel = supabase
+      .channel(channelName)
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'withdrawals', filter: `user_id=eq.${user.id}`,
+        event: '*',
+        schema: 'public',
+        table: 'withdrawals',
+        filter: `user_id=eq.${user.id}`,
       }, () => {
+        // Refresh list on change
         supabase.from('withdrawals').select('*')
           .eq('user_id', user.id).order('created_at', { ascending: false })
-          .then(({ data }) => setPending(data || []))
-      }).subscribe()
-    return () => supabase.removeChannel(channel)
+          .then(({ data }) => {
+            if (isMounted) setPending(data || [])
+          })
+      })
+      .subscribe()
+
+    channelRef.current = channel
+
+    return () => {
+      isMounted = false
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
   }, [user])
 
   async function handleWithdraw() {
