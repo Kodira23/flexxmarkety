@@ -237,7 +237,7 @@ function DepositPage({ onBack }) {
         ) : !isGenerated ? (
           <div className="wallet-box">
             <h3>{coin === 'BTC' ? 'Bitcoin' : 'USDT (TRC20)'} Deposit Address</h3>
-            <p className="wallet-note">Generate a deposit address for {coin === 'BTC' ? 'Bitcoin' : 'USDT'} to continue. ly.</p>
+            <p className="wallet-note">Generate a deposit address for {coin === 'BTC' ? 'Bitcoin' : 'USDT'} to continue.</p>
             <button className="copy-btn" onClick={handleGenerate} disabled={generating}>
               {generating ? 'Generating…' : 'Generate Address'}
             </button>
