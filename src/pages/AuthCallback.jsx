@@ -9,6 +9,11 @@ import { supabase } from '../supabase'
 // reads the token/code out of the URL and establishes the session as soon as
 // this page loads — we just need to wait for that and then push the user
 // on to the dashboard.
+//
+// If the redirect URL isn't on the project's allow-list, or the link is
+// otherwise invalid/expired, Supabase returns its own error in the URL
+// (e.g. #error=access_denied&error_description=...) instead of a session.
+// We surface that directly rather than making the user wait out a timeout.
 export default function AuthCallback() {
   const navigate = useNavigate()
   const [error, setError] = useState('')
@@ -22,6 +27,24 @@ export default function AuthCallback() {
       if (session) {
         navigate('/dashboard', { replace: true })
       }
+    }
+
+    // Supabase puts auth errors in the URL hash (implicit flow) or search
+    // params (PKCE flow) — check both before anything else.
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    const searchParams = new URLSearchParams(window.location.search)
+    const errorDescription =
+      hashParams.get('error_description') || searchParams.get('error_description')
+    const errorCode = hashParams.get('error') || searchParams.get('error')
+
+    if (errorCode) {
+      settled = true
+      setError(
+        errorDescription
+          ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+          : 'This confirmation link is invalid or has expired.'
+      )
+      return
     }
 
     // Covers the case where the session is already parsed by the time
@@ -71,7 +94,7 @@ export default function AuthCallback() {
     >
       {error ? (
         <>
-          <p style={{ color: '#ef4444', fontWeight: 700, margin: 0 }}>{error}</p>
+          <p style={{ color: '#ef4444', fontWeight: 700, margin: 0, maxWidth: 420 }}>{error}</p>
           <button
             onClick={() => navigate('/')}
             style={{
