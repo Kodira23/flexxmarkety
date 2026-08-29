@@ -388,11 +388,8 @@ function WithdrawPage({ onBack, balance }) {
 }
 
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────
-export default function Dashboard({ balance: balanceProp, balanceLoading: balanceLoadingProp } = {}) {
+export default function Dashboard({ balance = 0, balanceLoading = false } = {}) {
   const pairs = useTicker()
-  const fallback = useBalance()
-  const balance = balanceProp !== undefined ? balanceProp : fallback.balance
-  const balanceLoading = balanceLoadingProp !== undefined ? balanceLoadingProp : fallback.loading
 
   const [page,          setPage]          = useState('home')
   const [priceSource,   setPriceSource]   = useState('Binance')
