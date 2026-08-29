@@ -64,7 +64,6 @@ export function useBalance() {
 
     let isMounted = true;
 
-    // 1. Fetch initial balance
     supabase
       .from('balances')
       .select('amount')
@@ -80,10 +79,7 @@ export function useBalance() {
         if (isMounted) setLoading(false);
       });
 
-    // 2. Create a unique channel name
     const channelName = `balance-${user.id}-${Date.now()}`;
-
-    // 3. Subscribe to realtime changes
     const channel = supabase
       .channel(channelName)
       .on(
@@ -104,7 +100,6 @@ export function useBalance() {
 
     channelRef.current = channel;
 
-    // 4. Cleanup
     return () => {
       isMounted = false;
       if (channelRef.current) {
@@ -446,9 +441,9 @@ function WithdrawPage({ onBack, balance }) {
   );
 }
 
-// ── MAIN DASHBOARD (FIXED: uses useBalance) ──────────────────────────
+// ── MAIN DASHBOARD ────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { balance, loading: balanceLoading } = useBalance(); // ✅ fetch balance here
+  const { balance, loading: balanceLoading } = useBalance();
   const pairs = useTicker();
 
   const [page, setPage] = useState('home');
@@ -543,6 +538,27 @@ export default function Dashboard() {
                 <button className="refresh-all-btn">Refresh All Prices</button>
               </div>
             </div>
+
+            {/* ─── FOOTER ─── */}
+            <footer className="dashboard-footer">
+              <div className="dashboard-footer-inner">
+                <div className="footer-logo">
+                  <div
+                    className="footer-logo-bg"
+                    style={{ backgroundImage: "url('/FM logo.jpeg')" }}
+                    role="img"
+                    aria-label="Flexxmarket"
+                  />
+                  <div className="footer-brand-wrapper">
+                    <span className="footer-brand-text">Flexxmarket</span>
+                    <span className="footer-brand-sub">Trading pro</span>
+                  </div>
+                </div>
+                <div className="footer-copy">
+                  © 2026 Flexxmarket. All rights reserved. Trading involves risk.
+                </div>
+              </div>
+            </footer>
           </>
         )}
       </div>
