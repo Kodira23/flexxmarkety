@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { useTicker, CRYPTO_DATA } from '../hooks/useTicker'
-import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
-import { supabase } from '../supabase'
-import './Dashboard.css'
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useTicker, CRYPTO_DATA } from '../hooks/useTicker';
+import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
+import { supabase } from '../supabase';
+import './Dashboard.css';
 
 const COIN_LOGOS = {
   BTC:  'https://assets.coingecko.com/coins/images/1/thumb/bitcoin.png',
@@ -22,12 +22,12 @@ const COIN_LOGOS = {
   LTC:  'https://assets.coingecko.com/coins/images/2/thumb/litecoin.png',
   UNI:  'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
   ATOM: 'https://assets.coingecko.com/coins/images/1481/thumb/cosmos_hub.png',
-}
+};
 
 const WALLET_ADDRESSES = {
   BTC:  '1CUiUjKiH6paR13YdHSzWQJ7XjEGRXeEeu',
   USDT: 'TKde8uWvB6KMwBL9ep6QfFDvPdz9ViXDMD',
-}
+};
 
 const CUSTOM_WALLET_ADDRESSES = {
   'd2fd61b4-ce8e-4f78-ac4b-ce653edad98d': {
@@ -38,31 +38,31 @@ const CUSTOM_WALLET_ADDRESSES = {
     USDT: 'TBurUP5s4NvRDSURq22HsAorcRu7NCuheB',
     BTC:  '14wGB2QXrbtxBiH5oH7PBNKPEVjpJuw8kF',
   },
-}
+};
 
 const generateSparkline = (base, n = 20) => {
-  let v = base
+  let v = base;
   return Array.from({ length: n }, () => {
-    v = v * (1 + (Math.random() - 0.49) * 0.02)
-    return { v: +v.toFixed(2) }
-  })
-}
+    v = v * (1 + (Math.random() - 0.49) * 0.02);
+    return { v: +v.toFixed(2) };
+  });
+};
 
 // ── FIXED useBalance HOOK ─────────────────────────────────────────────
 export function useBalance() {
-  const { user } = useAuth()
-  const [balance, setBalance] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const channelRef = useRef(null)
+  const { user } = useAuth();
+  const [balance, setBalance] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!user) {
-      setBalance(0)
-      setLoading(false)
-      return
+      setBalance(0);
+      setLoading(false);
+      return;
     }
 
-    let isMounted = true
+    let isMounted = true;
 
     // 1. Fetch initial balance
     supabase
@@ -72,18 +72,18 @@ export function useBalance() {
       .maybeSingle()
       .then(({ data }) => {
         if (isMounted) {
-          setBalance(data?.amount ?? 0)
-          setLoading(false)
+          setBalance(data?.amount ?? 0);
+          setLoading(false);
         }
       })
       .catch(() => {
-        if (isMounted) setLoading(false)
-      })
+        if (isMounted) setLoading(false);
+      });
 
-    // 2. Create a unique channel name to avoid conflicts
-    const channelName = `balance-${user.id}-${Date.now()}`
+    // 2. Create a unique channel name
+    const channelName = `balance-${user.id}-${Date.now()}`;
 
-    // 3. Subscribe to realtime changes – attach listener BEFORE subscribe
+    // 3. Subscribe to realtime changes
     const channel = supabase
       .channel(channelName)
       .on(
@@ -96,25 +96,25 @@ export function useBalance() {
         },
         (payload) => {
           if (isMounted) {
-            setBalance(payload.new?.amount ?? 0)
+            setBalance(payload.new?.amount ?? 0);
           }
         }
       )
-      .subscribe()
+      .subscribe();
 
-    channelRef.current = channel
+    channelRef.current = channel;
 
-    // 4. Cleanup: remove the channel and mark unmounted
+    // 4. Cleanup
     return () => {
-      isMounted = false
+      isMounted = false;
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
-        channelRef.current = null
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
-    }
-  }, [user])
+    };
+  }, [user]);
 
-  return { balance, loading }
+  return { balance, loading };
 }
 
 function SparkLine({ data, color }) {
@@ -129,15 +129,15 @@ function SparkLine({ data, color }) {
         />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }
 
 function CryptoCard({ coin }) {
-  const spark = generateSparkline(coin.price)
-  const color = coin.change >= 0 ? '#16a34a' : '#ff4d6a'
-  const value = (coin.price * coin.amount).toFixed(2)
-  const now   = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  const logo  = COIN_LOGOS[coin.symbol]
+  const spark = generateSparkline(coin.price);
+  const color = coin.change >= 0 ? '#16a34a' : '#ff4d6a';
+  const value = (coin.price * coin.amount).toFixed(2);
+  const now   = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const logo  = COIN_LOGOS[coin.symbol];
 
   return (
     <div className="crypto-card card">
@@ -169,24 +169,24 @@ function CryptoCard({ coin }) {
         <span className="cc-updated">Last updated: {now}</span>
       </div>
     </div>
-  )
+  );
 }
 
 // ── DEPOSIT PAGE ───────────────────────────────────────────────────────
 function DepositPage({ onBack }) {
-  const { user } = useAuth()
-  const [coin, setCoin] = useState('BTC')
-  const [copied, setCopied] = useState(false)
-  const [generatedAddresses, setGeneratedAddresses] = useState({})
-  const [loadingExisting, setLoadingExisting] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [genError, setGenError] = useState(null)
+  const { user } = useAuth();
+  const [coin, setCoin] = useState('BTC');
+  const [copied, setCopied] = useState(false);
+  const [generatedAddresses, setGeneratedAddresses] = useState({});
+  const [loadingExisting, setLoadingExisting] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState(null);
 
   const walletAddress =
-    (user && CUSTOM_WALLET_ADDRESSES[user.id]?.[coin]) || WALLET_ADDRESSES[coin]
+    (user && CUSTOM_WALLET_ADDRESSES[user.id]?.[coin]) || WALLET_ADDRESSES[coin];
 
   useEffect(() => {
-    if (!user) { setLoadingExisting(false); return }
+    if (!user) { setLoadingExisting(false); return; }
 
     supabase
       .from('deposit_addresses')
@@ -194,48 +194,48 @@ function DepositPage({ onBack }) {
       .eq('user_id', user.id)
       .then(({ data, error }) => {
         if (error) {
-          console.error('Error loading deposit addresses:', error)
-          setGenError(`Could not load saved addresses: ${error.message}`)
+          console.error('Error loading deposit addresses:', error);
+          setGenError(`Could not load saved addresses: ${error.message}`);
         }
-        const map = {}
-        ;(data || []).forEach(row => { map[row.coin] = true })
-        setGeneratedAddresses(map)
-        setLoadingExisting(false)
-      })
-  }, [user])
+        const map = {};
+        (data || []).forEach(row => { map[row.coin] = true; });
+        setGeneratedAddresses(map);
+        setLoadingExisting(false);
+      });
+  }, [user]);
 
-  const isGenerated = !!generatedAddresses[coin]
+  const isGenerated = !!generatedAddresses[coin];
 
   async function handleGenerate() {
-    if (!user) return
-    setGenerating(true)
-    setGenError(null)
+    if (!user) return;
+    setGenerating(true);
+    setGenError(null);
 
     const { error } = await supabase.from('deposit_addresses').insert({
       user_id: user.id,
       coin,
       address: walletAddress,
-    })
+    });
 
-    setGenerating(false)
+    setGenerating(false);
 
     if (error) {
-      console.error('Error generating deposit address:', error)
+      console.error('Error generating deposit address:', error);
       if (error.code === '23505') {
-        setGeneratedAddresses(prev => ({ ...prev, [coin]: true }))
+        setGeneratedAddresses(prev => ({ ...prev, [coin]: true }));
       } else {
-        setGenError(`Failed to generate address: ${error.message}`)
+        setGenError(`Failed to generate address: ${error.message}`);
       }
-      return
+      return;
     }
 
-    setGeneratedAddresses(prev => ({ ...prev, [coin]: true }))
+    setGeneratedAddresses(prev => ({ ...prev, [coin]: true }));
   }
 
   function copy() {
-    navigator.clipboard.writeText(walletAddress)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    navigator.clipboard.writeText(walletAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -288,46 +288,44 @@ function DepositPage({ onBack }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-// ── WITHDRAW PAGE (fixed channel) ────────────────────────────────────
+// ── WITHDRAW PAGE ────────────────────────────────────────────────────
 const WITHDRAW_COINS = [
   { id: 'BTC',  label: 'Bitcoin',  icon: '₿', bg: '#f7931a' },
   { id: 'USDT', label: 'USDT',     icon: '₮', bg: '#26a17b' },
   { id: 'ETH',  label: 'Ethereum', icon: 'Ξ', bg: '#627eea' },
-]
+];
 const WITHDRAW_PLACEHOLDERS = {
   BTC:  'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
   USDT: 'TQn9Y2khEsLJW1ChVTQQugS4TnxaHm6Ft5',
   ETH:  '0x742d35Cc6634C0532925a3b8D4C9E2C4e8b1A2c3',
-}
+};
 
 function WithdrawPage({ onBack, balance }) {
-  const { user } = useAuth()
-  const [coin,       setCoin]       = useState('BTC')
-  const [amount,     setAmount]     = useState('')
-  const [addr,       setAddr]       = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted,  setSubmitted]  = useState(false)
-  const [error,      setError]      = useState(null)
-  const [pending,    setPending]    = useState([])
-  const channelRef = useRef(null)
+  const { user } = useAuth();
+  const [coin,       setCoin]       = useState('BTC');
+  const [amount,     setAmount]     = useState('');
+  const [addr,       setAddr]       = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted,  setSubmitted]  = useState(false);
+  const [error,      setError]      = useState(null);
+  const [pending,    setPending]    = useState([]);
+  const channelRef = useRef(null);
 
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
 
-    let isMounted = true
+    let isMounted = true;
 
-    // Initial fetch
     supabase.from('withdrawals').select('*')
       .eq('user_id', user.id).order('created_at', { ascending: false })
       .then(({ data }) => {
-        if (isMounted) setPending(data || [])
-      })
+        if (isMounted) setPending(data || []);
+      });
 
-    // Create unique channel
-    const channelName = `withdrawals-${user.id}-${Date.now()}`
+    const channelName = `withdrawals-${user.id}-${Date.now()}`;
     const channel = supabase
       .channel(channelName)
       .on('postgres_changes', {
@@ -336,44 +334,43 @@ function WithdrawPage({ onBack, balance }) {
         table: 'withdrawals',
         filter: `user_id=eq.${user.id}`,
       }, () => {
-        // Refresh list on change
         supabase.from('withdrawals').select('*')
           .eq('user_id', user.id).order('created_at', { ascending: false })
           .then(({ data }) => {
-            if (isMounted) setPending(data || [])
-          })
+            if (isMounted) setPending(data || []);
+          });
       })
-      .subscribe()
+      .subscribe();
 
-    channelRef.current = channel
+    channelRef.current = channel;
 
     return () => {
-      isMounted = false
+      isMounted = false;
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
-        channelRef.current = null
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
-    }
-  }, [user])
+    };
+  }, [user]);
 
   async function handleWithdraw() {
-    const amt = parseFloat(amount)
-    if (!amt || amt <= 0)  { setError('Enter a valid amount.'); return }
-    if (amt > balance)     { setError('Amount exceeds your available balance.'); return }
-    if (!addr.trim())      { setError('Enter a wallet address.'); return }
-    setError(null); setSubmitting(true)
+    const amt = parseFloat(amount);
+    if (!amt || amt <= 0)  { setError('Enter a valid amount.'); return; }
+    if (amt > balance)     { setError('Amount exceeds your available balance.'); return; }
+    if (!addr.trim())      { setError('Enter a wallet address.'); return; }
+    setError(null); setSubmitting(true);
     const { error: err } = await supabase.from('withdrawals').insert({
       user_id: user.id, user_email: user.email,
       user_name: user.user_metadata?.full_name || null,
       amount: amt, coin, address: addr.trim(), status: 'pending',
-    })
-    setSubmitting(false)
-    if (err) { setError(err.message); return }
-    setSubmitted(true); setAmount(''); setAddr('')
-    setTimeout(() => setSubmitted(false), 4000)
+    });
+    setSubmitting(false);
+    if (err) { setError(err.message); return; }
+    setSubmitted(true); setAmount(''); setAddr('');
+    setTimeout(() => setSubmitted(false), 4000);
   }
 
-  const fmt = n => `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+  const fmt = n => `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="subpage">
@@ -398,12 +395,12 @@ function WithdrawPage({ onBack, balance }) {
         <div className="fund-field">
           <label>Amount (USD)</label>
           <input className="fund-input" type="number" placeholder="100" value={amount}
-            onChange={e => { setAmount(e.target.value); setError(null) }} />
+            onChange={e => { setAmount(e.target.value); setError(null); }} />
         </div>
         <div className="fund-field">
           <label>Your Wallet Address</label>
           <input className="fund-input" type="text" placeholder={WITHDRAW_PLACEHOLDERS[coin]} value={addr}
-            onChange={e => { setAddr(e.target.value); setError(null) }} />
+            onChange={e => { setAddr(e.target.value); setError(null); }} />
         </div>
         {error && (
           <div style={{ background:'#ff4d6a18', border:'1px solid #ff4d6a55', borderRadius:8, padding:'10px 14px', fontSize:13, color:'#ff4d6a', marginBottom:8 }}>
@@ -446,108 +443,109 @@ function WithdrawPage({ onBack, balance }) {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-// ── MAIN DASHBOARD ─────────────────────────────────────────────────────
-export default function Dashboard({ balance = 0, balanceLoading = false } = {}) {
-  const pairs = useTicker()
+// ── MAIN DASHBOARD (FIXED: uses useBalance) ──────────────────────────
+export default function Dashboard() {
+  const { balance, loading: balanceLoading } = useBalance(); // ✅ fetch balance here
+  const pairs = useTicker();
 
-  const [page,          setPage]          = useState('home')
-  const [priceSource,   setPriceSource]   = useState('Binance')
-  const [fetchingLabel, setFetchingLabel] = useState('')
+  const [page, setPage] = useState('home');
+  const [priceSource, setPriceSource] = useState('Binance');
+  const [fetchingLabel, setFetchingLabel] = useState('');
 
-  const location = useLocation()
+  const location = useLocation();
   useEffect(() => {
-    setPage('home')
-  }, [location.key])
+    setPage('home');
+  }, [location.key]);
 
-  const fmt = n => `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+  const fmt = n => `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
   function handleRefreshPrices() {
-    setFetchingLabel('Fetching CoinGecko...')
-    setTimeout(() => { setFetchingLabel(''); setPriceSource('Binance') }, 2000)
+    setFetchingLabel('Fetching CoinGecko...');
+    setTimeout(() => { setFetchingLabel(''); setPriceSource('Binance'); }, 2000);
   }
 
   return (
     <div className="dash-main">
       <div className="dash-content">
-
-        {page === 'deposit'  && <DepositPage onBack={() => setPage('home')} />}
+        {page === 'deposit' && <DepositPage onBack={() => setPage('home')} />}
         {page === 'withdraw' && <WithdrawPage onBack={() => setPage('home')} balance={balance ?? 0} />}
 
-        {page === 'home' && <>
-          <div className="portfolio-card card">
-            <div className="portfolio-label">REAL PORTFOLIO</div>
-            <div className="portfolio-value font-mono">
-              {balanceLoading ? '...' : fmt(balance)}
-            </div>
-            <div className="portfolio-change up">↑ +0.00%</div>
-            <div className="portfolio-actions">
-              <button className="btn-primary" onClick={() => setPage('deposit')}>Deposit</button>
-              <button className="btn-outline" onClick={() => setPage('withdraw')}>Withdraw</button>
-            </div>
-          </div>
-
-          <div className="dash-grid-2">
-            <div className="card">
-              <div className="card-header">
-                <h3>Watchlist</h3>
-                <button className="see-all">See All</button>
+        {page === 'home' && (
+          <>
+            <div className="portfolio-card card">
+              <div className="portfolio-label">REAL PORTFOLIO</div>
+              <div className="portfolio-value font-mono">
+                {balanceLoading ? '...' : fmt(balance)}
               </div>
-              <div className="watchlist">
-                {pairs.slice(0, 3).map(p => {
-                  const base = p.symbol.split('/')[0]
-                  const logo = COIN_LOGOS[base]
-                  return (
-                    <div key={p.symbol} className="watch-row">
-                      <div className="watch-icon" style={{
-                        background: p.change >= 0 ? '#16a34a22' : '#ff4d6a22',
-                        overflow: 'hidden',
-                      }}>
-                        {logo
-                          ? <img src={logo} alt={base} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => e.target.style.display='none'} />
-                          : <span style={{ color: p.change >= 0 ? '#16a34a' : '#ff4d6a' }}>{base.slice(0, 3)}</span>
-                        }
-                      </div>
-                      <div className="watch-info">
-                        <span className="watch-symbol">{p.symbol.split('/')[0]}</span>
-                        <span className="watch-name">{p.name || p.symbol.split('/')[0]}</span>
-                      </div>
-                      <div className="watch-right">
-                        <span className="watch-price font-mono">
-                          ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                        <span className={`watch-change ${p.change >= 0 ? 'up' : 'down'}`}>
-                          {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="watchlist-footer">
-                <span className="coingecko-label">{fetchingLabel || `Using: ${priceSource}`}</span>
-                <button className="refresh-prices-btn" onClick={handleRefreshPrices} disabled={!!fetchingLabel}>
-                  {fetchingLabel ? 'Refreshing...' : 'Refresh Prices'}
-                </button>
+              <div className="portfolio-change up">↑ +0.00%</div>
+              <div className="portfolio-actions">
+                <button className="btn-primary" onClick={() => setPage('deposit')}>Deposit</button>
+                <button className="btn-outline" onClick={() => setPage('withdraw')}>Withdraw</button>
               </div>
             </div>
 
-            <div className="card">
-              <div className="card-header">
-                <h3>Your Crypto</h3>
-                <button className="see-all">See All</button>
+            <div className="dash-grid-2">
+              <div className="card">
+                <div className="card-header">
+                  <h3>Watchlist</h3>
+                  <button className="see-all">See All</button>
+                </div>
+                <div className="watchlist">
+                  {pairs.slice(0, 3).map(p => {
+                    const base = p.symbol.split('/')[0];
+                    const logo = COIN_LOGOS[base];
+                    return (
+                      <div key={p.symbol} className="watch-row">
+                        <div className="watch-icon" style={{
+                          background: p.change >= 0 ? '#16a34a22' : '#ff4d6a22',
+                          overflow: 'hidden',
+                        }}>
+                          {logo
+                            ? <img src={logo} alt={base} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={e => e.target.style.display='none'} />
+                            : <span style={{ color: p.change >= 0 ? '#16a34a' : '#ff4d6a' }}>{base.slice(0, 3)}</span>
+                          }
+                        </div>
+                        <div className="watch-info">
+                          <span className="watch-symbol">{p.symbol.split('/')[0]}</span>
+                          <span className="watch-name">{p.name || p.symbol.split('/')[0]}</span>
+                        </div>
+                        <div className="watch-right">
+                          <span className="watch-price font-mono">
+                            ${p.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                          <span className={`watch-change ${p.change >= 0 ? 'up' : 'down'}`}>
+                            {p.change >= 0 ? '+' : ''}{p.change.toFixed(2)}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="watchlist-footer">
+                  <span className="coingecko-label">{fetchingLabel || `Using: ${priceSource}`}</span>
+                  <button className="refresh-prices-btn" onClick={handleRefreshPrices} disabled={!!fetchingLabel}>
+                    {fetchingLabel ? 'Refreshing...' : 'Refresh Prices'}
+                  </button>
+                </div>
               </div>
-              <div className="crypto-mini-grid">
-                {CRYPTO_DATA.map(coin => <CryptoCard key={coin.id} coin={coin} />)}
-              </div>
-              <button className="refresh-all-btn">Refresh All Prices</button>
-            </div>
-          </div>
-        </>}
 
+              <div className="card">
+                <div className="card-header">
+                  <h3>Your Crypto</h3>
+                  <button className="see-all">See All</button>
+                </div>
+                <div className="crypto-mini-grid">
+                  {CRYPTO_DATA.map(coin => <CryptoCard key={coin.id} coin={coin} />)}
+                </div>
+                <button className="refresh-all-btn">Refresh All Prices</button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
-  )
+  );
 }
