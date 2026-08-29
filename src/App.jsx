@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import ChatWidget from './components/ChatWidget'
@@ -10,6 +10,17 @@ import Admin from './pages/Admin'
 import AuthCallback from './pages/AuthCallback'
 import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage'
 import './components/DashNav.css'
+
+// Renders Home for signed-out visitors, but bounces already-signed-in users
+// straight to /dashboard. This makes the "/" route safe to land on after
+// email confirmation regardless of what redirect_to Supabase actually used —
+// as soon as AuthContext picks up the session, this will send them onward.
+function HomeOrDashboard() {
+  const { user, loading } = useAuth()
+  if (loading) return null // could swap for a spinner if desired
+  if (user) return <Navigate to="/dashboard" replace />
+  return <Home />
+}
 
 // Layout that receives activePage and onNavigate
 function DashLayout({ children, activePage, onNavigate }) {
@@ -138,7 +149,7 @@ function AppRoutes() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomeOrDashboard />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
