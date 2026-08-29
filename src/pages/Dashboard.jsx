@@ -441,7 +441,7 @@ function WithdrawPage({ onBack, balance }) {
   );
 }
 
-// ── MAIN DASHBOARD ────────────────────────────────────────────────────
+// ── MAIN DASHBOARD ──────────────────────────────────────────────────
 export default function Dashboard() {
   const { balance, loading: balanceLoading } = useBalance();
   const pairs = useTicker();
@@ -470,6 +470,7 @@ export default function Dashboard() {
 
         {page === 'home' && (
           <>
+            {/* Portfolio Card */}
             <div className="portfolio-card card">
               <div className="portfolio-label">REAL PORTFOLIO</div>
               <div className="portfolio-value font-mono">
@@ -482,6 +483,7 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* Grid */}
             <div className="dash-grid-2">
               <div className="card">
                 <div className="card-header">
@@ -539,7 +541,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* ─── FOOTER ─── */}
+            {/* ✅ FOOTER – this is the one you want */}
             <footer className="dashboard-footer">
               <div className="dashboard-footer-inner">
                 <div className="footer-logo">
