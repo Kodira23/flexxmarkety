@@ -7,6 +7,7 @@ import DashNav from './components/DashNav'
 import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import Admin from './pages/Admin'
+import AuthCallback from './pages/AuthCallback'
 import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage'
 import './components/DashNav.css'
 
@@ -138,6 +139,7 @@ function AppRoutes() {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <ProtectedPages />
