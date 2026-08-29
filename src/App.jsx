@@ -11,7 +11,6 @@ import AuthCallback from './pages/AuthCallback';
 import { MarketsPage, SpotPage, FuturesPage, BotsPage } from './pages/PlaceholderPage';
 import './components/DashNav.css';
 
-// HomeOrDashboard – redirects signed‑in users to /dashboard
 function HomeOrDashboard() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -19,19 +18,22 @@ function HomeOrDashboard() {
   return <Home />;
 }
 
-// Layout – now only contains the header (no footer)
+// Layout – now includes a simple copyright footer only
 function DashLayout({ children, activePage, onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <DashNav activePage={activePage} onNavigate={onNavigate} />
       <main style={{ flex: 1 }}>{children}</main>
-      {/* Footer removed – no duplicate header */}
+      {/* ✅ Only copyright – no duplicate header */}
+      <footer className="footer-copyright">
+        <div className="footer-copyright-inner">
+          © 2026 Flexxmarket. All rights reserved. Trading involves risk.
+        </div>
+      </footer>
     </div>
   );
 }
 
-// ProtectedPages – manages navigation and page rendering
-// (no useBalance call here – DashNav and Dashboard fetch their own)
 function ProtectedPages() {
   const location = useLocation();
   const navigate = useNavigate();
