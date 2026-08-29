@@ -159,4 +159,17 @@
     font-size: 12px;
     border-radius: 8px;
   }
+  .footer-copyright {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border, #2a2a2a);
+  background: rgba(10, 12, 15, 0.95);
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted, #888);
+}
+
+.footer-copyright-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 }
