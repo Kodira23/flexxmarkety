@@ -73,18 +73,18 @@
 
   .site-footer-inner {
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    text-align: center;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 10px;
+    text-align: left;
   }
 
   .site-footer-brand {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .site-footer-copy {
-    text-align: center;
+    text-align: left;
     white-space: normal;
     font-size: 12px;
     line-height: 1.5;
