@@ -1,22 +1,23 @@
-import '../pages/Dashboard.css'; // reuses existing .dashboard-footer styles
+import './Footer.css';
 
 export default function Footer() {
   return (
-    <footer className="dashboard-footer">
-      <div className="dashboard-footer-inner">
-        <div className="footer-logo">
+    <footer className="site-footer">
+      <div className="site-footer-inner">
+        <div className="site-footer-brand">
           <div
-            className="footer-logo-bg"
+            className="site-footer-logo"
             style={{ backgroundImage: "url('/FM logo.jpeg')" }}
             role="img"
             aria-label="Flexxmarket"
           />
-          <div className="footer-brand-wrapper">
-            <span className="footer-brand-text">Flexxmarket</span>
-            <span className="footer-brand-sub">Trading pro</span>
+          <div className="site-footer-brand-text">
+            <span className="site-footer-name">Flexxmarket</span>
+            <span className="site-footer-tagline">Trading pro</span>
           </div>
         </div>
-        <div className="footer-copy">
+
+        <div className="site-footer-copy">
           © 2026 Flexxmarket. All rights reserved. Trading involves risk.
         </div>
       </div>
