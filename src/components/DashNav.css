@@ -9,7 +9,7 @@
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: none;
+  border-bottom: 1px solid var(--border, #2a2a2a);
   padding: 0 24px;
   align-items: center;
   gap: 8px;
@@ -231,7 +231,7 @@
   background: rgba(10, 12, 15, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: none;
+  border-bottom: 1px solid var(--border, #2a2a2a);
   padding: 0 16px;
   align-items: center;
   justify-content: space-between;
