@@ -540,27 +540,6 @@ export default function Dashboard() {
                 <button className="refresh-all-btn">Refresh All Prices</button>
               </div>
             </div>
-
-            {/* ✅ FOOTER – this is the one you want */}
-            <footer className="dashboard-footer">
-              <div className="dashboard-footer-inner">
-                <div className="footer-logo">
-                  <div
-                    className="footer-logo-bg"
-                    style={{ backgroundImage: "url('/FM logo.jpeg')" }}
-                    role="img"
-                    aria-label="Flexxmarket"
-                  />
-                  <div className="footer-brand-wrapper">
-                    <span className="footer-brand-text">Flexxmarket</span>
-                    <span className="footer-brand-sub">Trading pro</span>
-                  </div>
-                </div>
-                <div className="footer-copy">
-                  © 2026 Flexxmarket. All rights reserved. Trading involves risk.
-                </div>
-              </div>
-            </footer>
           </>
         )}
       </div>
