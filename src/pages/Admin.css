@@ -254,3 +254,78 @@
 }
 .admin-empty-state span { font-size: 40px; }
 .admin-empty-state p    { font-size: 14px; text-align: center; }
+
+/* ══════════════════════════════════════════════════════
+   PHONE LAYOUT (≤767px)
+══════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ── Sidebar → icon-only rail ──
+     Pure CSS can only hide plain-text labels (font-size: 0); if the
+     nav buttons currently render icon + text as one text node, wrap
+     the icon in its own <span>/<svg> so it survives the rule below
+     (".admin-nav-btn > *" restores font-size for any child element). */
+  .admin-sidebar { width: 64px; }
+  .admin-sidebar-header {
+    padding: 16px 8px;
+    display: flex;
+    justify-content: center;
+  }
+  .admin-logo {
+    font-size: 0; /* hides the wordmark text */
+  }
+  .admin-logo::before {
+    content: '●';
+    font-size: 18px;
+    color: #4ade80;
+  }
+  .admin-nav { padding: 12px 6px; }
+  .admin-nav-btn {
+    padding: 10px 4px;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0; /* hides plain-text label */
+  }
+  .admin-nav-btn > * { font-size: 14px; } /* keeps any icon child visible */
+
+  /* ── Panel spacing ── */
+  .panel-content { padding: 16px; }
+  .panel-header { flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .admin-section-title { font-size: 16px; }
+
+  /* ── Chats: list stacked above thread, each scrolls independently ── */
+  .chats-layout { flex-direction: column; }
+  .chats-list-col {
+    width: 100%;
+    max-height: 38vh;
+    border-right: none;
+    border-bottom: 1px solid #1f2937;
+  }
+  .chats-thread-col { flex: 1; min-height: 0; }
+  .admin-bubble { max-width: 85%; }
+  .admin-chat-header { padding: 12px 14px; }
+  .admin-messages { padding: 12px 14px; }
+  .admin-reply-box { padding: 10px 12px; }
+
+  /* ── Balances table ── */
+  .admin-table th, .admin-table td { padding: 8px 10px; }
+  .inline-input { width: 90px; }
+
+  /* ── Withdrawals: stack card content ── */
+  .withdrawal-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .wc-right {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* ── Empty state ── */
+  .admin-empty-state { padding: 40px 16px; }
+}
