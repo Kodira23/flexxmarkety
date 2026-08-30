@@ -41,6 +41,23 @@
 .admin-nav-btn:hover  { background: #1f2937; color: #e5e7eb; }
 .admin-nav-btn.active { background: #1a2535; color: #4ade80; font-weight: 600; }
 
+/* Mobile-only dropdown trigger — hidden on desktop, shown in the
+   phone media query below */
+.admin-nav-trigger {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #e5e7eb;
+  font-size: 13px;
+  cursor: pointer;
+}
+.admin-nav-chevron { font-size: 10px; transition: transform 0.15s; }
+.admin-nav-chevron.open { transform: rotate(180deg); }
+
 /* ── Main area ── */
 .admin-main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
@@ -260,34 +277,39 @@
 ══════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
 
-  /* ── Sidebar → icon-only rail ──
-     Pure CSS can only hide plain-text labels (font-size: 0); if the
-     nav buttons currently render icon + text as one text node, wrap
-     the icon in its own <span>/<svg> so it survives the rule below
-     (".admin-nav-btn > *" restores font-size for any child element). */
-  .admin-sidebar { width: 64px; }
+  /* ── Sidebar → header bar with a dropdown nav panel ── */
+  .admin-layout { flex-direction: column; }
+
+  .admin-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #1f2937;
+    position: relative; /* anchors the dropdown panel below */
+    z-index: 20;
+  }
   .admin-sidebar-header {
-    padding: 16px 8px;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
   }
-  .admin-logo {
-    font-size: 0; /* hides the wordmark text */
+  .admin-nav-trigger { display: flex; }
+
+  .admin-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #111827;
+    border-bottom: 1px solid #1f2937;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+    padding: 8px;
+    gap: 4px;
   }
-  .admin-logo::before {
-    content: '●';
-    font-size: 18px;
-    color: #4ade80;
-  }
-  .admin-nav { padding: 12px 6px; }
-  .admin-nav-btn {
-    padding: 10px 4px;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    font-size: 0; /* hides plain-text label */
-  }
-  .admin-nav-btn > * { font-size: 14px; } /* keeps any icon child visible */
+  .admin-nav.open { display: flex; }
+
+  .admin-main { flex: 1; overflow: hidden; }
 
   /* ── Panel spacing ── */
   .panel-content { padding: 16px; }
