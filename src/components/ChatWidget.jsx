@@ -1,217 +1,145 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import './DashNav.css';
+import './ChatWidget.css';
 
-// ── SVG Icon Components (white outline sketches) ──
-const GridIcon = () => (
+const ChatIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+  </svg>
+);
+
+const CloseIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7" />
-    <rect x="14" y="3" width="7" height="7" />
-    <rect x="14" y="14" width="7" height="7" />
-    <rect x="3" y="14" width="7" height="7" />
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
-const BarChartIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 20V10" />
-    <path d="M18 20V4" />
-    <path d="M6 20v-4" />
+const SendIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
 
-const ZapIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-  </svg>
-);
+const INITIAL_MESSAGE = {
+  id: 'init',
+  from: 'bot',
+  text: "Hi! 👋 How can we help you today?",
+  time: new Date(),
+};
 
-const CpuIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="4" width="16" height="16" rx="2" />
-    <rect x="9" y="9" width="6" height="6" />
-    <path d="M9 1v3" />
-    <path d="M15 1v3" />
-    <path d="M9 20v3" />
-    <path d="M15 20v3" />
-    <path d="M1 9h3" />
-    <path d="M1 15h3" />
-    <path d="M20 9h3" />
-    <path d="M20 15h3" />
-  </svg>
-);
-
-const UserIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
-const LogoutIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-const WalletIcon = () => (
-  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-    <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
-  </svg>
-);
-
-const NAV_ITEMS = [
-  { id: 'home',    label: 'Dashboard', icon: <GridIcon /> },
-  { id: 'markets', label: 'Markets',   icon: <BarChartIcon /> },
-  { id: 'spot',    label: 'Spot',      icon: <ZapIcon /> },
-  { id: 'bots',    label: 'Bots',      icon: <CpuIcon /> },
-];
-
-function fmtBalance(n) {
-  return `$${Number(n ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-}
-
-export default function DashNav({ activePage, onNavigate, balance = 0 }) {
-  const { user, signOut } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  const email = user?.email || 'trader@flexx.com';
-  const username = email.split('@')[0];
-
-  const handleNav = (id) => {
-    if (onNavigate) onNavigate(id);
-    setMenuOpen(false);
-  };
-
-  const handleSignOut = () => {
-    setMenuOpen(false);
-    signOut?.();
-  };
+export default function ChatWidget() {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    function handleClickOutside(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMenuOpen(false);
-      }
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuOpen]);
+  }, [messages, open]);
+
+  const fmtTime = (d) =>
+    d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  function handleSend() {
+    const text = input.trim();
+    if (!text || sending) return;
+
+    const userMsg = { id: Date.now(), from: 'user', text, time: new Date() };
+    setMessages(prev => [...prev, userMsg]);
+    setInput('');
+    setSending(true);
+
+    // TODO: replace with a real API call to your support/AI backend.
+    setTimeout(() => {
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now() + 1,
+          from: 'bot',
+          text: "Thanks for your message — our team will get back to you shortly.",
+          time: new Date(),
+        },
+      ]);
+      setSending(false);
+    }, 900);
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
 
   return (
-    <>
-      {/* ─── DESKTOP HEADER ─── */}
-      <header className="dashnav-header">
-        <button className="dashnav-logo" onClick={() => handleNav('home')}>
-          <div
-            className="dashnav-logo-bg"
-            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
-            role="img"
-            aria-label="FlexxMarket"
-          />
-          <div className="logo-text-stack">
-            <span className="logo-top">FlexxMarket</span>
-            <span className="logo-bottom">pro trading</span>
-          </div>
-        </button>
-
-        <nav className="dashnav-links">
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              className={`dashnav-link ${activePage === item.id ? 'active' : ''}`}
-              onClick={() => handleNav(item.id)}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              {item.label}
+    <div className="chat-widget-root">
+      {open && (
+        <div className="chat-panel">
+          <div className="chat-panel-header">
+            <div className="chat-panel-title">
+              <span className="chat-status-dot" />
+              Support
+            </div>
+            <button className="chat-close-btn" onClick={() => setOpen(false)} aria-label="Close chat">
+              <CloseIcon />
             </button>
-          ))}
-        </nav>
-
-        <div className="dashnav-right">
-          <div className="dashnav-wallet">
-            <WalletIcon />
-            <span className="wallet-balance">{fmtBalance(balance)}</span>
-          </div>
-          <div className="user-avatar">
-            <UserIcon />
-          </div>
-          <button className="icon-logout-btn" onClick={handleSignOut} aria-label="Sign out">
-            <LogoutIcon />
-          </button>
-        </div>
-      </header>
-
-      {/* ─── MOBILE HEADER ─── */}
-      <header className="mobile-header">
-        <button className="mobile-logo" onClick={() => handleNav('home')}>
-          <div
-            className="mobile-logo-bg"
-            style={{ backgroundImage: "url('/FM logo.jpeg')" }}
-            role="img"
-            aria-label="FlexxMarket"
-          />
-          <div className="mobile-logo-text-stack">
-            <span className="mobile-logo-top">FlexxMarket</span>
-            <span className="mobile-logo-bottom">pro trading</span>
-          </div>
-        </button>
-
-        <div className="mobile-header-right">
-          <div className="mobile-wallet">
-            <WalletIcon />
-            <span className="wallet-balance">{fmtBalance(balance)}</span>
           </div>
 
-          <div className="mobile-menu-wrap" ref={menuRef}>
-            <button
-              className={`hamburger-btn ${menuOpen ? 'open' : ''}`}
-              onClick={() => setMenuOpen(v => !v)}
-              aria-label="Open menu"
-            >
-              <span className="ham-line" />
-              <span className="ham-line" />
-              <span className="ham-line" />
-            </button>
-
-            {menuOpen && (
-              <div className="mobile-dropdown">
-                {NAV_ITEMS.map(item => (
-                  <button
-                    key={item.id}
-                    className={`mobile-dropdown-link ${activePage === item.id ? 'active' : ''}`}
-                    onClick={() => handleNav(item.id)}
-                  >
-                    <span className="mobile-dropdown-icon">{item.icon}</span>
-                    {item.label}
-                  </button>
-                ))}
-                <div className="mobile-dropdown-divider" />
-                <div className="mobile-dropdown-user">
-                  <div className="mobile-dropdown-avatar">
-                    <UserIcon />
-                  </div>
-                  <span className="mobile-dropdown-email">{username}</span>
+          <div className="chat-panel-body" ref={scrollRef}>
+            {messages.map(m => (
+              <div key={m.id} className={`chat-bubble-row ${m.from}`}>
+                <div className={`chat-bubble ${m.from}`}>
+                  {m.text}
+                  <span className="chat-bubble-time">{fmtTime(m.time)}</span>
                 </div>
-                <button className="mobile-dropdown-logout" onClick={handleSignOut}>
-                  <span className="mobile-dropdown-icon"><LogoutIcon /></span>
-                  Sign out
-                </button>
+              </div>
+            ))}
+            {sending && (
+              <div className="chat-bubble-row bot">
+                <div className="chat-bubble bot chat-typing">
+                  <span className="dot" />
+                  <span className="dot" />
+                  <span className="dot" />
+                </div>
               </div>
             )}
           </div>
-        </div>
-      </header>
 
-      {menuOpen && (
-        <div className="mobile-dropdown-backdrop open" onClick={() => setMenuOpen(false)} />
+          <div className="chat-panel-input-row">
+            <input
+              className="chat-input"
+              type="text"
+              placeholder={user ? 'Type a message…' : 'Sign in to chat…'}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={!user}
+            />
+            <button
+              className="chat-send-btn"
+              onClick={handleSend}
+              disabled={!input.trim() || sending || !user}
+              aria-label="Send message"
+            >
+              <SendIcon />
+            </button>
+          </div>
+        </div>
       )}
-    </>
+
+      <button
+        className={`chat-fab ${open ? 'open' : ''}`}
+        onClick={() => setOpen(v => !v)}
+        aria-label={open ? 'Close chat' : 'Open chat'}
+      >
+        {open ? <CloseIcon /> : <ChatIcon />}
+      </button>
+    </div>
   );
 }
