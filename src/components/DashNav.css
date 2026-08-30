@@ -365,28 +365,51 @@
   -webkit-backdrop-filter: blur(16px);
   display: flex;
   flex-direction: column;
-  padding: 24px 20px 32px;
+  padding: 20px 20px 32px;
   box-sizing: border-box;
   animation: slideDown 0.25s ease;
   overflow-y: auto;
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Top bar: logo left, close button right — matches Freddie Visuals layout */
+.mobile-dropdown-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.mobile-dropdown-close {
+  background: var(--bg-card, #16181c);
+  border: 1px solid var(--border, #2a2a2a);
+  color: var(--text-secondary, #a0a0a0);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.mobile-dropdown-close:hover {
+  color: var(--text-primary, #fff);
+  border-color: var(--green, #16a34a);
 }
 
 .mobile-dropdown-profile {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 0 16px;
+  padding: 4px 0 16px;
 }
 
 .mobile-dropdown-avatar {
@@ -431,12 +454,13 @@
   text-overflow: ellipsis;
 }
 
+/* Links now stack right below the header/profile — no flex:1,
+   so Sign Out sits immediately under them instead of at the screen bottom */
 .mobile-dropdown-links {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 8px 0;
-  flex: 1;
 }
 
 .mobile-dropdown-link {
@@ -494,9 +518,10 @@
 .mobile-dropdown-divider {
   height: 1px;
   background: var(--border, #2a2a2a);
-  margin: 8px 0;
+  margin: 4px 0 8px;
 }
 
+/* Sign Out — directly below links now, not pinned to bottom */
 .mobile-dropdown-logout {
   display: flex;
   align-items: center;
