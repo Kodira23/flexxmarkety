@@ -6,19 +6,47 @@ const TABS = ['👥 Users', '💬 Chats', '💰 Balances', '📤 Withdrawals']
 
 export default function Admin() {
   const [tab, setTab] = useState(0)
+  const [navOpen, setNavOpen] = useState(false)
+  const sidebarRef = useRef(null)
+
+  // Close the dropdown when tapping/clicking anywhere outside the sidebar
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+        setNavOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function selectTab(i) {
+    setTab(i)
+    setNavOpen(false)
+  }
 
   return (
     <div className="admin-layout">
-      <div className="admin-sidebar">
+      <div className="admin-sidebar" ref={sidebarRef}>
         <div className="admin-sidebar-header">
           <div className="admin-logo">⬡ Admin Panel</div>
+          {/* Mobile-only trigger — shows the current page and opens the dropdown below it */}
+          <button
+            className="admin-nav-trigger"
+            onClick={() => setNavOpen(v => !v)}
+            aria-expanded={navOpen}
+            aria-label="Open navigation menu"
+          >
+            <span>{TABS[tab]}</span>
+            <span className={`admin-nav-chevron ${navOpen ? 'open' : ''}`}>▾</span>
+          </button>
         </div>
-        <nav className="admin-nav">
+        <nav className={`admin-nav ${navOpen ? 'open' : ''}`}>
           {TABS.map((t, i) => (
             <button
               key={t}
               className={`admin-nav-btn ${tab === i ? 'active' : ''}`}
-              onClick={() => setTab(i)}
+              onClick={() => selectTab(i)}
             >
               {t}
             </button>
