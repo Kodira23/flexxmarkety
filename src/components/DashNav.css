@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════
-   DESKTOP HEADER (≥ 768px) – STICKY
+   DESKTOP HEADER (≥ 768px) – FIXED
 ════════════════════════════════════════ */
 
 .dashnav-header {
@@ -13,13 +13,26 @@
   padding: 0 24px;
   align-items: center;
   gap: 8px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
 }
 
 @media (min-width: 768px) {
   .dashnav-header { display: flex; }
+}
+
+/* Push page content below the fixed header so nothing is hidden under it */
+.dash-main {
+  padding-top: 72px;
+}
+
+@media (max-width: 768px) {
+  .dash-main {
+    padding-top: 64px;
+  }
 }
 
 /* ── Logo ── */
@@ -87,6 +100,7 @@
   justify-content: center;
 }
 
+/* Links are white by default; only icon + text turn green when active — no background/border box */
 .dashnav-link {
   display: flex;
   align-items: center;
@@ -94,11 +108,11 @@
   padding: 7px 14px;
   border-radius: 10px;
   text-decoration: none;
-  color: var(--text-secondary, #a0a0a0);
+  color: var(--text-primary, #ffffff);
   font-family: var(--font-primary);
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: color 0.15s;
   white-space: nowrap;
   background: none;
   border: none;
@@ -106,15 +120,14 @@
 }
 
 .dashnav-link:hover {
-  background: rgba(255,255,255,0.05);
-  color: var(--text-primary, #ffffff);
+  color: var(--green, #16a34a);
 }
 
 .dashnav-link.active {
   color: var(--green, #16a34a);
-  background: var(--green-dim, rgba(22, 163, 74, 0.10));
+  background: none;
+  border: none;
   font-weight: 600;
-  border: 1px solid rgba(22, 163, 74, 0.25);
 }
 
 .dashnav-link.active .nav-icon svg {
@@ -136,8 +149,6 @@
   flex-shrink: 0;
 }
 
-/* Wallet + hamburger now share the same box treatment
-   (background/border/radius from the header theme) */
 .dashnav-wallet {
   display: flex;
   align-items: center;
@@ -156,7 +167,6 @@
   white-space: nowrap;
 }
 
-/* User info: avatar + name, side by side */
 .user-info {
   display: flex;
   align-items: center;
@@ -206,13 +216,15 @@
 }
 
 /* ════════════════════════════════════════
-   MOBILE HEADER (< 768px) – STICKY
+   MOBILE HEADER (< 768px) – FIXED
 ════════════════════════════════════════ */
 
 .mobile-header {
   display: flex;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   width: 100%;
   height: 64px;
@@ -287,7 +299,6 @@
   gap: 10px;
 }
 
-/* Mobile wallet now matches the hamburger button's box style */
 .mobile-wallet {
   display: flex;
   align-items: center;
@@ -369,7 +380,6 @@
   to   { opacity: 1; }
 }
 
-/* Same background/blur as the navbar header itself */
 .mobile-dropdown {
   position: fixed;
   top: 64px;
@@ -450,6 +460,7 @@
   padding: 8px 0;
 }
 
+/* Same rule for mobile: white by default, only icon + text green when active — no filled box */
 .mobile-dropdown-link {
   display: flex;
   align-items: center;
@@ -459,11 +470,11 @@
   font-family: var(--font-primary);
   font-size: 16px;
   font-weight: 500;
-  color: var(--text-secondary, #a0a0a0);
+  color: var(--text-primary, #ffffff);
   background: none;
   border: none;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.15s;
   width: 100%;
   box-sizing: border-box;
   text-align: left;
@@ -471,13 +482,12 @@
 }
 
 .mobile-dropdown-link:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary, #fff);
+  color: var(--green, #16a34a);
 }
 
 .mobile-dropdown-link.active {
   color: var(--green, #16a34a);
-  background: var(--green-dim, rgba(22, 163, 74, 0.12));
+  background: none;
   font-weight: 600;
 }
 
