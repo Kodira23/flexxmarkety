@@ -142,8 +142,11 @@ export default function DashNav({ activePage, onNavigate }) {
             <WalletIcon />
             <span className="wallet-balance">{fmtBalance(balance)}</span>
           </div>
-          <div className="user-avatar">
-            <UserIcon />
+          <div className="user-info">
+            <div className="user-avatar">
+              <UserIcon />
+            </div>
+            <span className="user-name">{username}</span>
           </div>
           <button className="icon-logout-btn" onClick={handleSignOut} aria-label="Sign out">
             <LogoutIcon />
@@ -196,8 +199,6 @@ export default function DashNav({ activePage, onNavigate }) {
                       <span className="mobile-dropdown-email">{email}</span>
                     </div>
                   </div>
-
-                  <div className="mobile-dropdown-divider" />
 
                   <div className="mobile-dropdown-links">
                     {NAV_ITEMS.map(item => (
