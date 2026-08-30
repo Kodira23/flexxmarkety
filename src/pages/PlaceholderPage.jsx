@@ -14,6 +14,69 @@ const botIntervals = {}
 // ── COINS TO EXCLUDE ───────────────────────────────────────────────────
 const EXCLUDED = new Set(['BOME','NOT','IO','ZK','LISTA','EIGEN','HMSTR','CATI','DOGS','MAJOR','NEIRO'])
 
+// ── ICON COMPONENTS (replace emojis) ───────────────────────────────────
+const SearchIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
+
+const TrendUpIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </svg>
+)
+
+const TrendDownIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+    <polyline points="17 18 23 18 23 12" />
+  </svg>
+)
+
+const CandleChartIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="6" y1="3" x2="6" y2="21" />
+    <rect x="3.5" y="9" width="5" height="6" />
+    <line x1="14" y1="3" x2="14" y2="21" />
+    <rect x="11.5" y="6" width="5" height="9" />
+    <line x1="20" y1="3" x2="20" y2="21" />
+    <rect x="17.5" y="11" width="5" height="4" />
+  </svg>
+)
+
+const BookIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+)
+
+const ClipboardIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="8" y="2" width="8" height="4" rx="1" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+  </svg>
+)
+
+const InfoIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="16" x2="12" y2="12" />
+    <line x1="12" y1="8" x2="12.01" y2="8" />
+  </svg>
+)
+
+const TargetIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+)
+
 // ── COIN LOGOS ─────────────────────────────────────────────────────────
 const COIN_LOGOS = {
   BTC:'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',
@@ -152,10 +215,6 @@ const EXTRA_DATA = {
 }
 
 // ── TRADINGVIEW CHART OVERRIDES ──────────────────────────────────────
-// Green candles match the site accent (var(--green) = #16a34a), grid
-// lines switched off so the panel isn't chopped into a box grid, and
-// the right-hand margin is trimmed so the last candle sits closer to
-// centre instead of leaving a big blank gap on the right.
 const TV_CHART_OVERRIDES = encodeURIComponent(JSON.stringify({
   'mainSeriesProperties.candleStyle.upColor': '#16a34a',
   'mainSeriesProperties.candleStyle.borderUpColor': '#16a34a',
@@ -275,12 +334,9 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
     try {
       if (allocatedRef.current === 0) return
 
-      // ── simulate a small price move and drop a blue market comment ──
       priceRef.current = priceRef.current * (1 + (Math.random() - 0.5) * 0.004)
       addLog(randomComment(bot.pair, priceRef.current), '#3b82f6')
 
-      // ── win-rate targeting: keep losses between ~24% and ~27% of
-      //     total trades (i.e. a 73–76% win rate) ──
       const total = winsRef.current + lossesRef.current
       let isLoss = false
       if (total > 0) {
@@ -292,10 +348,9 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
         isLoss = Math.random() < bot.lossChance
       }
 
-      // ── fixed profit/loss bands ──
       const gained = isLoss
-        ? -parseFloat((2.90 + Math.random() * 0.50).toFixed(2))   // -$2.90 to -$3.40
-        : parseFloat((3.40 + Math.random() * 1.00).toFixed(2))     // +$3.40 to +$4.40
+        ? -parseFloat((2.90 + Math.random() * 0.50).toFixed(2))
+        : parseFloat((3.40 + Math.random() * 1.00).toFixed(2))
 
       setPnl(prev => {
         const next = parseFloat((prev + gained).toFixed(2))
@@ -380,7 +435,6 @@ function BotCard({ bot, balance, userId, onStatsChange }) {
     if (!canRun || !configured) return
 
     if (active) {
-      // ── STOP: reset P&L, wins, losses, allocation, config, logs ──
       clearInterval(botIntervals[intervalKey])
       delete botIntervals[intervalKey]
       setActive(false)
@@ -636,11 +690,11 @@ export function MarketsPage({ onNavigate }) {
       <div className="markets-page-wrapper">
         <div className="movers-grid">
           {[
-            { label: '🔥 Top Gainers', list: topGainers, isGain: true },
-            { label: '⚡ Top Losers', list: topLosers, isGain: false }
-          ].map(({ label, list, isGain }) => (
-            <div key={label} className="movers-card">
-              <div className="movers-title">{label}</div>
+            { key: 'gainers', label: 'Top Gainers', icon: <TrendUpIcon />, list: topGainers, isGain: true },
+            { key: 'losers', label: 'Top Losers', icon: <TrendDownIcon />, list: topLosers, isGain: false }
+          ].map(({ key, label, icon, list, isGain }) => (
+            <div key={key} className="movers-card">
+              <div className="movers-title">{icon} {label}</div>
               {list.map(p => {
                 const base = p.symbol.split('/')[0]
                 return (
@@ -675,7 +729,7 @@ export function MarketsPage({ onNavigate }) {
             ))}
           </div>
           <div className="markets-search">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><SearchIcon /></span>
             <input
               type="text" placeholder="Search markets..."
               value={search} onChange={e => setSearch(e.target.value)}
@@ -808,7 +862,6 @@ export function SpotPage() {
 
   const handleSideClick = s => {
     if (side === s && orderOpen) {
-      // same button pressed again → collapse
       setOrderOpen(false)
     } else {
       setSide(s)
@@ -846,7 +899,7 @@ export function SpotPage() {
         <div className="spot-mobile-tabs">
           {['chart', 'book'].map(t => (
             <button key={t} className={`spot-mobile-tab ${mobileTab === t ? 'active' : ''}`} onClick={() => setMobileTab(t)}>
-              {t === 'chart' ? '📈 Chart' : '📒 Book'}
+              {t === 'chart' ? <><CandleChartIcon /> Chart</> : <><BookIcon /> Book</>}
             </button>
           ))}
         </div>
@@ -923,7 +976,7 @@ export function SpotPage() {
                 </div>
                 <div className="trade-info-row"><span>Fee (0.1%)</span><span>${total ? (parseFloat(total) * 0.001).toFixed(4) : '0.0000'}</span></div>
                 <div className="trade-info-row avail">
-                  <span>📋 Available (USDT)</span>
+                  <span><ClipboardIcon /> Available (USDT)</span>
                   <span className="avail-val">{Number(balance || 0).toFixed(0)} USDT</span>
                 </div>
               </>
@@ -949,7 +1002,7 @@ export function SpotPage() {
 }
 
 export function FuturesPage() {
-  return <PlaceholderPage title="Futures Trading" icon="🔮" description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
+  return <PlaceholderPage title="Futures Trading" icon={<TargetIcon />} description="Trade perpetual futures with up to 100x leverage. Advanced margin controls and liquidation protection. Coming soon." />
 }
 
 // ── BOTS PAGE (one‑page, no detail navigation) ──────────────────────
@@ -1024,7 +1077,7 @@ export function BotsPage() {
             ))}
           </div>
           <p className="bots-disclaimer">
-            ⓘ Automated bots trade based on your configuration and market conditions. Past performance
+            <InfoIcon /> Automated bots trade based on your configuration and market conditions. Past performance
             does not guarantee future results. Only allocate funds you can afford to have at risk.
           </p>
         </div>
