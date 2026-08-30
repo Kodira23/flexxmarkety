@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase';
 import './ChatWidget.css';
 
 const ChatIcon = () => (
@@ -22,20 +23,126 @@ const SendIcon = () => (
   </svg>
 );
 
-const INITIAL_MESSAGE = {
-  id: 'init',
-  from: 'bot',
-  text: "Hi! 👋 How can we help you today?",
-  time: new Date(),
-};
-
 export default function ChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const [chatId, setChatId] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const scrollRef = useRef(null);
+  const channelRef = useRef(null);
+
+  const fmtTime = (d) =>
+    new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // ── Find or create this user's chat row ─────────────────────────────
+  const getOrCreateChat = useCallback(async () => {
+    if (!user) return null;
+
+    const { data: existing, error: findErr } = await supabase
+      .from('chats')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findErr) {
+      console.error('Error finding chat:', findErr.message);
+      setError('Could not load chat.');
+      return null;
+    }
+
+    if (existing) return existing;
+
+    const { data: created, error: createErr } = await supabase
+      .from('chats')
+      .insert({
+        user_id: user.id,
+        user_email: user.email,
+        user_name: user.user_metadata?.full_name || null,
+        last_message: null,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (createErr) {
+      console.error('Error creating chat:', createErr.message);
+      setError('Could not start chat.');
+      return null;
+    }
+
+    return created;
+  }, [user]);
+
+  // ── Load chat + messages when the panel opens (or user changes) ────
+  useEffect(() => {
+    if (!open || !user) return;
+
+    let isMounted = true;
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      const chat = await getOrCreateChat();
+      if (!isMounted) return;
+
+      if (!chat) {
+        setLoading(false);
+        return;
+      }
+
+      setChatId(chat.id);
+
+      const { data: msgs, error: msgErr } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chat.id)
+        .order('created_at', { ascending: true });
+
+      if (!isMounted) return;
+
+      if (msgErr) {
+        console.error('Error loading messages:', msgErr.message);
+        setError('Could not load messages.');
+      } else {
+        setMessages(msgs || []);
+      }
+      setLoading(false);
+    })();
+
+    return () => { isMounted = false; };
+  }, [open, user, getOrCreateChat]);
+
+  // ── Realtime subscription for new messages (e.g. admin replies) ────
+  useEffect(() => {
+    if (!chatId) return;
+
+    const channel = supabase
+      .channel(`widget-chat-${chatId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` },
+        (payload) => {
+          setMessages(prev => {
+            if (prev.some(m => m.id === payload.new.id)) return prev;
+            return [...prev, payload.new];
+          });
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [chatId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,31 +150,51 @@ export default function ChatWidget() {
     }
   }, [messages, open]);
 
-  const fmtTime = (d) =>
-    d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-  function handleSend() {
+  // ── Send a message to the admin panel ───────────────────────────────
+  async function handleSend() {
     const text = input.trim();
-    if (!text || sending) return;
+    if (!text || sending || !user) return;
 
-    const userMsg = { id: Date.now(), from: 'user', text, time: new Date() };
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    let activeChatId = chatId;
+    if (!activeChatId) {
+      const chat = await getOrCreateChat();
+      if (!chat) return;
+      activeChatId = chat.id;
+      setChatId(chat.id);
+    }
+
     setSending(true);
+    setInput('');
+    setError(null);
 
-    // TODO: replace with a real API call to your support/AI backend.
-    setTimeout(() => {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          from: 'bot',
-          text: "Thanks for your message — our team will get back to you shortly.",
-          time: new Date(),
-        },
-      ]);
+    const { data: inserted, error: sendErr } = await supabase
+      .from('messages')
+      .insert({
+        chat_id: activeChatId,
+        text,
+        role: 'user',
+        seen_by_user: true,
+      })
+      .select()
+      .single();
+
+    if (sendErr) {
+      console.error('Error sending message:', sendErr.message);
+      setError('Message failed to send.');
+      setInput(text); // restore so they don't lose it
       setSending(false);
-    }, 900);
+      return;
+    }
+
+    // Add locally in case the realtime event is slow/misses (dedup handles overlap)
+    setMessages(prev => (prev.some(m => m.id === inserted.id) ? prev : [...prev, inserted]));
+
+    await supabase
+      .from('chats')
+      .update({ last_message: text, updated_at: new Date().toISOString() })
+      .eq('id', activeChatId);
+
+    setSending(false);
   }
 
   function handleKeyDown(e) {
@@ -76,6 +203,8 @@ export default function ChatWidget() {
       handleSend();
     }
   }
+
+  const showEmptyState = !loading && !error && messages.length === 0;
 
   return (
     <div className="chat-widget-root">
@@ -92,23 +221,34 @@ export default function ChatWidget() {
           </div>
 
           <div className="chat-panel-body" ref={scrollRef}>
-            {messages.map(m => (
-              <div key={m.id} className={`chat-bubble-row ${m.from}`}>
-                <div className={`chat-bubble ${m.from}`}>
-                  {m.text}
-                  <span className="chat-bubble-time">{fmtTime(m.time)}</span>
-                </div>
-              </div>
-            ))}
-            {sending && (
+            {loading && (
               <div className="chat-bubble-row bot">
-                <div className="chat-bubble bot chat-typing">
-                  <span className="dot" />
-                  <span className="dot" />
-                  <span className="dot" />
+                <div className="chat-bubble bot">Loading…</div>
+              </div>
+            )}
+
+            {error && (
+              <div className="chat-bubble-row bot">
+                <div className="chat-bubble bot" style={{ color: '#ff4d6a' }}>{error}</div>
+              </div>
+            )}
+
+            {showEmptyState && (
+              <div className="chat-bubble-row bot">
+                <div className="chat-bubble bot">
+                  Hi! 👋 Send us a message and our team will get back to you.
                 </div>
               </div>
             )}
+
+            {messages.map(m => (
+              <div key={m.id} className={`chat-bubble-row ${m.role === 'agent' ? 'bot' : 'user'}`}>
+                <div className={`chat-bubble ${m.role === 'agent' ? 'bot' : 'user'}`}>
+                  {m.text}
+                  <span className="chat-bubble-time">{fmtTime(m.created_at)}</span>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="chat-panel-input-row">
@@ -119,7 +259,7 @@ export default function ChatWidget() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={!user}
+              disabled={!user || sending}
             />
             <button
               className="chat-send-btn"
