@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import ChatWidget from './components/ChatWidget';
 import DashNav from './components/DashNav';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
@@ -18,12 +19,13 @@ function HomeOrDashboard() {
   return <Home />;
 }
 
-// Layout – only header, no footer
+// Layout – header + page content + footer, consistent on every protected page
 function DashLayout({ children, activePage, onNavigate }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <DashNav activePage={activePage} onNavigate={onNavigate} />
       <main style={{ flex: 1 }}>{children}</main>
+      <Footer />
     </div>
   );
 }
@@ -75,7 +77,6 @@ function ProtectedPages() {
 function AppRoutes() {
   const location = useLocation();
   const isAdmin = location.pathname === '/admin';
-
   return (
     <>
       <Routes>
