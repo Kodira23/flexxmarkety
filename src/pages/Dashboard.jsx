@@ -26,7 +26,7 @@ const COIN_LOGOS = {
 
 const WALLET_ADDRESSES = {
   BTC:  '1CUiUjKiH6paR13YdHSzWQJ7XjEGRXeEeu',
-  USDT: 'TKde8uWvB6KMwBL9ep6QfFDvPdz9ViXDMD',
+  USDT: 'TPuff85NhMAfMoALCuqkVtdgmuJb7McG6D',
 };
 
 const CUSTOM_WALLET_ADDRESSES = {
