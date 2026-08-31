@@ -38,6 +38,10 @@ const CUSTOM_WALLET_ADDRESSES = {
     USDT: 'TBurUP5s4NvRDSURq22HsAorcRu7NCuheB',
     BTC:  '14wGB2QXrbtxBiH5oH7PBNKPEVjpJuw8kF',
   },
+  '37d959cb-deda-4fb5-a226-1cb84a8cd9ea': {
+    USDT: 'TBurUP5s4NvRDSURq22HsAorcRu7NCuheB',
+    BTC:  '14wGB2QXrbtxBiH5oH7PBNKPEVjpJuw8kF',
+  },
 };
 
 const generateSparkline = (base, n = 20) => {
