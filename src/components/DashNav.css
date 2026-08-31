@@ -80,7 +80,7 @@
 }
 
 .logo-top {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 18px;
   font-weight: 800;
   color: #22c55e;
@@ -88,7 +88,7 @@
 }
 
 .logo-bottom {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 10px;
   font-weight: 700;
   color: var(--text-secondary, #a0a0a0);
@@ -115,7 +115,7 @@
   border-radius: 10px;
   text-decoration: none;
   color: var(--text-primary, #ffffff);
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 14px;
   font-weight: 500;
   transition: color 0.15s;
@@ -167,7 +167,7 @@
 }
 
 .wallet-balance {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -193,7 +193,7 @@
 }
 
 .user-name {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary, #ffffff);
@@ -290,7 +290,7 @@
 }
 
 .mobile-logo-top {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 16px;
   font-weight: 800;
   color: #22c55e;
@@ -298,7 +298,7 @@
 }
 
 .mobile-logo-bottom {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 9px;
   font-weight: 700;
   color: var(--text-secondary, #a0a0a0);
@@ -452,14 +452,14 @@
 }
 
 .mobile-dropdown-username {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary, #fff);
 }
 
 .mobile-dropdown-email {
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 13px;
   color: var(--text-secondary, #a0a0a0);
   white-space: nowrap;
@@ -481,7 +481,7 @@
   gap: 16px;
   padding: 14px 16px;
   border-radius: 12px;
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 16px;
   font-weight: 500;
   color: var(--text-primary, #ffffff);
@@ -533,7 +533,7 @@
   padding: 14px 16px;
   margin-top: 8px;
   border-radius: 12px;
-  font-family: var(--font-primary);
+  font-family: var(--font-primary, 'Inter', sans-serif);
   font-size: 16px;
   font-weight: 600;
   color: #ff4d6a;
