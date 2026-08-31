@@ -18,6 +18,12 @@
   left: 0;
   right: 0;
   z-index: 1000;
+  /* Same GPU-layer fix as .mobile-header below, applied here too for
+     consistency across any WebKit-based desktop/tablet browser. */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 @media (min-width: 768px) {
@@ -236,6 +242,14 @@
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
+  /* iOS Safari can drop position:fixed elements from their compositing
+     layer during momentum-scroll when backdrop-filter is also applied,
+     causing the header to flicker or briefly vanish mid-scroll. Forcing
+     its own GPU layer keeps it reliably pinned in place. */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 @media (min-width: 768px) {
