@@ -18,7 +18,7 @@
   --text-muted: #4a5568;
   --accent: #3d7fff;
   --accent-glow: #3d7fff33;
-  --font-primary: 'Syne', sans-serif;
+  --font-primary: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 html { scroll-behavior: smooth; }
