@@ -1,3 +1,9 @@
+/* ── CSS Variables (matched from placeholder.css) ── */
+:root {
+  --panel-bg: #15171c;
+  --panel-bg-soft: #101217;
+}
+
 /* ── LAYOUT ── */
 .dash-layout  { display: flex; flex-direction: column; min-height: 100vh; font-family: var(--font-primary); }
 .dash-main    { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -165,9 +171,6 @@
 }
 .subpage-sub { color: var(--text-secondary); font-size: 15px; font-family: var(--font-primary); line-height: 1.6; }
 
-/* Fund container — widened slightly, still centered; outer card
-   background/border removed so tabs, coin buttons, and the wallet
-   box sit directly on the page instead of inside a bordered panel. */
 .fund-container {
   border: none;
   background: none;
@@ -303,7 +306,6 @@
   padding: 16px 20px;
   transition: border-color 0.2s;
 }
-/* Status-based left border accent */
 .pending-item--pending  { border-left: 3px solid #f59e0b; }
 .pending-item--approved { border-left: 3px solid var(--green); }
 .pending-item--rejected { border-left: 3px solid var(--red); }
@@ -333,12 +335,7 @@
 }
 .status-note--rejected { color: var(--text-muted); }
 
-/* ── OUTER CARD BACKGROUND OVERRIDE ──
-   Forces the Watchlist / Your Crypto outer wrapper (a shared .card
-   class defined outside Dashboard.css, likely on var(--bg-card))
-   to match .portfolio-card's var(--panel-bg) instead. If this
-   selector doesn't hit, the class isn't literally ".card" — inspect
-   the element to find the real name and swap it in below. */
+/* ── OUTER CARD BACKGROUND OVERRIDE ── */
 .dash-grid-2 > .card {
   background: var(--panel-bg) !important;
 }
