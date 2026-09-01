@@ -128,7 +128,7 @@ export default function Home() {
         <div className="hero-content">
           
           <h1 className="hero-headline animate-fade-up delay-1">
-            <span className="headline-primary">Build Your Portfolio</span>{' '}
+            <span className="headline-primary">Build Your Trading Portfolio</span>{' '}
             <span className="headline-accent">Smarter</span>
           </h1>
           <p className="hero-sub animate-fade-up delay-2">
