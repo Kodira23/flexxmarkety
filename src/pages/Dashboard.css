@@ -262,40 +262,55 @@
 .msg-error   { background: #ff4d6a18; border: 1px solid #ff4d6a55; color: #ff4d6a; }
 .msg-success { background: #16a34a18; border: 1px solid #16a34a55; color: #16a34a; }
 
-/* ── BALANCE CARD (withdraw) ── */
+/* ── BALANCE CARD (withdraw) — compact ── */
 .balance-card {
   background: linear-gradient(135deg, #3949ab 0%, #1a237e 100%);
-  border-radius: 14px; padding: 32px; text-align: center;
+  border-radius: 14px; padding: 18px 24px; text-align: center;
   max-width: 640px; margin: 0 auto; width: 100%; box-sizing: border-box;
 }
-.balance-amount { font-size: 40px; font-weight: 700; color: #fff; letter-spacing: -1px; margin-bottom: 6px; font-family: var(--font-primary); }
-.balance-label  { font-size: 14px; color: rgba(255,255,255,0.7); font-family: var(--font-primary); }
+.balance-amount { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 2px; font-family: var(--font-primary); }
+.balance-label  { font-size: 13px; color: rgba(255,255,255,0.7); font-family: var(--font-primary); }
 
-/* Withdraw submit */
+/* Tighter spacing for the withdraw form (only applies on the withdraw
+   page, since .balance-card only exists there) */
+.balance-card ~ .fund-container { gap: 14px; }
+.balance-card ~ .fund-container .fund-tab { padding: 9px; }
+.balance-card ~ .fund-container .coin-grid.three { gap: 8px; }
+.balance-card ~ .fund-container .coin-btn {
+  flex-direction: row; justify-content: center;
+  gap: 8px; padding: 10px 8px; font-size: 13px;
+}
+.balance-card ~ .fund-container .coin-icon {
+  width: 30px; height: 30px; border-radius: 8px; font-size: 15px;
+}
+.balance-card ~ .fund-container .fund-field { gap: 6px; }
+.balance-card ~ .fund-container .fund-input { padding: 11px 14px; }
+
+/* Withdraw submit — green */
 .withdraw-submit {
-  width: 100%; padding: 15px;
-  background: var(--panel-bg-soft); border: 1px solid var(--border);
-  color: var(--text-primary); border-radius: 10px;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  width: 100%; padding: 12px;
+  background: var(--green); border: none;
+  color: #000; border-radius: 10px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: opacity 0.2s;
   font-family: var(--font-primary);
 }
-.withdraw-submit:not(:disabled):hover { border-color: var(--green); color: var(--green); }
+.withdraw-submit:not(:disabled):hover { opacity: 0.85; }
 .withdraw-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ── WITHDRAWAL HISTORY ── */
-.pending-section { display: flex; flex-direction: column; gap: 16px; }
+.pending-section { display: flex; flex-direction: column; gap: 12px; }
 .pending-title   {
-  font-family: var(--font-primary); font-size: 22px;
+  font-family: var(--font-primary); font-size: 18px;
   font-weight: 800; text-align: center;
   letter-spacing: -0.5px;
 }
 .pending-empty   {
   display: flex; flex-direction: column; align-items: center;
-  padding: 48px 24px; gap: 12px; text-align: center;
+  padding: 22px 24px; gap: 6px; text-align: center;
   background: var(--panel-bg) !important;
 }
-.pending-empty span { font-size: 36px; }
+.pending-empty span { font-size: 28px; }
 .pending-empty p    { font-size: 14px; color: var(--text-secondary); font-family: var(--font-primary); }
 
 .pending-list { display: flex; flex-direction: column; gap: 10px; }
@@ -325,9 +340,9 @@
   font-family: var(--font-primary); letter-spacing: 0.5px;
   text-transform: uppercase; white-space: nowrap;
 }
-.status-pending  { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b55; }
-.status-approved { background: #16a34a22; color: #16a34a; border: 1px solid #16a34a55; }
-.status-rejected { background: #ff4d6a22; color: #ff4d6a; border: 1px solid #ff4d6a55; }
+.status-pending,  .status-badge.pending  { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b55; }
+.status-approved, .status-badge.approved { background: #16a34a22; color: #16a34a; border: 1px solid #16a34a55; }
+.status-rejected, .status-badge.rejected { background: #ff4d6a22; color: #ff4d6a; border: 1px solid #ff4d6a55; }
 
 .status-note {
   font-size: 10px; color: var(--green);
