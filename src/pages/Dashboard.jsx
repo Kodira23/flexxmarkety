@@ -291,6 +291,8 @@ function DepositPage({ onBack }) {
 }
 
 // ── WITHDRAW PAGE ────────────────────────────────────────────────────
+const MIN_WITHDRAWAL = 1000;
+
 const WITHDRAW_COINS = [
   { id: 'BTC',  label: 'Bitcoin',  icon: '₿', bg: '#f7931a' },
   { id: 'USDT', label: 'USDT',     icon: '₮', bg: '#26a17b' },
@@ -302,6 +304,62 @@ const WITHDRAW_PLACEHOLDERS = {
   ETH:  '0x742d35Cc6634C0532925a3b8D4C9E2C4e8b1A2c3',
 };
 
+function MinWithdrawalPopup({ onClose }) {
+  useEffect(() => {
+    const onKey = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-card, #fff)',
+          color: 'var(--text, inherit)',
+          border: '1px solid var(--border, #e5e7eb)',
+          borderRadius: 14,
+          padding: '28px 24px 22px',
+          width: '100%', maxWidth: 360,
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+        }}
+      >
+        <div style={{
+          width: 52, height: 52, borderRadius: '50%',
+          background: '#f59e0b22', color: '#f59e0b',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 26, margin: '0 auto 14px',
+        }}>⚠️</div>
+        <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Minimum Withdrawal</h3>
+        <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: 1.5, opacity: 0.8 }}>
+          The minimum withdrawal amount is{' '}
+          <strong>${MIN_WITHDRAWAL.toLocaleString()}</strong>. Please enter an amount of
+          ${MIN_WITHDRAWAL.toLocaleString()} or more to continue.
+        </p>
+        <button
+          className="btn-primary"
+          onClick={onClose}
+          style={{ width: '100%' }}
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function WithdrawPage({ onBack, balance }) {
   const { user } = useAuth();
   const [coin,       setCoin]       = useState('BTC');
@@ -311,6 +369,7 @@ function WithdrawPage({ onBack, balance }) {
   const [submitted,  setSubmitted]  = useState(false);
   const [error,      setError]      = useState(null);
   const [pending,    setPending]    = useState([]);
+  const [showMinPopup, setShowMinPopup] = useState(false);
   const channelRef = useRef(null);
 
   useEffect(() => {
@@ -355,6 +414,7 @@ function WithdrawPage({ onBack, balance }) {
   async function handleWithdraw() {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0)  { setError('Enter a valid amount.'); return; }
+    if (amt < MIN_WITHDRAWAL) { setError(null); setShowMinPopup(true); return; }
     if (amt > balance)     { setError('Amount exceeds your available balance.'); return; }
     if (!addr.trim())      { setError('Enter a wallet address.'); return; }
     setError(null); setSubmitting(true);
@@ -373,6 +433,8 @@ function WithdrawPage({ onBack, balance }) {
 
   return (
     <div className="subpage">
+      {showMinPopup && <MinWithdrawalPopup onClose={() => setShowMinPopup(false)} />}
+
       <div className="subpage-header">
         <h1 className="subpage-title">Withdraw Funds</h1>
         <p className="subpage-sub">Choose your preferred withdrawal method below</p>
@@ -393,7 +455,7 @@ function WithdrawPage({ onBack, balance }) {
         </div>
         <div className="fund-field">
           <label>Amount (USD)</label>
-          <input className="fund-input" type="number" placeholder="100" value={amount}
+          <input className="fund-input" type="number" placeholder="1000" value={amount}
             onChange={e => { setAmount(e.target.value); setError(null); }} />
         </div>
         <div className="fund-field">
