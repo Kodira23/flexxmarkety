@@ -216,6 +216,16 @@
   font-size: 22px; font-weight: 800; color: #fff;
 }
 
+/* Compact coin buttons — Withdraw page only (.coin-grid.three) */
+.coin-grid.three { gap: 8px; }
+.coin-grid.three .coin-btn {
+  flex-direction: row; justify-content: center;
+  gap: 8px; padding: 10px 8px; font-size: 13px;
+}
+.coin-grid.three .coin-icon {
+  width: 30px; height: 30px; border-radius: 8px; font-size: 15px;
+}
+
 /* Fields */
 .fund-field { display: flex; flex-direction: column; gap: 8px; }
 .fund-field label { font-size: 13px; font-weight: 600; color: var(--text-secondary); font-family: var(--font-primary); }
@@ -271,35 +281,34 @@
 .balance-amount { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: -0.5px; margin-bottom: 2px; font-family: var(--font-primary); }
 .balance-label  { font-size: 13px; color: rgba(255,255,255,0.7); font-family: var(--font-primary); }
 
-/* Tighter spacing for the withdraw form (only applies on the withdraw
-   page, since .balance-card only exists there) */
+/* Tighter spacing for the withdraw form */
 .balance-card ~ .fund-container { gap: 14px; }
-.balance-card ~ .fund-container .fund-tab { padding: 9px; }
-.balance-card ~ .fund-container .coin-grid.three { gap: 8px; }
-.balance-card ~ .fund-container .coin-btn {
-  flex-direction: row; justify-content: center;
-  gap: 8px; padding: 10px 8px; font-size: 13px;
-}
-.balance-card ~ .fund-container .coin-icon {
-  width: 30px; height: 30px; border-radius: 8px; font-size: 15px;
-}
+.balance-card ~ .fund-container .fund-tab   { padding: 9px; }
 .balance-card ~ .fund-container .fund-field { gap: 6px; }
 .balance-card ~ .fund-container .fund-input { padding: 11px 14px; }
 
-/* Withdraw submit — green */
-.withdraw-submit {
+/* Withdraw submit — green (also stays green when disabled, just dimmed) */
+.fund-container .withdraw-submit {
   width: 100%; padding: 12px;
-  background: var(--green); border: none;
+  background: var(--green, #16a34a); border: none;
   color: #000; border-radius: 10px;
   font-size: 15px; font-weight: 700; cursor: pointer;
   transition: opacity 0.2s;
   font-family: var(--font-primary);
 }
-.withdraw-submit:not(:disabled):hover { opacity: 0.85; }
-.withdraw-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+.fund-container .withdraw-submit:not(:disabled):hover { opacity: 0.85; }
+.fund-container .withdraw-submit:disabled {
+  background: var(--green, #16a34a);
+  color: #000;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 /* ── WITHDRAWAL HISTORY ── */
-.pending-section { display: flex; flex-direction: column; gap: 12px; }
+.pending-section {
+  display: flex; flex-direction: column; gap: 12px;
+  max-width: 640px; margin: 0 auto; width: 100%;
+}
 .pending-title   {
   font-family: var(--font-primary); font-size: 18px;
   font-weight: 800; text-align: center;
